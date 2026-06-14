@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfCachedConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CachedConfiguration>
+    <Name>AccountCached</Name>
+    <WriteServerConStr>r-bp1zzcun8divim8f5epd.redis.rds.aliyuncs.com:6379,password=xdccy@518</WriteServerConStr>
+    <ReadServerConStr>r-bp1zzcun8divim8f5epd.redis.rds.aliyuncs.com:6379,password=xdccy@518</ReadServerConStr>
+    <MaxWritePoolSize>60</MaxWritePoolSize>
+    <MaxReadPoolSize>60</MaxReadPoolSize>
+    <DbNum>1</DbNum>
+    <abortConnect>fasle</abortConnect>
+    <AutoStart>true</AutoStart>
+    <LocalCacheTime>180</LocalCacheTime>
+    <RecordeLog>false</RecordeLog>
+  </CachedConfiguration>
+  
+</ArrayOfCachedConfiguration>
