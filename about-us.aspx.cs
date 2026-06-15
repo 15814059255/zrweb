@@ -12,6 +12,7 @@ public partial class about_us : Page
     protected string CompanyAddress = "深圳市福田区华强北电子商务产业带";
     protected string ServiceEmail = "service@ZR.net.cn";
 
+
     protected void Page_Load(object sender, EventArgs e)
     {
     }
