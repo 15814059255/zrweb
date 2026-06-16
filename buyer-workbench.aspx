@@ -19,10 +19,11 @@
                 <div><h1>我是采购</h1></div>
                 <div class="actions"><a class="btn back" href="buyer-workbench.aspx" data-back>返回采购</a></div>
             </header>
-            <div class="grid cols-3 buyer-stats" data-db-name="zr_platform" data-current-member-id="member_10031">
+            <div class="grid cols-4 buyer-stats" data-db-name="zr_platform" data-current-member-id="member_10031">
                 <button class="stat stat-action" type="button" data-demand-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status=在线"><strong><%= OnlineDemandCount %></strong><span>在线需求</span><small>查看当前发布 ›</small></button>
                 <a class="stat stat-link quote-stat-link" href="received-quotes.aspx" data-db-source="quotes" data-db-metric="COUNT(*) WHERE buyer_id=:current_member"><div><strong><%= QuoteCount %></strong><span>收到报价</span></div><em>新报价 <%= NewQuoteCount %></em><small>查看报价 ›</small></a>
                 <button class="stat stat-action" type="button" data-expired-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status IN (已下架,已过期)"><strong><%= ExpiredCount %></strong><span>到期数据</span><small>查看已下架 ›</small></button>
+                <a class="stat stat-link" href="my-inquiries.aspx"><strong><%= MyInquiryCount %></strong><span>我的询价</span><small>查看询价 ›</small></a>
             </div>
             <section class="panel site-ad-panel workbench-ad-panel" hidden>
                 <a class="search-ad-card" href="received-quotes.html" data-ad-slot="BW-S01"><b>白银广告 BW-S01</b><span>采购工作台轻提示位，适合报价服务、会员权益和工具提醒。</span></a>
@@ -249,6 +250,62 @@
                     .finally(() => {
                         this.disabled = false;
                         this.textContent = '重新上架';
+                    });
+                });
+            });
+
+            // 含税切换按钮点击
+            document.querySelectorAll('.tax-switch[data-tax-toggle]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var goodsId = this.closest('tr').getAttribute('data-goods-id');
+                    if (!goodsId) return;
+
+                    var isOn = this.classList.toggle('is-on');
+                    this.setAttribute('aria-pressed', isOn);
+                    
+                    var priceField = this.parentElement.previousElementSibling;
+                    if (priceField && priceField.classList.contains('price-field')) {
+                        if (isOn) {
+                            priceField.classList.remove('is-untaxed');
+                            priceField.classList.add('is-taxed');
+                            priceField.querySelector('span').textContent = '含税';
+                        } else {
+                            priceField.classList.remove('is-taxed');
+                            priceField.classList.add('is-untaxed');
+                            priceField.querySelector('span').textContent = '未税';
+                        }
+                    }
+
+                    var formData = new FormData();
+                    formData.append('action', 'toggle_tax');
+                    formData.append('goodsId', goodsId);
+
+                    fetch('buyer-workbench.aspx', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert('税赋状态更新失败：' + data.message);
+                            this.classList.toggle('is-on');
+                            this.setAttribute('aria-pressed', !isOn);
+                            if (priceField && priceField.classList.contains('price-field')) {
+                                priceField.classList.toggle('is-taxed');
+                                priceField.classList.toggle('is-untaxed');
+                                priceField.querySelector('span').textContent = isOn ? '未税' : '含税';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        alert('税赋状态更新异常：' + error);
+                        this.classList.toggle('is-on');
+                        this.setAttribute('aria-pressed', !isOn);
+                        if (priceField && priceField.classList.contains('price-field')) {
+                            priceField.classList.toggle('is-taxed');
+                            priceField.classList.toggle('is-untaxed');
+                            priceField.querySelector('span').textContent = isOn ? '未税' : '含税';
+                        }
                     });
                 });
             });

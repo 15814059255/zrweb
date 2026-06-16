@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading;
 
 public partial class received_inquiries : System.Web.UI.Page
 {
@@ -12,6 +13,16 @@ public partial class received_inquiries : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (Request.HttpMethod == "POST")
+        {
+            string action = Request["action"];
+            if (action == "submit_quote")
+            {
+                HandleSubmitQuote();
+                return;
+            }
+        }
+
         BindInquiries();
     }
 
@@ -116,6 +127,105 @@ public partial class received_inquiries : System.Web.UI.Page
         }
     }
 
+    private void HandleSubmitQuote()
+    {
+        try
+        {
+            int eqId = 0;
+            int.TryParse(Request["eqId"], out eqId);
+            decimal quotePrice = 0;
+            decimal.TryParse(Request["quotePrice"], out quotePrice);
+            int quoteQuantity = 0;
+            int.TryParse(Request["quoteQuantity"], out quoteQuantity);
+            string quoteUnit = Request["quoteUnit"] ?? "Kpcs";
+            int isIncludingTax = 0;
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+            string quoteRemarks = CleanInputString(Request["quoteRemarks"] ?? "");
+
+            if (eqId <= 0)
+            {
+                WriteJsonResponse(false, "无效的询价ID");
+                return;
+            }
+
+            if (quotePrice <= 0)
+            {
+                WriteJsonResponse(false, "请输入有效的报价金额");
+                return;
+            }
+
+            if (quoteQuantity <= 0)
+            {
+                WriteJsonResponse(false, "请输入有效的供货数量");
+                return;
+            }
+
+            int userId = UserHelper.GetUserId();
+            if (userId == 0)
+            {
+                WriteJsonResponse(false, "请先登录");
+                return;
+            }
+
+            int shopId = 0;
+            if (Session["ShopId"] != null)
+            {
+                int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+
+            if (shopId == 0)
+            {
+                WriteJsonResponse(false, "无法获取店铺信息");
+                return;
+            }
+
+            string sql = @"UPDATE enquiryquoteprice 
+                SET toPrice = @toPrice, toQuantity = @toQuantity, 
+                    isIncludingTax = @isIncludingTax, toRemarks = @toRemarks, 
+                    eqType = 2, readStatus = 1, updateTime = GETDATE()
+                WHERE eqId = @eqId AND toShopId = @shopId AND eqType = 1";
+
+            int result = DbHelper.ExecuteNonQuery(sql,
+                DbHelper.CreateParameter("@eqId", eqId),
+                DbHelper.CreateParameter("@toPrice", quotePrice),
+                DbHelper.CreateParameter("@toQuantity", quoteQuantity),
+                DbHelper.CreateParameter("@isIncludingTax", isIncludingTax),
+                DbHelper.CreateParameter("@toRemarks", quoteRemarks),
+                DbHelper.CreateParameter("@shopId", shopId));
+
+            if (result > 0)
+            {
+                WriteJsonResponse(true, "报价成功");
+            }
+            else
+            {
+                WriteJsonResponse(false, "报价失败");
+            }
+        }
+        catch (ThreadAbortException)
+        {
+            // 忽略 ThreadAbortException
+        }
+        catch (Exception ex)
+        {
+            WriteJsonResponse(false, "报价异常: " + ex.Message);
+        }
+    }
+
+    private void WriteJsonResponse(bool success, string message)
+    {
+        string cleanMessage = CleanJsonString(message);
+        string json = string.Format("{{\"success\":{0},\"message\":\"{1}\"}}", 
+            success ? "true" : "false", 
+            cleanMessage);
+        
+        Response.Clear();
+        Response.ContentType = "application/json";
+        Response.Charset = "utf-8";
+        Response.Write(json);
+        Response.End();
+    }
+
     private int GetIntValue(object value, int defaultValue)
     {
         if (value == DBNull.Value || value == null)
@@ -135,5 +245,31 @@ public partial class received_inquiries : System.Web.UI.Page
         if (value == DBNull.Value || value == null)
             return "";
         return value.ToString();
+    }
+
+    private string CleanJsonString(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        
+        input = input.Replace("\\", "\\\\")
+                     .Replace("\"", "\\\"")
+                     .Replace("\r", "\\r")
+                     .Replace("\n", "\\n")
+                     .Replace("\t", "\\t")
+                     .Replace("\0", "\\0");
+        
+        input = System.Text.RegularExpressions.Regex.Replace(input, @"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", 
+            match => "\\u" + ((int)match.Value[0]).ToString("X4"));
+        
+        return input;
+    }
+
+    private string CleanInputString(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        
+        return System.Text.RegularExpressions.Regex.Replace(input, @"[\x00-\x1F\x7F]", "");
     }
 }

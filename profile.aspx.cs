@@ -123,10 +123,7 @@ public partial class profile : System.Web.UI.Page
             int userId = UserHelper.GetUserId();
             if (userId == 0)
             {
-                Response.Clear();
-                Response.ContentType = "application/json";
-                Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
-                Response.End();
+                WriteJsonResponse(false, "请先登录");
                 return;
             }
 
@@ -169,17 +166,15 @@ public partial class profile : System.Web.UI.Page
                 }
             }
 
-            Response.Clear();
-            Response.ContentType = "application/json";
-            Response.Write(success ? "{\"success\":true,\"message\":\"保存成功\"}" : "{\"success\":false,\"message\":\"保存失败\"}");
-            Response.End();
+            WriteJsonResponse(success, success ? "保存成功" : "保存失败");
+        }
+        catch (ThreadAbortException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            Response.Clear();
-            Response.ContentType = "application/json";
-            Response.Write("{\"success\":false,\"message\":\"保存异常: " + ex.Message.Replace("\"", "\\\"") + "\"}");
-            Response.End();
+            WriteJsonResponse(false, "保存异常: " + ex.Message);
         }
     }
 

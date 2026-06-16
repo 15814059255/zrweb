@@ -14,16 +14,8 @@ public partial class UserControls_head : UserControl
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        // 检查登录状态
-        IsLoggedIn = Session["UserID"] != null;
-        if (Session["UserName"] != null)
-        {
-            CurrentUserName = Session["UserName"].ToString();
-        }
-        else
-        {
-            CurrentUserName = "";
-        }
+        IsLoggedIn = UserHelper.GetUserId() > 0;
+        CurrentUserName = UserHelper.GetUserName();
 
         // 获取当前页面名称用于导航高亮
         string path = Request.Path.ToLower();

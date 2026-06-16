@@ -49,5 +49,139 @@
         </main>
     </div>
     <uc1:bottom runat="server" ID="bottom" />
+    <div class="modal-backdrop" id="quoteModal" hidden>
+        <div class="modal quote-form-modal" role="dialog" aria-modal="true" aria-label="报价">
+            <div class="modal-head"><h2>报价</h2><button class="modal-close" type="button" data-quote-close aria-label="关闭">×</button></div>
+            <div class="modal-body">
+                <form class="quote-form" id="quoteForm">
+                    <input type="hidden" name="eqId" id="quoteEqId">
+                    <input type="hidden" name="goodsId" id="quoteGoodsId">
+                    <div class="form-row"><label>采购商</label><input class="input" id="quoteBuyerName" readonly></div>
+                    <div class="form-row"><label>型号</label><input class="input" id="quoteModel" readonly></div>
+                    <div class="form-row trade-grid">
+                        <label>报价单价<span class="tax-inline">
+                            <span class="price-field is-untaxed">
+                                <input class="price-input" name="quotePrice" id="quotePrice" min="0.0001" step="0.0001" value="">
+                                <span>未税</span>
+                            </span>
+                            <button class="tax-switch" type="button" data-quote-tax-toggle aria-pressed="false"><span></span></button>
+                            <input type="hidden" name="isIncludingTax" id="quoteIsIncludingTax" value="0">
+                        </span></label>
+                        <label>供货数量<span class="qty-unit-inline">
+                            <input class="input" name="quoteQuantity" id="quoteQuantity" placeholder="填写供货数量" value="">
+                            <select class="input unit-inline-input" name="quoteUnit">
+                                <option>Kpcs</option>
+                                <option>Pcs</option>
+                                <option>盘</option>
+                                <option>卷</option>
+                                <option>件</option>
+                            </select>
+                        </span></label>
+                    </div>
+                    <div class="form-row"><label>备注</label><textarea class="input" name="quoteRemarks" id="quoteRemarks" rows="3" placeholder="填写报价备注（可选）"></textarea></div>
+                    <div class="form-row"><button class="btn primary" type="button" id="quoteSubmit">提交报价</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var quoteModal = document.getElementById('quoteModal');
+            var quoteForm = document.getElementById('quoteForm');
+            var quoteSubmit = document.getElementById('quoteSubmit');
+            var taxSwitch = quoteModal.querySelector('[data-quote-tax-toggle]');
+            var isIncludingTaxInput = document.getElementById('quoteIsIncludingTax');
+
+            // 报价按钮点击
+            document.querySelectorAll('[data-quote-open]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var tr = this.closest('tr');
+                    var eqId = tr.getAttribute('data-eq-id');
+                    var goodsId = tr.getAttribute('data-goods-id');
+                    var buyerName = tr.getAttribute('data-buyer-name');
+                    var model = tr.getAttribute('data-model');
+
+                    document.getElementById('quoteEqId').value = eqId;
+                    document.getElementById('quoteGoodsId').value = goodsId;
+                    document.getElementById('quoteBuyerName').value = buyerName;
+                    document.getElementById('quoteModel').value = model;
+                    document.getElementById('quotePrice').value = '';
+                    document.getElementById('quoteQuantity').value = '';
+                    document.getElementById('quoteRemarks').value = '';
+                    
+                    quoteModal.hidden = false;
+                });
+            });
+
+            // 关闭弹窗
+            quoteModal.querySelector('[data-quote-close]').addEventListener('click', function() {
+                quoteModal.hidden = true;
+            });
+
+            // 税赋切换
+            if (taxSwitch) {
+                taxSwitch.addEventListener('click', function() {
+                    var isOn = taxSwitch.classList.toggle('is-on');
+                    taxSwitch.setAttribute('aria-pressed', isOn);
+                    var priceField = quoteModal.querySelector('.price-field');
+                    if (isOn) {
+                        priceField.classList.remove('is-untaxed');
+                        priceField.classList.add('is-taxed');
+                        priceField.querySelector('span').textContent = '含税';
+                        isIncludingTaxInput.value = '1';
+                    } else {
+                        priceField.classList.remove('is-taxed');
+                        priceField.classList.add('is-untaxed');
+                        priceField.querySelector('span').textContent = '未税';
+                        isIncludingTaxInput.value = '0';
+                    }
+                });
+            }
+
+            // 提交报价
+            quoteSubmit.addEventListener('click', function() {
+                var eqId = document.getElementById('quoteEqId').value;
+                var price = document.getElementById('quotePrice').value;
+                var quantity = document.getElementById('quoteQuantity').value;
+
+                if (!price || price.trim() === '') {
+                    alert('请输入报价金额');
+                    return;
+                }
+                if (!quantity || quantity.trim() === '') {
+                    alert('请输入供货数量');
+                    return;
+                }
+
+                quoteSubmit.disabled = true;
+                quoteSubmit.textContent = '提交中...';
+
+                var formData = new FormData(quoteForm);
+                formData.append('action', 'submit_quote');
+
+                fetch('received-inquiries.aspx', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('报价成功！');
+                        quoteModal.hidden = true;
+                        location.reload();
+                    } else {
+                        alert('报价失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('报价异常：' + error);
+                })
+                .finally(() => {
+                    quoteSubmit.disabled = false;
+                    quoteSubmit.textContent = '提交报价';
+                });
+            });
+        });
+    </script>
 </body>
 </html>

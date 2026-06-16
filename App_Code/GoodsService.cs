@@ -9,11 +9,13 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, [Name], Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType, shopId
-                FROM goods 
-                WHERE dataFlag = 1 AND goodsStatus = 1
-                ORDER BY createTime DESC";
+                g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.goodsStock, g.goodsUnit, 
+                g.shopPrice, g.isIncludingTax, g.createTime, g.validityDate, g.isSale, g.goodsStatus, g.dataFlag, g.pubType, g.shopId,
+                s.shopName AS CompanyName
+                FROM goods g
+                LEFT JOIN shops s ON g.shopId = s.shopId
+                WHERE g.dataFlag = 1 AND g.goodsStatus = 1
+                ORDER BY g.createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql);
             
@@ -538,7 +540,15 @@ public class GoodsService
                 newRow["Validity"] = createTime.ToString("yyyy-MM-dd");
             }
 
-            newRow["CompanyName"] = "商家店铺";
+            string companyName = GetStringValue(row["CompanyName"]);
+            if (!string.IsNullOrEmpty(companyName))
+            {
+                newRow["CompanyName"] = companyName;
+            }
+            else
+            {
+                newRow["CompanyName"] = "商家店铺";
+            }
             
             if (pubType == 2)
             {
@@ -797,6 +807,21 @@ public class GoodsService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine("Restock 错误: " + ex.Message);
+            return false;
+        }
+    }
+
+    public bool ToggleTax(int goodsId)
+    {
+        try
+        {
+            string sql = @"UPDATE goods SET isIncludingTax = CASE WHEN isIncludingTax = 1 THEN 0 ELSE 1 END, updateTime = GETDATE() WHERE goodsId = @goodsId";
+            int result = DbHelper.ExecuteNonQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
+            return result > 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("ToggleTax 错误: " + ex.Message);
             return false;
         }
     }

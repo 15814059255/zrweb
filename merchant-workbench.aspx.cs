@@ -7,11 +7,11 @@ public partial class merchant_workbench : System.Web.UI.Page
     public string PageKeywords = "阻容网,商家工作台,库存管理,电子元器件";
     public string PageDescription = "阻容网商家工作台，管理库存、查看询价、提交报价，一站式管理您的电子元器件供应业务。";
     
-    public int OnlineSupplyCount = 3;
-    public int InquiryCount = 7;
-    public int NewInquiryCount = 7;
-    public int QuoteCount = 3;
-    public int ExpiredCount = 4;
+    public int OnlineSupplyCount = 0;
+    public int InquiryCount = 0;
+    public int NewInquiryCount = 0;
+    public int QuoteCount = 0;
+    public int ExpiredCount = 0;
     public int CurrentPage = 1;
     public int TotalPages = 49;
     public bool HasInventoryData = false;
@@ -207,11 +207,17 @@ public partial class merchant_workbench : System.Web.UI.Page
                 object resultQuote = DbHelper.ExecuteScalar(sqlQuote, DbHelper.CreateParameter("@shopId", shopId));
                 QuoteCount = resultQuote != DBNull.Value ? Convert.ToInt32(resultQuote) : 0;
             }
+            else
+            {
+                InquiryCount = 0;
+                NewInquiryCount = 0;
+                QuoteCount = 0;
+            }
         }
         catch
         {
-            OnlineSupplyCount = 3;
-            ExpiredCount = 4;
+            OnlineSupplyCount = 0;
+            ExpiredCount = 0;
             InquiryCount = 0;
             NewInquiryCount = 0;
             QuoteCount = 0;

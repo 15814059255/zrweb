@@ -9,10 +9,11 @@ public partial class buyer_workbench : System.Web.UI.Page
     public string PageKeywords = "阻容网,采购工作台,需求管理,电子元器件采购";
     public string PageDescription = "阻容网采购工作台，管理采购需求、查看供应商报价、跟踪询价进度，一站式采购电子元器件。";
     
-    public int OnlineDemandCount = 3;
-    public int QuoteCount = 21;
-    public int NewQuoteCount = 3;
-    public int ExpiredCount = 4;
+    public int OnlineDemandCount = 0;
+    public int QuoteCount = 0;
+    public int NewQuoteCount = 0;
+    public int ExpiredCount = 0;
+    public int MyInquiryCount = 0;
     public int CurrentPage = 1;
     public int TotalPages = 49;
     public bool HasDemandData = false;
@@ -36,6 +37,11 @@ public partial class buyer_workbench : System.Web.UI.Page
             else if (action == "restock")
             {
                 HandleRestock();
+                return;
+            }
+            else if (action == "toggle_tax")
+            {
+                HandleToggleTax();
                 return;
             }
         }
@@ -117,7 +123,7 @@ public partial class buyer_workbench : System.Web.UI.Page
             Response.Clear();
             Response.ContentType = "application/json";
             Response.Charset = "utf-8";
-            Response.Write("{\"success\":false,\"message\":\"发布异常:" + ex.Message.Replace("\"", "'") + "\"}");
+            Response.Write("{\"success\":false,\"message\":\"发布异常:" + CleanJsonMessage(ex.Message) + "\"}");
             Response.End();
         }
     }
@@ -165,7 +171,7 @@ public partial class buyer_workbench : System.Web.UI.Page
             Response.Clear();
             Response.ContentType = "application/json";
             Response.Charset = "utf-8";
-            Response.Write("{\"success\":false,\"message\":\"下架异常:" + ex.Message.Replace("\"", "'") + "\"}");
+            Response.Write("{\"success\":false,\"message\":\"下架异常:" + CleanJsonMessage(ex.Message) + "\"}");
             Response.End();
         }
     }
@@ -213,7 +219,55 @@ public partial class buyer_workbench : System.Web.UI.Page
             Response.Clear();
             Response.ContentType = "application/json";
             Response.Charset = "utf-8";
-            Response.Write("{\"success\":false,\"message\":\"重新上架异常:" + ex.Message.Replace("\"", "'") + "\"}");
+            Response.Write("{\"success\":false,\"message\":\"重新上架异常:" + CleanJsonMessage(ex.Message) + "\"}");
+            Response.End();
+        }
+    }
+
+    private void HandleToggleTax()
+    {
+        try
+        {
+            int goodsId = 0;
+            int.TryParse(Request["goodsId"], out goodsId);
+
+            if (goodsId <= 0)
+            {
+                Response.Clear();
+                Response.ContentType = "application/json";
+                Response.Charset = "utf-8";
+                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                Response.End();
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            bool success = service.ToggleTax(goodsId);
+
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+            
+            if (success)
+            {
+                Response.Write("{\"success\":true,\"message\":\"税赋状态已更新\"}");
+            }
+            else
+            {
+                Response.Write("{\"success\":false,\"message\":\"更新失败\"}");
+            }
+            Response.End();
+        }
+        catch (ThreadAbortException)
+        {
+            // 忽略 ThreadAbortException
+        }
+        catch (Exception ex)
+        {
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+            Response.Write("{\"success\":false,\"message\":\"更新异常:" + CleanJsonMessage(ex.Message) + "\"}");
             Response.End();
         }
     }
@@ -241,14 +295,25 @@ public partial class buyer_workbench : System.Web.UI.Page
                 string sqlNew = "SELECT COUNT(*) FROM enquiryquoteprice WHERE toShopId = @shopId AND eqType = 2 AND dataFlag = 1 AND readStatus = 0";
                 object resultNew = DbHelper.ExecuteScalar(sqlNew, DbHelper.CreateParameter("@shopId", shopId));
                 NewQuoteCount = resultNew != DBNull.Value ? Convert.ToInt32(resultNew) : 0;
+
+                string sqlInquiry = "SELECT COUNT(*) FROM enquiryquoteprice WHERE fromShopId = @shopId AND eqType = 1 AND dataFlag = 1";
+                object resultInquiry = DbHelper.ExecuteScalar(sqlInquiry, DbHelper.CreateParameter("@shopId", shopId));
+                MyInquiryCount = resultInquiry != DBNull.Value ? Convert.ToInt32(resultInquiry) : 0;
+            }
+            else
+            {
+                QuoteCount = 0;
+                NewQuoteCount = 0;
+                MyInquiryCount = 0;
             }
         }
         catch
         {
-            OnlineDemandCount = 3;
-            ExpiredCount = 4;
+            OnlineDemandCount = 0;
+            ExpiredCount = 0;
             QuoteCount = 0;
             NewQuoteCount = 0;
+            MyInquiryCount = 0;
         }
     }
 
@@ -329,5 +394,23 @@ public partial class buyer_workbench : System.Web.UI.Page
 
         rptExpiredDemand.DataSource = dt;
         rptExpiredDemand.DataBind();
+    }
+
+    private string CleanJsonMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return message;
+        
+        message = message.Replace("\\", "\\\\")
+                        .Replace("\"", "\\\"")
+                        .Replace("\r", "\\r")
+                        .Replace("\n", "\\n")
+                        .Replace("\t", "\\t")
+                        .Replace("\0", "\\0");
+        
+        message = System.Text.RegularExpressions.Regex.Replace(message, @"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", 
+            match => "\\u" + ((int)match.Value[0]).ToString("X4"));
+        
+        return message;
     }
 }

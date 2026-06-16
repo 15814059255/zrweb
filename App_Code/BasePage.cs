@@ -88,7 +88,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            return Session["UserID"] != null;
+            return UserHelper.GetUserId() > 0;
         }
     }
 
