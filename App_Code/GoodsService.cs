@@ -745,6 +745,38 @@ public class GoodsService
     }
 
     /// <summary>
+    /// 发布供应商品
+    /// </summary>
+    public bool PublishGoods(string goodsSn, string name, string manufacturers, int goodsStock, string unit, decimal shopPrice, int isIncludingTax, int pubType, int userId, int shopId)
+    {
+        try
+        {
+            string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId)
+                VALUES (@goodsSn, @name, @manufacturers, @goodsStock, @unit, @shopPrice, @isIncludingTax, @pubType, 1, 1, 1, GETDATE(), DATEADD(day, 30, GETDATE()), @shopId)";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@goodsSn", goodsSn ?? ""),
+                new SqlParameter("@name", name ?? ""),
+                new SqlParameter("@manufacturers", manufacturers ?? ""),
+                new SqlParameter("@goodsStock", goodsStock),
+                new SqlParameter("@unit", unit ?? "Kpcs"),
+                new SqlParameter("@shopPrice", shopPrice),
+                new SqlParameter("@isIncludingTax", isIncludingTax),
+                new SqlParameter("@pubType", pubType),
+                new SqlParameter("@shopId", shopId),
+            };
+
+            int result = DbHelper.ExecuteNonQuery(sql, parameters);
+            return result > 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("PublishGoods 错误: " + ex.Message);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 发布采购需求
     /// </summary>
     public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId)

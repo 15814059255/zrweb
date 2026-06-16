@@ -27,6 +27,16 @@ public partial class index : Page
                 HandleSubmitQuote();
                 return;
             }
+            else if (action == "publish_goods")
+            {
+                HandlePublishGoods();
+                return;
+            }
+            else if (action == "publish_demand")
+            {
+                HandlePublishDemand();
+                return;
+            }
         }
 
         if (!IsPostBack)
@@ -239,6 +249,146 @@ public partial class index : Page
             System.Diagnostics.Debug.WriteLine("GetDefaultShopId 错误: " + ex.Message);
         }
         return 0;
+    }
+
+    private void HandlePublishGoods()
+    {
+        try
+        {
+            string goodsSn = Request["goodsSn"] ?? Request["model"] ?? "";
+            string name = Request["name"] ?? "";
+            string manufacturers = Request["manufacturers"] ?? "";
+            int goodsStock = 0;
+            string unit = Request["goodsUnit"] ?? "Kpcs";
+            decimal shopPrice = 0;
+            int isIncludingTax = 0;
+            int pubType = 1;
+
+            int.TryParse(Request["goodsStock"], out goodsStock);
+            decimal.TryParse(Request["shopPrice"], out shopPrice);
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+            int.TryParse(Request["pubType"], out pubType);
+
+            if (string.IsNullOrEmpty(goodsSn))
+            {
+                WriteJsonResponse(false, "请输入型号");
+                return;
+            }
+
+            int userId = UserHelper.GetUserId();
+            if (userId == 0)
+            {
+                WriteJsonResponse(false, "请先登录");
+                return;
+            }
+
+            int shopId = UserHelper.GetShopId();
+
+            if (shopId == 0)
+            {
+                WriteJsonResponse(false, "无法获取店铺信息，请完善店铺资料后重试");
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            bool success = service.PublishGoods(goodsSn, name, manufacturers, goodsStock, unit, shopPrice, isIncludingTax, pubType, userId, shopId);
+
+            if (success)
+            {
+                WriteJsonResponse(true, "发布成功");
+            }
+            else
+            {
+                WriteJsonResponse(false, "发布失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!(ex is System.Threading.ThreadAbortException))
+            {
+                WriteJsonResponse(false, "错误: " + ex.Message);
+            }
+        }
+    }
+
+    private void HandlePublishDemand()
+    {
+        try
+        {
+            string goodsSn = Request["goodsSn"] ?? Request["model"] ?? "";
+            string name = Request["name"] ?? "";
+            string manufacturers = Request["manufacturers"] ?? "";
+            int quantity = 0;
+            string unit = Request["goodsUnit"] ?? "Kpcs";
+            decimal price = 0;
+            int isIncludingTax = 0;
+
+            int.TryParse(Request["goodsStock"], out quantity);
+            decimal.TryParse(Request["shopPrice"], out price);
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+
+            if (string.IsNullOrEmpty(goodsSn))
+            {
+                WriteJsonResponse(false, "请输入型号");
+                return;
+            }
+
+            int userId = UserHelper.GetUserId();
+            if (userId == 0)
+            {
+                WriteJsonResponse(false, "请先登录");
+                return;
+            }
+
+            int shopId = UserHelper.GetShopId();
+
+            if (shopId == 0)
+            {
+                WriteJsonResponse(false, "无法获取店铺信息，请完善店铺资料后重试");
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            bool success = service.PublishDemand(goodsSn, name, manufacturers, quantity, unit, price, isIncludingTax, userId, shopId);
+
+            if (success)
+            {
+                WriteJsonResponse(true, "发布成功");
+            }
+            else
+            {
+                WriteJsonResponse(false, "发布失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!(ex is System.Threading.ThreadAbortException))
+            {
+                WriteJsonResponse(false, "错误: " + ex.Message);
+            }
+        }
+    }
+
+    private string CleanJsonMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return message;
+
+        return message.Replace("\\", "\\\\")
+                     .Replace("\"", "\\\"")
+                     .Replace("\r", "\\r")
+                     .Replace("\n", "\\n")
+                     .Replace("\t", "\\t")
+                     .Replace("\0", "\\0");
+    }
+
+    private void WriteJsonResponse(bool success, string message)
+    {
+        Response.Clear();
+        Response.ContentType = "application/json";
+        Response.Charset = "utf-8";
+        Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + CleanJsonMessage(message) + "\"}");
+        try { Response.End(); } catch { }
     }
 
     private void BindSupplyList()

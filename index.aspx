@@ -2,6 +2,8 @@
 
 <%@ Register Src="~/UserControls/head.ascx" TagPrefix="uc1" TagName="head" %>
 <%@ Register Src="~/UserControls/bottom.ascx" TagPrefix="uc1" TagName="bottom" %>
+<%@ Register Src="~/UserControls/PublishModal.ascx" TagPrefix="uc1" TagName="PublishModal" %>
+<%@ Register Src="~/UserControls/LoginModal.ascx" TagPrefix="uc1" TagName="LoginModal" %>
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -72,21 +74,7 @@
             </section>
         </main>
     </div>
-    <div class="modal-backdrop" id="publishModal" hidden>
-        <div class="modal publish-form-modal" role="dialog" aria-modal="true" aria-label="发布">
-            <div class="modal-head"><h2 data-publish-title>发布供应</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
-            <div class="modal-body">
-                <form class="quick-publish-form" data-quick-publish-form>
-                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-publish-kind="supply">发布供应</button><button type="button" data-publish-kind="demand">发布需求</button></div></div>
-                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-part-type="capacitor">电容</button><button type="button" data-part-type="resistor">电阻</button></div></div>
-                    <div class="form-row suggest-wrap inline-row"><label>型号</label><input class="input" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D"><div class="suggest-list" data-suggest-list hidden></div></div>
-                    <div class="form-row"><div class="attr-grid" data-attr-grid></div></div>
-                    <div class="form-row trade-grid"><label>单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></span></label><label><span data-qty-label>可供数量</span><span class="qty-unit-inline"><input class="input" data-required="数量" placeholder="填写数量"><select class="input unit-inline-input" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
-                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <uc1:PublishModal runat="server" ID="PublishModal" />
     <div class="modal-backdrop" id="quickImportModal" hidden>
         <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
             <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
@@ -109,6 +97,7 @@
         </div>
     </div>
     <uc1:bottom runat="server" ID="bottom" />
+    <uc1:LoginModal runat="server" ID="LoginModal" />
     
     <div class="modal-backdrop" id="tradeInteractionModal" hidden>
         <div class="modal trade-modal" role="dialog" aria-modal="true" aria-label="交易交互">
@@ -160,25 +149,25 @@
             var tradeModal = document.getElementById('tradeInteractionModal');
             var tradeForm = document.getElementById('tradeForm');
             var tradeSubmitBtn = document.getElementById('tradeSubmit');
-            var taxSwitch = tradeModal.querySelector('[data-trade-tax-toggle]');
-            var isIncludingTaxInput = tradeModal.querySelector('input[name="isIncludingTax"]');
+            var tradeTaxSwitch = tradeModal.querySelector('[data-trade-tax-toggle]');
+            var tradeIsIncludingTaxInput = tradeModal.querySelector('input[name="isIncludingTax"]');
 
             // 税赋切换
-            if (taxSwitch) {
-                taxSwitch.addEventListener('click', function() {
-                    var isOn = taxSwitch.classList.toggle('is-on');
-                    taxSwitch.setAttribute('aria-pressed', isOn);
-                    var priceField = taxSwitch.previousElementSibling;
+            if (tradeTaxSwitch) {
+                tradeTaxSwitch.addEventListener('click', function() {
+                    var isOn = tradeTaxSwitch.classList.toggle('is-on');
+                    tradeTaxSwitch.setAttribute('aria-pressed', isOn);
+                    var priceField = tradeTaxSwitch.previousElementSibling;
                     if (isOn) {
                         priceField.classList.remove('is-untaxed');
                         priceField.classList.add('is-taxed');
                         priceField.querySelector('span').textContent = '含税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '1';
+                        if (tradeIsIncludingTaxInput) tradeIsIncludingTaxInput.value = '1';
                     } else {
                         priceField.classList.remove('is-taxed');
                         priceField.classList.add('is-untaxed');
                         priceField.querySelector('span').textContent = '未税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '0';
+                        if (tradeIsIncludingTaxInput) tradeIsIncludingTaxInput.value = '0';
                     }
                 });
             }

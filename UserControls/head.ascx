@@ -1,7 +1,29 @@
 <%@ Control Language="C#" AutoEventWireup="true" CodeFile="head.ascx.cs" Inherits="UserControls_head" %>
+<%@ Register Src="~/UserControls/LoginModal.ascx" TagPrefix="uc1" TagName="LoginModal" %>
 
 <script>
-    window.ZR_CURRENT_MEMBER = <%= IsLoggedIn ? "{ userId: '" + Session["UserID"] + "', userName: '" + CurrentUserName + "', role: '" + (Session["RoseID"] ?? "") + "', shopId: '" + (Session["ShopId"] ?? "0") + "', shopName: '" + (Session["ShopName"] ?? "") + "' }" : "null" %>;
+    (function() {
+        var userId = <%= UserHelper.GetUserId() %>;
+        if (userId && userId > 0) {
+            window.ZR_CURRENT_MEMBER = {
+                userId: '<%= UserHelper.GetUserId() %>',
+                userName: '<%= UserHelper.GetUserName() %>',
+                role: '<%= UserHelper.GetRoseId() %>',
+                shopId: '<%= UserHelper.GetShopId() %>',
+                shopName: '<%= UserHelper.GetShopName() %>'
+            };
+        } else {
+            window.ZR_CURRENT_MEMBER = null;
+        }
+    })();
+    
+    function showLoginModal() {
+        var loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.hidden = false;
+            loginModal.style.display = 'flex';
+        }
+    }
 </script>
 
 <!-- 侧边栏头部 -->
@@ -21,7 +43,7 @@
         <% if (IsLoggedIn) { %>
         <a class="<%= GetNavClass("profile") %>" href="/profile.aspx"><span>我的</span><small>›</small></a>
         <% } else { %>
-        <a class="<%= GetNavClass("login") %>" href="/login.aspx"><span>登录</span><small>›</small></a>
+        <a class="<%= GetNavClass("login") %>" href="javascript:void(0)" onclick="showLoginModal()"><span>登录</span><small>›</small></a>
         <% } %>
     </nav>
     <% if (IsLoggedIn) { %>

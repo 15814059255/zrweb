@@ -1,5 +1,6 @@
 using System;
 using System.Web;
+using System.Collections.Generic;
 
 public static class UserHelper
 {
@@ -22,6 +23,7 @@ public static class UserHelper
                 int.TryParse(cookie["UserID"], out userId);
                 if (userId > 0)
                 {
+                    RestoreFromRedis(userId);
                     HttpContext.Current.Session["UserID"] = userId;
                 }
             }
@@ -42,10 +44,19 @@ public static class UserHelper
         if (string.IsNullOrEmpty(userName))
         {
             HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["UserName"]))
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
             {
-                userName = cookie["UserName"];
-                HttpContext.Current.Session["UserName"] = userName;
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["UserName"] != null)
+            {
+                userName = HttpContext.Current.Session["UserName"].ToString();
             }
         }
         
@@ -64,10 +75,19 @@ public static class UserHelper
         if (string.IsNullOrEmpty(linkMan))
         {
             HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["LinkMan"]))
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
             {
-                linkMan = cookie["LinkMan"];
-                HttpContext.Current.Session["LinkMan"] = linkMan;
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["LinkMan"] != null)
+            {
+                linkMan = HttpContext.Current.Session["LinkMan"].ToString();
             }
         }
         
@@ -86,10 +106,19 @@ public static class UserHelper
         if (string.IsNullOrEmpty(mobilePhone))
         {
             HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["MobilePhone"]))
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
             {
-                mobilePhone = cookie["MobilePhone"];
-                HttpContext.Current.Session["MobilePhone"] = mobilePhone;
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["MobilePhone"] != null)
+            {
+                mobilePhone = HttpContext.Current.Session["MobilePhone"].ToString();
             }
         }
         
@@ -108,17 +137,85 @@ public static class UserHelper
         if (roseId == 0)
         {
             HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["RoseID"]))
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
             {
-                int.TryParse(cookie["RoseID"], out roseId);
-                if (roseId > 0)
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
                 {
-                    HttpContext.Current.Session["RoseID"] = roseId;
+                    RestoreFromRedis(userId);
                 }
+            }
+            
+            if (HttpContext.Current.Session["RoseID"] != null)
+            {
+                int.TryParse(HttpContext.Current.Session["RoseID"].ToString(), out roseId);
             }
         }
         
         return roseId;
+    }
+
+    public static int GetShopId()
+    {
+        int shopId = 0;
+        
+        if (HttpContext.Current.Session["ShopId"] != null)
+        {
+            int.TryParse(HttpContext.Current.Session["ShopId"].ToString(), out shopId);
+        }
+        
+        if (shopId == 0)
+        {
+            HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
+            {
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["ShopId"] != null)
+            {
+                int.TryParse(HttpContext.Current.Session["ShopId"].ToString(), out shopId);
+            }
+        }
+        
+        return shopId;
+    }
+
+    public static string GetShopName()
+    {
+        string shopName = "";
+        
+        if (HttpContext.Current.Session["ShopName"] != null)
+        {
+            shopName = HttpContext.Current.Session["ShopName"].ToString();
+        }
+        
+        if (string.IsNullOrEmpty(shopName))
+        {
+            HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
+            {
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["ShopName"] != null)
+            {
+                shopName = HttpContext.Current.Session["ShopName"].ToString();
+            }
+        }
+        
+        return shopName;
     }
 
     public static string GetUserGuid()
@@ -133,10 +230,19 @@ public static class UserHelper
         if (string.IsNullOrEmpty(userGuid))
         {
             HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["UserGuid"]))
+            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
             {
-                userGuid = cookie["UserGuid"];
-                HttpContext.Current.Session["UserGuid"] = userGuid;
+                int userId = 0;
+                int.TryParse(cookie["UserID"], out userId);
+                if (userId > 0)
+                {
+                    RestoreFromRedis(userId);
+                }
+            }
+            
+            if (HttpContext.Current.Session["UserGuid"] != null)
+            {
+                userGuid = HttpContext.Current.Session["UserGuid"].ToString();
             }
         }
         
@@ -150,6 +256,12 @@ public static class UserHelper
 
     public static void ClearUserInfo()
     {
+        int userId = 0;
+        if (HttpContext.Current.Session["UserID"] != null)
+        {
+            int.TryParse(HttpContext.Current.Session["UserID"].ToString(), out userId);
+        }
+        
         HttpContext.Current.Session.Remove("UserID");
         HttpContext.Current.Session.Remove("UserName");
         HttpContext.Current.Session.Remove("LinkMan");
@@ -162,6 +274,47 @@ public static class UserHelper
         {
             cookie.Expires = DateTime.Now.AddDays(-1);
             HttpContext.Current.Response.Cookies.Add(cookie);
+        }
+        
+        if (userId > 0)
+        {
+            RedisHelper.ClearUserCache(userId);
+        }
+    }
+
+    private static void RestoreFromRedis(int userId)
+    {
+        try
+        {
+            var userData = RedisHelper.GetUserInfo(userId);
+            if (userData != null)
+            {
+                HttpContext.Current.Session["UserID"] = userId;
+                
+                if (userData.ContainsKey("UserName"))
+                    HttpContext.Current.Session["UserName"] = userData["UserName"];
+                if (userData.ContainsKey("LinkMan"))
+                    HttpContext.Current.Session["LinkMan"] = userData["LinkMan"];
+                if (userData.ContainsKey("MobilePhone"))
+                    HttpContext.Current.Session["MobilePhone"] = userData["MobilePhone"];
+                if (userData.ContainsKey("RoseID"))
+                    HttpContext.Current.Session["RoseID"] = userData["RoseID"];
+                if (userData.ContainsKey("UserGuid"))
+                    HttpContext.Current.Session["UserGuid"] = userData["UserGuid"];
+                if (userData.ContainsKey("ShopId"))
+                {
+                    int shopId = 0;
+                    int.TryParse(userData["ShopId"], out shopId);
+                    HttpContext.Current.Session["ShopId"] = shopId;
+                }
+                if (userData.ContainsKey("ShopName"))
+                    HttpContext.Current.Session["ShopName"] = userData["ShopName"];
+                if (userData.ContainsKey("ShopCompany"))
+                    HttpContext.Current.Session["ShopCompany"] = userData["ShopCompany"];
+            }
+        }
+        catch
+        {
         }
     }
 }

@@ -13,11 +13,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            if (Session["UserID"] != null)
-            {
-                return Convert.ToInt32(Session["UserID"]);
-            }
-            return 0;
+            return UserHelper.GetUserId();
         }
     }
 
@@ -28,11 +24,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            if (Session["UserName"] != null)
-            {
-                return Session["UserName"].ToString();
-            }
-            return "";
+            return UserHelper.GetUserName();
         }
     }
 
@@ -43,11 +35,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            if (Session["LinkMan"] != null)
-            {
-                return Session["LinkMan"].ToString();
-            }
-            return "";
+            return UserHelper.GetLinkMan();
         }
     }
 
@@ -58,11 +46,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            if (Session["MobilePhone"] != null)
-            {
-                return Session["MobilePhone"].ToString();
-            }
-            return "";
+            return UserHelper.GetMobilePhone();
         }
     }
 
@@ -73,11 +57,7 @@ public class BasePage : System.Web.UI.Page
     {
         get
         {
-            if (Session["RoseID"] != null)
-            {
-                return Convert.ToInt32(Session["RoseID"]);
-            }
-            return 0;
+            return UserHelper.GetRoseId();
         }
     }
 

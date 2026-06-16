@@ -15,9 +15,8 @@ public partial class UserControls_head : UserControl
     protected void Page_Load(object sender, EventArgs e)
     {
         IsLoggedIn = UserHelper.GetUserId() > 0;
-        CurrentUserName = UserHelper.GetUserName();
+        CurrentUserName = UserHelper.GetUserName().Replace("'", "\\'").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
 
-        // 获取当前页面名称用于导航高亮
         string path = Request.Path.ToLower();
         if (path.Contains("index.aspx") || path == "/" || path.EndsWith("/"))
             CurrentPage = "index";

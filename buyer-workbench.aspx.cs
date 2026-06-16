@@ -62,69 +62,53 @@ public partial class buyer_workbench : System.Web.UI.Page
             string name = Request["name"] ?? "";
             string manufacturers = Request["manufacturers"] ?? "";
             int quantity = 0;
-            string unit = Request["unit"] ?? "Kpcs";
+            string unit = Request["goodsUnit"] ?? "Kpcs";
             decimal price = 0;
             int isIncludingTax = 0;
 
-            int.TryParse(Request["quantity"], out quantity);
-            decimal.TryParse(Request["price"], out price);
+            int.TryParse(Request["goodsStock"], out quantity);
+            decimal.TryParse(Request["shopPrice"], out price);
             int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+
+            if (string.IsNullOrEmpty(goodsSn))
+            {
+                WriteJsonResponse(false, "请输入型号");
+                return;
+            }
 
             int userId = UserHelper.GetUserId();
             if (userId == 0)
             {
-                Response.Clear();
-                Response.ContentType = "application/json";
-                Response.Charset = "utf-8";
-                Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
-                Response.End();
+                WriteJsonResponse(false, "请先登录");
                 return;
             }
 
-            int shopId = 0;
-            if (Session["ShopId"] != null)
-            {
-                int.TryParse(Session["ShopId"].ToString(), out shopId);
-            }
+            int shopId = UserHelper.GetShopId();
 
             if (shopId == 0)
             {
-                Response.Clear();
-                Response.ContentType = "application/json";
-                Response.Charset = "utf-8";
-                Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
-                Response.End();
+                WriteJsonResponse(false, "无法获取店铺信息，请完善店铺资料后重试");
                 return;
             }
 
             GoodsService service = new GoodsService();
             bool success = service.PublishDemand(goodsSn, name, manufacturers, quantity, unit, price, isIncludingTax, userId, shopId);
 
-            Response.Clear();
-            Response.ContentType = "application/json";
-            Response.Charset = "utf-8";
-            
             if (success)
             {
-                Response.Write("{\"success\":true,\"message\":\"发布成功\"}");
+                WriteJsonResponse(true, "发布成功");
             }
             else
             {
-                Response.Write("{\"success\":false,\"message\":\"发布失败\"}");
+                WriteJsonResponse(false, "发布失败");
             }
-            Response.End();
-        }
-        catch (ThreadAbortException)
-        {
-            // 忽略 ThreadAbortException
         }
         catch (Exception ex)
         {
-            Response.Clear();
-            Response.ContentType = "application/json";
-            Response.Charset = "utf-8";
-            Response.Write("{\"success\":false,\"message\":\"发布异常:" + CleanJsonMessage(ex.Message) + "\"}");
-            Response.End();
+            if (!(ex is System.Threading.ThreadAbortException))
+            {
+                WriteJsonResponse(false, "错误: " + ex.Message);
+            }
         }
     }
 
@@ -412,5 +396,14 @@ public partial class buyer_workbench : System.Web.UI.Page
             match => "\\u" + ((int)match.Value[0]).ToString("X4"));
         
         return message;
+    }
+
+    private void WriteJsonResponse(bool success, string message)
+    {
+        Response.Clear();
+        Response.ContentType = "application/json";
+        Response.Charset = "utf-8";
+        Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + CleanJsonMessage(message) + "\"}");
+        try { Response.End(); } catch { }
     }
 }

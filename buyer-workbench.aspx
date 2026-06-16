@@ -1,6 +1,7 @@
 <%@ Page Language="C#" AutoEventWireup="true" CodeFile="buyer-workbench.aspx.cs" Inherits="buyer_workbench" Culture="zh-CN" UICulture="zh-CN" ResponseEncoding="utf-8" %>
 <%@ Register Src="~/UserControls/head.ascx" TagPrefix="uc1" TagName="head" %>
 <%@ Register Src="~/UserControls/bottom.ascx" TagPrefix="uc1" TagName="bottom" %>
+<%@ Register Src="~/UserControls/LoginModal.ascx" TagPrefix="uc1" TagName="LoginModal" %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head runat="server">
@@ -107,10 +108,14 @@
         </div>
     </div>
     <uc1:bottom runat="server" ID="bottom" />
+    <uc1:LoginModal runat="server" ID="LoginModal" />
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var publishModal = document.getElementById('publishModal');
             var publishForm = document.getElementById('publishDemandForm');
+            
+            if (!publishModal || !publishForm) return;
+            
             var publishConfirmBtn = publishModal.querySelector('[data-publish-confirm]');
             var taxSwitch = publishModal.querySelector('[data-tax-toggle]');
             var isIncludingTaxInput = publishModal.querySelector('input[name="isIncludingTax"]');
@@ -151,31 +156,61 @@
                         return;
                     }
 
-                    publishConfirmBtn.disabled = true;
-                    publishConfirmBtn.textContent = '发布中...';
+                    var isLoggedIn = window.ZR_CURRENT_MEMBER && window.ZR_CURRENT_MEMBER.userId;
+                    if (!isLoggedIn) {
+                        savePublishData('buyer', formData);
+                        var loginModal = document.getElementById('loginModal');
+                        if (loginModal) {
+                            loginModal.hidden = false;
+                            loginModal.style.display = 'flex';
+                        } else {
+                            showLoginModal();
+                        }
+                        return;
+                    }
 
-                    fetch('buyer-workbench.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('发布成功！');
-                            publishModal.hidden = true;
-                            location.reload();
+                    submitPublish(formData);
+                });
+            }
+
+            function submitPublish(formData) {
+                publishConfirmBtn.disabled = true;
+                publishConfirmBtn.textContent = '发布中...';
+
+                fetch('buyer-workbench.aspx', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('发布成功！');
+                        publishModal.hidden = true;
+                        publishForm.reset();
+                    } else {
+                        if (data.message && (data.message.indexOf('请先登录') !== -1 || data.message.indexOf('无法获取店铺信息') !== -1 || data.message.indexOf('请完善店铺资料') !== -1)) {
+                            savePublishData('buyer', formData);
+                            showLoginModal();
                         } else {
                             alert('发布失败：' + data.message);
                         }
-                    })
-                    .catch(error => {
-                        alert('发布异常：' + error);
-                    })
-                    .finally(() => {
-                        publishConfirmBtn.disabled = false;
-                        publishConfirmBtn.textContent = '确定';
-                    });
+                    }
+                })
+                .catch(error => {
+                    alert('发布异常：' + error);
+                })
+                .finally(() => {
+                    publishConfirmBtn.disabled = false;
+                    publishConfirmBtn.textContent = '确定';
                 });
+            }
+
+            function savePublishData(type, formData) {
+                var data = {};
+                formData.forEach(function(value, key) {
+                    data[key] = value;
+                });
+                sessionStorage.setItem('pendingPublish_' + type, JSON.stringify(data));
             }
 
             // 下架按钮点击
@@ -311,5 +346,3 @@
             });
         });
     </script>
-</body>
-</html>

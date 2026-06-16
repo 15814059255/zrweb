@@ -497,7 +497,7 @@ document.addEventListener('click', (event) => {
   if (policyLink) event.preventDefault();
 });
 
-const LOGIN_GATE_ENABLED = false;
+const LOGIN_GATE_ENABLED = true;
 
 function getCurrentMember() {
   return window.ZR_CURRENT_MEMBER || null;

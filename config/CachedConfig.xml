@@ -7,7 +7,7 @@
     <MaxWritePoolSize>60</MaxWritePoolSize>
     <MaxReadPoolSize>60</MaxReadPoolSize>
     <DbNum>1</DbNum>
-    <abortConnect>fasle</abortConnect>
+    <abortConnect>false</abortConnect>
     <AutoStart>true</AutoStart>
     <LocalCacheTime>180</LocalCacheTime>
     <RecordeLog>false</RecordeLog>

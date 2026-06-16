@@ -11,14 +11,116 @@ public partial class login : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (Request.HttpMethod == "POST")
+        {
+            string action = Request.Form["action"] ?? "";
+            if (action == "ajax_login" || Request.Form.Count > 0)
+            {
+                HandleAjaxLogin();
+                return;
+            }
+        }
+
         if (!IsPostBack)
         {
-            // 检查是否已登录
             if (Session["UserID"] != null)
             {
                 Response.Redirect("/index.aspx");
             }
         }
+    }
+
+    private void HandleAjaxLogin()
+    {
+        Response.Clear();
+        Response.ContentType = "application/json";
+        Response.Charset = "utf-8";
+        
+        try
+        {
+            string userName = Request.Form["txtUserName"] ?? "";
+            string password = Request.Form["txtPassword"] ?? "";
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                Response.Write("{\"success\":false,\"message\":\"请输入手机号\"}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                Response.Write("{\"success\":false,\"message\":\"请输入密码\"}");
+                return;
+            }
+
+            string encryptedPassword = GetMD5Hash(password);
+
+            string sql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, UserGuid FROM userinfo WHERE UserName=@UserName AND Password=@Password AND SysStatus=0";
+            DataTable dt = DbHelper.ExecuteQuery(sql,
+                DbHelper.CreateParameter("@UserName", userName),
+                DbHelper.CreateParameter("@Password", encryptedPassword));
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+                int isCheck = GetIntValue(row["IsCheck"], 0);
+
+                if (isCheck == 0)
+                {
+                    Response.Write("{\"success\":false,\"message\":\"账号未审核，请等待管理员审核\"}");
+                    return;
+                }
+
+                int userId = GetIntValue(row["UserID"], 0);
+                string dbUserName = GetStringValue(row["UserName"]);
+                string linkMan = GetStringValue(row["LinkMan"]);
+                string mobilePhone = GetStringValue(row["MobilePhone"]);
+                int roseId = GetIntValue(row["RoseID"], 0);
+                string userGuid = GetStringValue(row["UserGuid"]);
+
+                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId, shopName, shopCompany, shopkeeper, telephone, shopStatus FROM shops WHERE userId = @userId AND dataFlag = 1", 
+                    DbHelper.CreateParameter("@userId", userId));
+                int shopId = 0;
+                string shopName = "";
+                string shopCompany = "";
+                
+                if (shopDt != null && shopDt.Rows.Count > 0)
+                {
+                    DataRow shopRow = shopDt.Rows[0];
+                    shopId = GetIntValue(shopRow["shopId"], 0);
+                    shopName = GetStringValue(shopRow["shopName"]);
+                    shopCompany = GetStringValue(shopRow["shopCompany"]);
+                }
+                else
+                {
+                    shopId = CreateShopForUser(userId, mobilePhone, linkMan);
+                }
+
+                Session["UserID"] = userId;
+                Session["UserName"] = dbUserName;
+                Session["LinkMan"] = linkMan;
+                Session["MobilePhone"] = mobilePhone;
+                Session["RoseID"] = roseId;
+                Session["UserGuid"] = userGuid;
+                Session["ShopId"] = shopId;
+                Session["ShopName"] = shopName;
+                Session["ShopCompany"] = shopCompany;
+
+                SaveUserCookie(userId, dbUserName, linkMan, mobilePhone, roseId, userGuid, shopId, shopName, shopCompany);
+                RedisHelper.CacheUserInfo(userId, dbUserName, linkMan, mobilePhone, roseId, userGuid, shopId, shopName, shopCompany);
+
+                Response.Write("{\"success\":true,\"message\":\"登录成功\"}");
+            }
+            else
+            {
+                Response.Write("{\"success\":false,\"message\":\"用户名或密码错误\"}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Response.Write("{\"success\":false,\"message\":\"登录异常: " + ex.Message.Replace("\"", "'") + "\"}");
+        }
+        try { Response.End(); } catch { }
     }
 
     protected void btnLogin_Click(object sender, EventArgs e)
@@ -115,7 +217,7 @@ public partial class login : System.Web.UI.Page
             SaveUserCookie(userId, dbUserName, linkMan, mobilePhone, roseId, userGuid, shopId, shopName, shopCompany);
 
             // 缓存用户信息到Redis
-            RedisHelper.CacheUserInfo(userId, dbUserName, linkMan, mobilePhone, roseId, userGuid);
+            RedisHelper.CacheUserInfo(userId, dbUserName, linkMan, mobilePhone, roseId, userGuid, shopId, shopName, shopCompany);
 
             // 转到首页或指定页面
             string returnUrl = Request.QueryString["returnUrl"];
