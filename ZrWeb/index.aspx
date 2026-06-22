@@ -111,23 +111,11 @@
     <uc1:bottom runat="server" ID="bottom" />
     
     <script>
+        // 发布弹窗初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 发布供应弹窗初始化
             var publishModal = document.getElementById('publishModal');
             if (publishModal) {
                 var publishForm = publishModal.querySelector('[data-quick-publish-form]');
-                if (publishForm && typeof renderQuickPublishAttrs === 'function') {
-                    renderQuickPublishAttrs(publishForm);
-                }
-                
-                // 类型切换时重新渲染参数输入框
-                publishModal.querySelectorAll('[data-part-type]').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        if (publishForm && typeof renderQuickPublishAttrs === 'function') {
-                            renderQuickPublishAttrs(publishForm);
-                        }
-                    });
-                });
                 
                 // 型号输入框添加料号验证
                 var modelInput = publishModal.querySelector('[data-model-input]');

@@ -27,6 +27,16 @@ public partial class index : Page
                 HandleSubmitQuote();
                 return;
             }
+            else if (action == "publish_supply")
+            {
+                HandlePublishSupply();
+                return;
+            }
+            else if (action == "publish_demand")
+            {
+                HandlePublishDemand();
+                return;
+            }
         }
 
         if (!IsPostBack)
@@ -267,5 +277,143 @@ public partial class index : Page
 
         rptSupplyList.DataSource = dt;
         rptSupplyList.DataBind();
+    }
+
+    private void HandlePublishSupply()
+    {
+        Response.ContentType = "application/json";
+        Response.Clear();
+        
+        string result = "";
+        
+        try
+        {
+            string goodsSn = Request["goodsSn"];
+            string name = Request["name"];
+            string manufacturers = Request["manufacturers"];
+            decimal price = 0;
+            decimal.TryParse(Request["price"], out price);
+            int quantity = 0;
+            int.TryParse(Request["quantity"], out quantity);
+            string unit = Request["unit"] ?? "Kpcs";
+            int isIncludingTax = 0;
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+            string validity = Request["validity"] ?? "1个月";
+
+            int shopId = 0;
+            if (Session["ShopId"] != null)
+            {
+                int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            if (shopId == 0)
+            {
+                shopId = GetDefaultShopId();
+            }
+
+            if (shopId == 0)
+            {
+                result = "{\"success\":false,\"message\":\"无法获取您的店铺ID，请先登录并完善店铺信息\"}";
+                Response.Write(result);
+                Response.End();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(goodsSn))
+            {
+                result = "{\"success\":false,\"message\":\"请输入型号\"}";
+                Response.Write(result);
+                Response.End();
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            int userId = UserHelper.GetUserId();
+            bool success = service.InsertGoods(goodsSn, name, manufacturers, "", quantity, unit, price, isIncludingTax, 2, "", shopId, userId, validity);
+
+            if (success)
+            {
+                result = "{\"success\":true,\"message\":\"发布成功\",\"redirect\":\"/merchant-workbench.aspx\"}";
+            }
+            else
+            {
+                result = "{\"success\":false,\"message\":\"发布失败\"}";
+            }
+        }
+        catch (Exception ex)
+        {
+            result = "{\"success\":false,\"message\":\"发布异常：" + ex.Message.Replace("\"", "\\\"") + "\"}";
+        }
+        
+        Response.Write(result);
+        Response.End();
+    }
+
+    private void HandlePublishDemand()
+    {
+        Response.ContentType = "application/json";
+        Response.Clear();
+        
+        string result = "";
+        
+        try
+        {
+            string goodsSn = Request["goodsSn"];
+            string name = Request["name"];
+            string manufacturers = Request["manufacturers"];
+            decimal price = 0;
+            decimal.TryParse(Request["price"], out price);
+            int quantity = 0;
+            int.TryParse(Request["quantity"], out quantity);
+            string unit = Request["unit"] ?? "Kpcs";
+            int isIncludingTax = 0;
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+            string validity = Request["validity"] ?? "1个月";
+
+            int shopId = 0;
+            if (Session["ShopId"] != null)
+            {
+                int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            if (shopId == 0)
+            {
+                shopId = GetDefaultShopId();
+            }
+
+            if (shopId == 0)
+            {
+                result = "{\"success\":false,\"message\":\"无法获取您的店铺ID，请先登录并完善店铺信息\"}";
+                Response.Write(result);
+                Response.End();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(goodsSn))
+            {
+                result = "{\"success\":false,\"message\":\"请输入型号\"}";
+                Response.Write(result);
+                Response.End();
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            int userId = UserHelper.GetUserId();
+            bool success = service.InsertGoods(goodsSn, name, manufacturers, "", quantity, unit, price, isIncludingTax, 2, "", shopId, userId, validity);
+
+            if (success)
+            {
+                result = "{\"success\":true,\"message\":\"发布成功\",\"redirect\":\"/buyer-workbench.aspx\"}";
+            }
+            else
+            {
+                result = "{\"success\":false,\"message\":\"发布失败\"}";
+            }
+        }
+        catch (Exception ex)
+        {
+            result = "{\"success\":false,\"message\":\"发布异常：" + ex.Message.Replace("\"", "\\\"") + "\"}";
+        }
+        
+        Response.Write(result);
+        Response.End();
     }
 }

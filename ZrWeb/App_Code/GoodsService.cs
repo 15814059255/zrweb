@@ -9,11 +9,13 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, [Name], Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType, shopId
-                FROM goods 
-                WHERE dataFlag = 1 AND goodsStatus = 1
-                ORDER BY createTime DESC";
+                g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.goodsStock, g.goodsUnit, 
+                g.shopPrice, g.isIncludingTax, g.createTime, g.validityDate, g.isSale, g.goodsStatus, g.dataFlag, g.pubType, g.shopId,
+                ISNULL(s.shopCompany, s.shopName) AS companyName
+                FROM goods g
+                LEFT JOIN shops s ON g.shopId = s.shopId
+                WHERE g.dataFlag = 1 AND g.goodsStatus = 1
+                ORDER BY g.createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql);
             
@@ -24,9 +26,8 @@ public class GoodsService
             
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("GoodsService.GetSupplyList 错误: " + ex.Message);
             return null;
         }
     }
@@ -56,9 +57,8 @@ public class GoodsService
             
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("GoodsService.GetInventoryList 错误: " + ex.Message);
             return null;
         }
     }
@@ -88,9 +88,8 @@ public class GoodsService
             
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("GoodsService.GetExpiredInventoryList 错误: " + ex.Message);
             return null;
         }
     }
@@ -315,11 +314,17 @@ public class GoodsService
                     newRow["StatusClass"] = "orange";
                     newRow["RemainingTime"] = diff.TotalHours.ToString("0") + " 小时";
                 }
+                else if (diff.TotalDays >= 30)
+                {
+                    newRow["Status"] = "采购中";
+                    newRow["StatusClass"] = "blue";
+                    newRow["RemainingTime"] = (diff.TotalDays / 30).ToString("0") + " 个月";
+                }
                 else
                 {
                     newRow["Status"] = "采购中";
                     newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = "72 小时";
+                    newRow["RemainingTime"] = diff.TotalDays.ToString("0") + " 天";
                 }
             }
             else
@@ -455,9 +460,11 @@ public class GoodsService
             decimal shopPrice = GetDecimalValue(row["shopPrice"], 0);
             int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
             DateTime createTime = GetDateTimeValue(row["createTime"], DateTime.Now);
+            DateTime validityDate = GetDateTimeValue(row["validityDate"], DateTime.Now.AddDays(3));
             int goodsId = GetIntValue(row["goodsId"], 0);
             int pubType = GetIntValue(row["pubType"], 1);
             int shopId = GetIntValue(row["shopId"], 0);
+            string companyName = GetStringValue(row["companyName"]);
 
             newRow["GoodsId"] = goodsId;
             newRow["GoodsSn"] = goodsSn;
@@ -543,25 +550,38 @@ public class GoodsService
                 }
             }
 
-            TimeSpan diff = DateTime.Now - createTime;
-            if (diff.TotalHours < 24)
+            // 根据剩余时间计算有效期显示
+            TimeSpan diff = validityDate - DateTime.Now;
+            if (diff.TotalHours < 0)
             {
-                newRow["Validity"] = "24 小时内";
+                newRow["Validity"] = "已过期";
+            }
+            else if (diff.TotalHours < 24)
+            {
+                newRow["Validity"] = "小于 24 小时";
             }
             else if (diff.TotalDays < 3)
             {
-                newRow["Validity"] = "3 天内";
+                newRow["Validity"] = (int)diff.TotalHours + " 小时";
             }
-            else if (diff.TotalDays < 7)
+            else if (diff.TotalDays >= 30)
             {
-                newRow["Validity"] = "7 天内";
+                newRow["Validity"] = (int)(diff.TotalDays / 30) + " 个月";
             }
             else
             {
-                newRow["Validity"] = createTime.ToString("yyyy-MM-dd");
+                newRow["Validity"] = (int)diff.TotalDays + " 天";
             }
 
-            newRow["CompanyName"] = "商家店铺";
+            // 使用公司名称，优先使用 shopCompany，如果没有则使用 shopName
+            if (!string.IsNullOrEmpty(companyName))
+            {
+                newRow["CompanyName"] = companyName;
+            }
+            else
+            {
+                newRow["CompanyName"] = "未知商家";
+            }
             
             if (pubType == 2)
             {
@@ -621,11 +641,17 @@ public class GoodsService
                     newRow["StatusClass"] = "orange";
                     newRow["RemainingTime"] = diff.TotalHours.ToString("0") + " 小时";
                 }
+                else if (diff.TotalDays >= 30)
+                {
+                    newRow["Status"] = "供应";
+                    newRow["StatusClass"] = "blue";
+                    newRow["RemainingTime"] = (diff.TotalDays / 30).ToString("0") + " 个月";
+                }
                 else
                 {
                     newRow["Status"] = "供应";
                     newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = "72 小时";
+                    newRow["RemainingTime"] = diff.TotalDays.ToString("0") + " 天";
                 }
             }
             else
@@ -802,9 +828,8 @@ public class GoodsService
             int result = DbHelper.ExecuteNonQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
             return result > 0;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("TakeOff 错误: " + ex.Message);
             return false;
         }
     }
@@ -820,9 +845,8 @@ public class GoodsService
             int result = DbHelper.ExecuteNonQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
             return result > 0;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("Restock 错误: " + ex.Message);
             return false;
         }
     }

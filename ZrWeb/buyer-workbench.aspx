@@ -19,9 +19,10 @@
                 <div><h1>我是采购</h1></div>
                 <div class="actions"><a class="btn back" href="buyer-workbench.aspx" data-back>返回采购</a></div>
             </header>
-            <div class="grid cols-3 buyer-stats" data-db-name="zr_platform" data-current-member-id="member_10031">
+            <div class="grid cols-4 buyer-stats" data-db-name="zr_platform" data-current-member-id="member_10031">
                 <button class="stat stat-action" type="button" data-demand-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status=在线"><strong><%= OnlineDemandCount %></strong><span>在线需求</span><small>查看当前发布 ›</small></button>
                 <a class="stat stat-link quote-stat-link" href="received-quotes.aspx" data-db-source="quotes" data-db-metric="COUNT(*) WHERE buyer_id=:current_member"><div><strong><%= QuoteCount %></strong><span>收到报价</span></div><em>新报价 <%= NewQuoteCount %></em><small>查看报价 ›</small></a>
+                <a class="stat stat-link inquiry-stat-link" href="my-inquiries.aspx" data-db-source="inquiry_items" data-db-metric="COUNT(*) WHERE fromShopId=:current_member"><div><strong><%= InquiryCount %></strong><span>我的询价</span></div><em>新询价 <%= NewInquiryCount %></em><small>查看询价记录 ›</small></a>
                 <button class="stat stat-action" type="button" data-expired-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status IN (已下架,已过期)"><strong><%= ExpiredCount %></strong><span>到期数据</span><small>查看已下架 ›</small></button>
             </div>
             <section class="panel site-ad-panel workbench-ad-panel" hidden>

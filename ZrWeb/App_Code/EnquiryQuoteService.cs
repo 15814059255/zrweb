@@ -358,11 +358,11 @@ public class EnquiryQuoteService
             string sql = @"INSERT INTO enquiryquoteprice (goodsId, goodsSn, eqType, fromQuantity, fromPrice, 
                           isIncludingTax, fromCompany, fromContact, fromTel, fromRemarks, 
                           toCompany, toUserId, fromUserId, brandName, dataFlag, createTime,
-                          fromShopId, toShopId, fromDataFlag, toDataFlag)
+                          fromShopID, toShopId, fromDataFlag, toDataFlag)
                           VALUES (@goodsId, @goodsSn, @eqType, @fromQuantity, @fromPrice, @isIncludingTax, 
                           @fromCompany, @fromContact, @fromTel, @fromRemarks, @toCompany, 
                           @toUserId, @fromUserId, @brandName, 1, GETDATE(),
-                          @fromShopId, @toShopId, 1, 1)";
+                          @fromShopID, @toShopId, 1, 1)";
 
             int result = DbHelper.ExecuteNonQuery(sql,
                 DbHelper.CreateParameter("@goodsId", goodsId),
@@ -379,7 +379,7 @@ public class EnquiryQuoteService
                 DbHelper.CreateParameter("@toUserId", toUserId),
                 DbHelper.CreateParameter("@fromUserId", fromUserId),
                 DbHelper.CreateParameter("@brandName", brandName ?? ""),
-                DbHelper.CreateParameter("@fromShopId", fromShopId),
+                DbHelper.CreateParameter("@fromShopID", fromShopId),
                 DbHelper.CreateParameter("@toShopId", toShopId));
 
             return result > 0;

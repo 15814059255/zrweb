@@ -9,12 +9,14 @@ public partial class buyer_workbench : System.Web.UI.Page
     public string PageKeywords = "阻容网,采购工作台,需求管理,电子元器件采购";
     public string PageDescription = "阻容网采购工作台，管理采购需求、查看供应商报价、跟踪询价进度，一站式采购电子元器件。";
     
-    public int OnlineDemandCount = 3;
-    public int QuoteCount = 21;
-    public int NewQuoteCount = 3;
-    public int ExpiredCount = 4;
+    public int OnlineDemandCount = 0;
+    public int QuoteCount = 0;
+    public int NewQuoteCount = 0;
+    public int InquiryCount = 0;
+    public int NewInquiryCount = 0;
+    public int ExpiredCount = 0;
     public int CurrentPage = 1;
-    public int TotalPages = 49;
+    public int TotalPages = 1;
     public bool HasDemandData = false;
 
     protected void Page_Load(object sender, EventArgs e)
@@ -310,6 +312,7 @@ public partial class buyer_workbench : System.Web.UI.Page
 
             if (shopId > 0)
             {
+                // 查询采购方收到的报价（商家回复的报价）
                 string sql = "SELECT COUNT(*) FROM enquiryquoteprice WHERE toShopId = @shopId AND eqType = 2 AND dataFlag = 1";
                 object result = DbHelper.ExecuteScalar(sql, DbHelper.CreateParameter("@shopId", shopId));
                 QuoteCount = result != DBNull.Value ? Convert.ToInt32(result) : 0;
@@ -317,6 +320,15 @@ public partial class buyer_workbench : System.Web.UI.Page
                 string sqlNew = "SELECT COUNT(*) FROM enquiryquoteprice WHERE toShopId = @shopId AND eqType = 2 AND dataFlag = 1 AND readStatus = 0";
                 object resultNew = DbHelper.ExecuteScalar(sqlNew, DbHelper.CreateParameter("@shopId", shopId));
                 NewQuoteCount = resultNew != DBNull.Value ? Convert.ToInt32(resultNew) : 0;
+
+                // 查询采购方发出的询价（等待商家回复）
+                string sqlInquiry = "SELECT COUNT(*) FROM enquiryquoteprice WHERE fromShopID = @shopId AND eqType = 1 AND dataFlag = 1";
+                object resultInquiry = DbHelper.ExecuteScalar(sqlInquiry, DbHelper.CreateParameter("@shopId", shopId));
+                InquiryCount = resultInquiry != DBNull.Value ? Convert.ToInt32(resultInquiry) : 0;
+
+                string sqlNewInquiry = "SELECT COUNT(*) FROM enquiryquoteprice WHERE fromShopID = @shopId AND eqType = 1 AND dataFlag = 1 AND readStatus = 0";
+                object resultNewInquiry = DbHelper.ExecuteScalar(sqlNewInquiry, DbHelper.CreateParameter("@shopId", shopId));
+                NewInquiryCount = resultNewInquiry != DBNull.Value ? Convert.ToInt32(resultNewInquiry) : 0;
             }
         }
         catch
