@@ -1,4 +1,5 @@
 using System;
+using System.Web;
 using System.Web.UI;
 using System.Configuration;
 
@@ -16,6 +17,51 @@ public partial class UserControls_head : UserControl
     {
         // 检查登录状态
         IsLoggedIn = Session["UserID"] != null;
+        
+        // 如果Session中没有用户ID，尝试从Cookie恢复
+        if (!IsLoggedIn)
+        {
+            HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+            if (userCookie != null && !string.IsNullOrEmpty(userCookie["UserID"]))
+            {
+                int userId = 0;
+                if (int.TryParse(userCookie["UserID"], out userId) && userId > 0)
+                {
+                    // 恢复Session
+                    Session["UserID"] = userId;
+                    Session["UserName"] = userCookie["UserName"] ?? "";
+                    Session["LinkMan"] = userCookie["LinkMan"] ?? "";
+                    Session["MobilePhone"] = userCookie["MobilePhone"] ?? "";
+                    Session["RoseID"] = userCookie["RoseID"] ?? "";
+                    Session["UserGuid"] = userCookie["UserGuid"] ?? "";
+                    
+                    int shopId = 0;
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    Session["ShopId"] = shopId;
+                    Session["ShopName"] = userCookie["ShopName"] ?? "";
+                    Session["ShopCompany"] = userCookie["ShopCompany"] ?? "";
+                    
+                    IsLoggedIn = true;
+                }
+            }
+        }
+        
+        // 如果Session中没有ShopId但有UserID，尝试从Cookie恢复ShopId
+        if (IsLoggedIn && Session["ShopId"] == null)
+        {
+            HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+            if (userCookie != null)
+            {
+                int shopId = 0;
+                if (int.TryParse(userCookie["ShopId"], out shopId))
+                {
+                    Session["ShopId"] = shopId;
+                    Session["ShopName"] = userCookie["ShopName"] ?? "";
+                    Session["ShopCompany"] = userCookie["ShopCompany"] ?? "";
+                }
+            }
+        }
+        
         if (Session["UserName"] != null)
         {
             CurrentUserName = Session["UserName"].ToString();

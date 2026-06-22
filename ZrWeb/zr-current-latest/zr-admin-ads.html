@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>广告管理 - 阻容网</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="admin-standalone">
+  <main class="admin-shell">
+    <header class="admin-hero admin-home-hero">
+      <div class="admin-brand-row">
+        <a class="admin-logo" href="zr-admin-console.html" aria-label="阻容网 ZR.net.cn">
+          <i>ZR</i>
+          <span><b>阻容网</b><em>ZR.net.cn</em></span>
+        </a>
+      </div>
+      <nav class="admin-top-tabs" aria-label="管理员栏目导航">
+        <a class="btn" href="zr-admin-console.html">返回控制台</a>
+        <button class="active" type="button">广告管理</button>
+      </nav>
+    </header>
+
+    <section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>全网广告位总汇</h2><p>按钻石、黄金、白银分级管理。未开启不显示；开启后在开始日期到到期日期内显示；到期自动隐藏。</p></div>
+        <button class="btn primary" type="button" data-ad-create data-ui-toast="已新增广告位草稿">新增广告</button>
+      </div>
+
+      <div class="admin-ad-summary">
+        <div><b>钻石广告</b><span>核心路径高曝光，少量展示，不压商品。</span><strong>3 个</strong></div>
+        <div><b>黄金广告</b><span>页面中段/侧栏承接，适合精准推广。</span><strong>5 个</strong></div>
+        <div><b>白银广告</b><span>低干扰提示位，适合工具、会员和公告。</span><strong>3 个</strong></div>
+      </div>
+
+      <section class="admin-ad-blueprint">
+        <div class="section-title"><div><h2>人性化布置原则</h2><p>广告不插入商品标题和核心交易按钮之间，只放在搜索前后、信息流间隔、侧栏和工作台提示区。</p></div></div>
+        <div class="admin-ad-blueprint-grid">
+          <div><b>钻石位</b><span>搜索前、首页搜索下方。适合全站主推品牌、重点库存、平台活动。</span></div>
+          <div><b>黄金位</b><span>搜索后、首页信息流中段、详情侧栏。适合精准供应、急采报价、同类推荐。</span></div>
+          <div><b>白银位</b><span>工作台和帮助页提示。适合会员权益、工具提示、服务公告。</span></div>
+          <div><b>文字广告</b><span>轻量、加载快，适合列表中段和工作台，不影响商品浏览。</span></div>
+          <div><b>图片广告</b><span>只建议放钻石位和详情侧栏，避免干扰搜索结果主体。</span></div>
+          <div><b>自动隐藏</b><span>关停、未到开始日期、超过到期日期，前台对应栏位直接隐藏。</span></div>
+        </div>
+      </section>
+
+      <div class="admin-ad-grid">
+        <article class="admin-ad-card ad-tier-diamond" data-ad-card data-ad-slot="SR-D01">
+          <span>钻石广告 · SR-D01</span>
+          <b>搜索结果页 · 搜索框前 1</b>
+          <small>建议图文 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option >文字广告</option><option selected>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="supply-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索结果页 · 待开启</small>
+          <button class="btn mini" data-ui-toast="SR-D01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-diamond" data-ad-card data-ad-slot="SR-D02">
+          <span>钻石广告 · SR-D02</span>
+          <b>搜索结果页 · 搜索框前 2</b>
+          <small>建议图文 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option >文字广告</option><option selected>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="supply-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索结果页 · 待开启</small>
+          <button class="btn mini" data-ui-toast="SR-D02 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-diamond" data-ad-card data-ad-slot="HOME-D01">
+          <span>钻石广告 · HOME-D01</span>
+          <b>首页广场 · 搜索栏下方</b>
+          <small>建议图文 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option >文字广告</option><option selected>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="search.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">首页广场 · 待开启</small>
+          <button class="btn mini" data-ui-toast="HOME-D01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-gold" data-ad-card data-ad-slot="SR-G01">
+          <span>黄金广告 · SR-G01</span>
+          <b>搜索结果页 · 搜索框后 1</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="demand-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索结果页 · 待开启</small>
+          <button class="btn mini" data-ui-toast="SR-G01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-gold" data-ad-card data-ad-slot="SR-G02">
+          <span>黄金广告 · SR-G02</span>
+          <b>搜索结果页 · 搜索框后 2</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="merchant-workbench.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索结果页 · 待开启</small>
+          <button class="btn mini" data-ui-toast="SR-G02 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-gold" data-ad-card data-ad-slot="HOME-G01">
+          <span>黄金广告 · HOME-G01</span>
+          <b>首页广场 · 信息流中段</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="search.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">首页广场 · 待开启</small>
+          <button class="btn mini" data-ui-toast="HOME-G01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-gold" data-ad-card data-ad-slot="SUP-G01">
+          <span>黄金广告 · SUP-G01</span>
+          <b>供应详情 · 供应商侧栏下方</b>
+          <small>建议图文 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option >文字广告</option><option selected>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="search.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">供应详情 · 待开启</small>
+          <button class="btn mini" data-ui-toast="SUP-G01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-gold" data-ad-card data-ad-slot="DEM-G01">
+          <span>黄金广告 · DEM-G01</span>
+          <b>需求详情 · 采购商侧栏下方</b>
+          <small>建议图文 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option >文字广告</option><option selected>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="merchant-workbench.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">需求详情 · 待开启</small>
+          <button class="btn mini" data-ui-toast="DEM-G01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-silver" data-ad-card data-ad-slot="MW-S01">
+          <span>白银广告 · MW-S01</span>
+          <b>商家工作台 · 搜索栏上方</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="profile.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">商家工作台 · 待开启</small>
+          <button class="btn mini" data-ui-toast="MW-S01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-silver" data-ad-card data-ad-slot="BW-S01">
+          <span>白银广告 · BW-S01</span>
+          <b>采购工作台 · 数据概览下方</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="received-quotes.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">采购工作台 · 待开启</small>
+          <button class="btn mini" data-ui-toast="BW-S01 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card ad-tier-silver" data-ad-card data-ad-slot="HELP-S01">
+          <span>白银广告 · HELP-S01</span>
+          <b>帮助/关于页 · 页面底部</b>
+          <small>建议文字 · 未开启不显示，到期自动隐藏</small>
+          <label>广告类型<select class="select" data-ad-type><option selected>文字广告</option><option >图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="help-center.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">帮助/关于页 · 待开启</small>
+          <button class="btn mini" data-ui-toast="HELP-S01 已保存">保存广告</button>
+        </article>
+      </div>
+
+      <div class="admin-table-wrap" style="margin-top:14px">
+        <table class="table admin-table">
+          <thead><tr><th>编码</th><th>等级</th><th>页面</th><th>位置</th><th>形式</th><th>链接</th><th>开始</th><th>到期</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><b>SR-D01</b></td><td><span class="ad-tier-pill diamond">钻石</span></td><td>搜索结果页</td><td>搜索框前 1</td><td>图文</td><td>supply-detail.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-D01">关停</span></td><td><button class="btn mini" data-ui-toast="SR-D01 已保存">保存</button></td></tr>
+            <tr><td><b>SR-D02</b></td><td><span class="ad-tier-pill diamond">钻石</span></td><td>搜索结果页</td><td>搜索框前 2</td><td>图文</td><td>supply-detail.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-D02">关停</span></td><td><button class="btn mini" data-ui-toast="SR-D02 已保存">保存</button></td></tr>
+            <tr><td><b>HOME-D01</b></td><td><span class="ad-tier-pill diamond">钻石</span></td><td>首页广场</td><td>搜索栏下方</td><td>图文</td><td>search.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="HOME-D01">关停</span></td><td><button class="btn mini" data-ui-toast="HOME-D01 已保存">保存</button></td></tr>
+            <tr><td><b>SR-G01</b></td><td><span class="ad-tier-pill gold">黄金</span></td><td>搜索结果页</td><td>搜索框后 1</td><td>文字</td><td>demand-detail.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-G01">关停</span></td><td><button class="btn mini" data-ui-toast="SR-G01 已保存">保存</button></td></tr>
+            <tr><td><b>SR-G02</b></td><td><span class="ad-tier-pill gold">黄金</span></td><td>搜索结果页</td><td>搜索框后 2</td><td>文字</td><td>merchant-workbench.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-G02">关停</span></td><td><button class="btn mini" data-ui-toast="SR-G02 已保存">保存</button></td></tr>
+            <tr><td><b>HOME-G01</b></td><td><span class="ad-tier-pill gold">黄金</span></td><td>首页广场</td><td>信息流中段</td><td>文字</td><td>search.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="HOME-G01">关停</span></td><td><button class="btn mini" data-ui-toast="HOME-G01 已保存">保存</button></td></tr>
+            <tr><td><b>SUP-G01</b></td><td><span class="ad-tier-pill gold">黄金</span></td><td>供应详情</td><td>供应商侧栏下方</td><td>图文</td><td>search.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SUP-G01">关停</span></td><td><button class="btn mini" data-ui-toast="SUP-G01 已保存">保存</button></td></tr>
+            <tr><td><b>DEM-G01</b></td><td><span class="ad-tier-pill gold">黄金</span></td><td>需求详情</td><td>采购商侧栏下方</td><td>图文</td><td>merchant-workbench.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="DEM-G01">关停</span></td><td><button class="btn mini" data-ui-toast="DEM-G01 已保存">保存</button></td></tr>
+            <tr><td><b>MW-S01</b></td><td><span class="ad-tier-pill silver">白银</span></td><td>商家工作台</td><td>搜索栏上方</td><td>文字</td><td>profile.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="MW-S01">关停</span></td><td><button class="btn mini" data-ui-toast="MW-S01 已保存">保存</button></td></tr>
+            <tr><td><b>BW-S01</b></td><td><span class="ad-tier-pill silver">白银</span></td><td>采购工作台</td><td>数据概览下方</td><td>文字</td><td>received-quotes.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="BW-S01">关停</span></td><td><button class="btn mini" data-ui-toast="BW-S01 已保存">保存</button></td></tr>
+            <tr><td><b>HELP-S01</b></td><td><span class="ad-tier-pill silver">白银</span></td><td>帮助/关于页</td><td>页面底部</td><td>文字</td><td>help-center.html</td><td>2026-06-13</td><td>2026-07-13</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="HELP-S01">关停</span></td><td><button class="btn mini" data-ui-toast="HELP-S01 已保存">保存</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="assets/app.js?v=20260613-adtest2"></script>
+</body>
+</html>

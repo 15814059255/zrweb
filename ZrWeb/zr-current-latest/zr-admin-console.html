@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>管理员控制台 - 阻容网</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="admin-standalone">
+  <main class="admin-shell">
+    <header class="admin-hero admin-home-hero">
+      <div class="admin-brand-row">
+        <a class="admin-logo" href="zr-admin-console.html" aria-label="阻容网 ZR.net.cn">
+          <i>ZR</i>
+          <span><b>阻容网</b><em>ZR.net.cn</em></span>
+        </a>
+      </div>
+      <nav class="admin-top-tabs" aria-label="管理员栏目导航">
+        <button class="active" type="button" data-admin-tab="members">会员管理</button>
+        <button type="button" data-admin-tab="supply">供需总览</button>
+        <button type="button" data-admin-tab="quotes">报价总览</button>
+        <button type="button" data-admin-tab="rank">热门排名</button>
+        <button type="button" data-admin-tab="ads" onclick="location.href='zr-admin-ads.html'">广告管理</button>
+      </nav>
+    </header>
+
+    <section class="admin-kpi-grid">
+      <div class="admin-kpi" data-db-name="zr_platform" data-db-source="members" data-db-metric="COUNT(*)"><span>会员总数</span><strong>3</strong><small><i>今</i>新增 0 <i>3天</i>新增 1 <i>周</i>新增 3</small></div>
+      <div class="admin-kpi" data-db-name="zr_platform" data-db-source="supply_items" data-db-metric="COUNT(*) WHERE status=在线"><span>在线供应</span><strong>2</strong><small><i>今</i>新增 0 <i>3天</i>新增 1 <i>周</i>新增 2</small></div>
+      <div class="admin-kpi" data-db-name="zr_platform" data-db-source="demand_items" data-db-metric="COUNT(*) WHERE status=在线"><span>在线求购</span><strong>2</strong><small><i>今</i>新增 0 <i>3天</i>新增 1 <i>周</i>新增 2</small></div>
+      <div class="admin-kpi" data-db-name="zr_platform" data-db-source="quotes" data-db-metric="COUNT(*) WHERE DATE(created_at)=CURRENT_DATE"><span>今日报价</span><strong>3</strong><small><i>今</i>新增 3 <i>3天</i>新增 3 <i>周</i>新增 3</small></div>
+    </section>
+
+    <section class="admin-tab-panel active" data-admin-view="members">
+<article class="panel admin-panel">
+      <div class="section-title">
+        <div class="admin-title-actions"><button class="admin-home-setting inline-setting" type="button" data-default-member-open aria-label="新注册会员入口身份设置">⌂</button><h2>会员管理</h2></div>
+        <div class="admin-search-actions"><input class="input admin-search" data-admin-table-search placeholder="搜索会员、公司名、电话、IP"></div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="table admin-table" data-admin-table data-admin-page-size="100" data-db-name="zr_platform" data-db-source="members">
+          <thead><tr><th>会员</th><th>公司名</th><th>联系方式</th><th>注册时间</th><th>最近登录（时间 IP）</th><th><button class="admin-sort-th" type="button" data-sort-table="member" data-sort-col="5">采购数 ↕</button></th><th><button class="admin-sort-th" type="button" data-sort-table="member" data-sort-col="6">供应数 ↕</button></th><th>状态</th></tr></thead>
+          <tbody>
+            <tr class="admin-member-row" data-company="深圳市华南电子有限公司" data-contact="陈经理" data-phone="138-0000-2688" data-qq="80012688" data-address="深圳市福田区华强北路 1001 号" data-role="供应商 + 采购商"><td>U10028</td><td>深圳市华南电子有限公司</td><td>陈经理<br>138-0000-2688<br>sales@hn-zr.cn</td><td>2026-06-11 09:18</td><td>2026-06-12 17:12 113.87.22.18</td><td>86</td><td>412</td><td><span class="tag green">启用</span></td></tr>
+            <tr class="admin-member-row" data-company="东莞智造电子科技有限公司" data-contact="王经理" data-phone="139-0000-1048" data-qq="80011048" data-address="东莞市松山湖工业园 18 号" data-role="采购商"><td>U10031</td><td>东莞智造电子科技有限公司</td><td>王经理<br>139-0000-1048<br>buy@dgzz.cn</td><td>2026-06-10 14:06</td><td>2026-06-12 16:40 183.63.91.45</td><td>238</td><td>36</td><td><span class="tag green">启用</span></td></tr>
+            <tr class="admin-member-row" data-company="苏州精密制造有限公司" data-contact="李小姐" data-phone="136-0000-7710" data-qq="80017710" data-address="苏州市工业园区星湖街 328 号" data-role="供应商"><td>U10044</td><td>苏州精密制造有限公司</td><td>李小姐<br>136-0000-7710<br>pmc@suzhou-parts.cn</td><td>2026-06-08 11:52</td><td>2026-06-12 15:58 58.210.33.76</td><td>124</td><td>58</td><td><span class="tag gray">禁用</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" data-admin-pagination><button type="button" data-page-prev>上一页</button><em data-page-info>第 1 / 1 页</em><button type="button" data-page-next>下一页</button></div>
+    </article>
+    </section>
+    <section class="admin-tab-panel" data-admin-view="supply" hidden>
+<section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>供需总览</h2></div>
+        <input class="input admin-search" data-admin-supply-search placeholder="搜索公司、型号、供应、需求">
+      </div>
+      <div class="admin-table-wrap" data-admin-supply-list>
+        <table class="table admin-table admin-supply-table" data-admin-page-size="100" data-db-name="zr_platform" data-db-source="supply_items,demand_items">
+          <thead><tr><th>选择</th><th>会员公司</th><th>类型</th><th>型号</th><th><button class="admin-sort-th" type="button" data-sort-table="supply" data-sort-col="4">数量 ↕</button></th><th><button class="admin-sort-th" type="button" data-sort-table="supply" data-sort-col="5">价格 ↕</button></th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox"></td><td>深圳市华南电子有限公司</td><td><span class="tag blue">供应</span></td><td>GRM188R71H104KA93D</td><td>现货 850/Kpcs</td><td>¥12.8 /Kpcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>东莞智造电子科技有限公司</td><td><span class="tag orange">需求</span></td><td>CL10B104KB8NNNC</td><td>需求 500/Kpcs</td><td>¥5.0 /Kpcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>深圳市华南电子有限公司</td><td><span class="tag blue">供应</span></td><td>RC0603FR-0710KL</td><td>现货 1200/Pcs</td><td>¥6.5 /Pcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>苏州精密制造有限公司</td><td><span class="tag orange">需求</span></td><td>1206 10uF X5R</td><td>需求 90/件</td><td>¥22.0 /件</td><td><span class="tag green">在线</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn primary" data-password-action="下架已勾选供需信息">勾选下架</button>
+      <div class="admin-pagination" data-admin-pagination><button type="button" data-page-prev>上一页</button><em data-page-info>第 1 / 1 页</em><button type="button" data-page-next>下一页</button></div>
+    </section>
+    </section>
+    <section class="admin-tab-panel" data-admin-view="quotes" hidden>
+<section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>报价总览</h2></div>
+        <input class="input admin-search" data-admin-table-search placeholder="搜索型号或公司名">
+      </div>
+      <div class="admin-table-wrap">
+        <table class="table admin-table" data-admin-table data-admin-page-size="100" data-db-name="zr_platform" data-db-source="quotes">
+          <thead><tr><th>型号</th><th>供应方</th><th>采购方</th><th>报价</th><th>数量</th><th>批次</th><th>报价时间</th></tr></thead>
+          <tbody>
+            <tr class="admin-quote-row" data-company="深圳市华芯电子有限公司" data-contact="陈经理" data-phone="138-0000-2688" data-qq="80012688" data-address="深圳市福田区华强北路 1001 号" data-buyer-company="东莞智造电子科技有限公司" data-buyer-contact="王经理" data-buyer-phone="139-0000-1048" data-buyer-qq="80011048" data-buyer-address="东莞市松山湖工业园 18 号" data-register="2026-06-05 10:20" data-purchase="86" data-supply="412" data-status="启用"><td>GRM188R71H104KA93D</td><td>深圳市华芯电子有限公司</td><td>东莞智造电子科技有限公司</td><td>¥12.6 /Kpcs · 含税</td><td>850/Kpcs</td><td>2024+</td><td>今天 09:28</td></tr>
+            <tr class="admin-quote-row" data-company="东莞市瑞达电子科技有限公司" data-contact="李小姐" data-phone="136-0000-7710" data-qq="80017710" data-address="东莞市长安镇振安路 88 号" data-buyer-company="深圳优选电子有限公司" data-buyer-contact="刘经理" data-buyer-phone="135-0000-6620" data-buyer-qq="80016620" data-buyer-address="深圳市南山区科技园 9 号" data-register="2026-06-08 13:41" data-purchase="238" data-supply="36" data-status="启用"><td>RC0603FR-0710KL</td><td>东莞市瑞达电子科技有限公司</td><td>深圳优选电子有限公司</td><td>¥6.5 /Pcs · 未税</td><td>1200/Pcs</td><td>2025+</td><td>刚刚</td></tr>
+            <tr class="admin-quote-row" data-company="苏州铭科电子有限公司" data-contact="王经理" data-phone="139-0000-1048" data-qq="80011048" data-address="苏州市工业园区星湖街 328 号" data-buyer-company="苏州精密制造有限公司" data-buyer-contact="李小姐" data-buyer-phone="136-0000-7710" data-buyer-qq="80017710" data-buyer-address="苏州市工业园区星湖街 328 号" data-register="2026-06-09 15:12" data-purchase="124" data-supply="58" data-status="启用"><td>CL10B104KB8NNNC</td><td>苏州铭科电子有限公司</td><td>苏州精密制造有限公司</td><td>¥5.0 /Kpcs · 含税</td><td>500/Kpcs</td><td>2023+</td><td>昨天 18:05</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" data-admin-pagination><button type="button" data-page-prev>上一页</button><em data-page-info>第 1 / 1 页</em><button type="button" data-page-next>下一页</button></div>
+    </section>
+    </section>
+    <section class="admin-tab-panel" data-admin-view="rank" hidden>
+<section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>热门排名 TOP1-20 <button class="rank-page-switch" type="button" data-rank-page-switch>TOP1-10 ⇄ TOP11-20</button></h2></div>
+        <div class="admin-rank-tabs"><button class="active">12小时</button><button>24小时</button><button>1周</button><button>15天</button><button>30天</button></div>
+      </div>
+      <div class="rank-grid">
+        <div class="rank-list">
+          <div data-rank-page="1"><b>TOP1</b><span>GRM188R71H104KA93D</span><em>热度 98</em></div>
+          <div data-rank-page="1"><b>TOP2</b><span>RC0603FR-0710KL</span><em>热度 93</em></div>
+          <div data-rank-page="1"><b>TOP3</b><span>CL10B104KB8NNNC</span><em>热度 89</em></div>
+          <div data-rank-page="1"><b>TOP4</b><span>CC0402KRX7R9BB104</span><em>热度 82</em></div>
+          <div data-rank-page="1"><b>TOP5</b><span>GRM21BR71H105KA12L</span><em>热度 79</em></div>
+          <div data-rank-page="1"><b>TOP6</b><span>RC0402FR-0710KL</span><em>热度 76</em></div>
+          <div data-rank-page="1"><b>TOP7</b><span>0603 0Ω 跳线电阻</span><em>热度 72</em></div>
+          <div data-rank-page="1"><b>TOP8</b><span>CL21B105KAFNNNE</span><em>热度 70</em></div>
+          <div data-rank-page="1"><b>TOP9</b><span>GRM31CR61E226KE15L</span><em>热度 68</em></div>
+          <div data-rank-page="1"><b>TOP10</b><span>0805 100K ±1%</span><em>热度 65</em></div>
+          <div data-rank-page="2" hidden><b>TOP11</b><span>0603 22pF NP0</span><em>热度 62</em></div>
+          <div data-rank-page="2" hidden><b>TOP12</b><span>CL05A475KQ5NSNC</span><em>热度 59</em></div>
+          <div data-rank-page="2" hidden><b>TOP13</b><span>RC0805FR-074K7L</span><em>热度 56</em></div>
+          <div data-rank-page="2" hidden><b>TOP14</b><span>GRM155R71H103KA88D</span><em>热度 54</em></div>
+          <div data-rank-page="2" hidden><b>TOP15</b><span>1206 10uF X5R</span><em>热度 52</em></div>
+          <div data-rank-page="2" hidden><b>TOP16</b><span>0805 4.7KΩ ±1%</span><em>热度 50</em></div>
+          <div data-rank-page="2" hidden><b>TOP17</b><span>0402 100nF X7R</span><em>热度 48</em></div>
+          <div data-rank-page="2" hidden><b>TOP18</b><span>0603 1KΩ ±1%</span><em>热度 46</em></div>
+          <div data-rank-page="2" hidden><b>TOP19</b><span>1206 22uF X5R</span><em>热度 44</em></div>
+          <div data-rank-page="2" hidden><b>TOP20</b><span>0805 100K ±1%</span><em>热度 42</em></div>
+        </div>
+        <div class="kline-board" aria-label="热门 K 线">
+          <svg viewBox="0 0 640 300" role="img">
+            <defs><linearGradient id="hotLine" x1="0" x2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#0f9f6e"/></linearGradient></defs>
+            <g class="k-grid"><path d="M40 40H610M40 95H610M40 150H610M40 205H610M40 260H610"/><path d="M80 25V270M180 25V270M280 25V270M380 25V270M480 25V270M580 25V270"/></g>
+            <polyline class="k-poly" data-k-poly points="50,230 95,205 140,214 185,170 230,180 275,132 320,148 365,98 410,121 455,82 500,96 545,55 600,72"/>
+            <g class="candles" data-k-candles>
+              <path d="M90 185V225M78 192H102V214H78Z"/><path d="M180 150V198M168 160H192V185H168Z"/><path d="M270 120V170M258 134H282V158H258Z"/><path d="M360 88V142M348 100H372V130H348Z"/><path d="M450 70V125M438 83H462V110H438Z"/><path d="M540 48V98M528 60H552V86H528Z"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+    </section>
+    <section class="admin-tab-panel" data-admin-view="ads" hidden>
+<section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>广告管理</h2><p>全网广告位请进入总汇页管理，支持钻石、黄金、白银分级。</p></div>
+        <a class="btn" href="zr-admin-ads.html">进入广告管理页</a>
+        <button class="btn primary" type="button" data-ad-create data-ui-toast="已新增广告位草稿">新增广告</button>
+      </div>
+      <div class="admin-ad-grid">
+        <article class="admin-ad-card" data-ad-card>
+          <span>广告位 1</span>
+          <label>广告类型<select class="select" data-ad-type><option>文字广告</option><option>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="supply-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索页顶部 · 已启用</small>
+          <button class="btn mini" data-ui-toast="广告位 1 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card" data-ad-card>
+          <span>广告位 2</span>
+          <label>广告类型<select class="select" data-ad-type><option>文字广告</option><option>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="supply-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索页顶部 · 已启用</small>
+          <button class="btn mini" data-ui-toast="广告位 2 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card" data-ad-card>
+          <span>广告位 3</span>
+          <label>广告类型<select class="select" data-ad-type><option>文字广告</option><option>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="demand-detail.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索页顶部 · 已启用</small>
+          <button class="btn mini" data-ui-toast="广告位 3 已保存">保存广告</button>
+        </article>
+        <article class="admin-ad-card" data-ad-card>
+          <span>广告位 4</span>
+          <label>广告类型<select class="select" data-ad-type><option>文字广告</option><option>图片广告</option></select></label>
+          <label>显示内容<textarea class="input" data-ad-content>这个位置很适合您的产品！</textarea></label>
+          <label>图片广告<input class="input" type="file" accept="image/*" data-ad-image></label>
+          <label>链接地址<input class="input" value="merchant-workbench.html" data-ad-link></label>
+          <div class="admin-ad-dates"><label>开始日期<input class="input" type="date" value="2026-06-13" data-ad-start></label><label>到期日期<input class="input" type="date" value="2026-07-13" data-ad-end></label></div>
+          <small data-ad-status data-ad-end="2026-07-13">搜索页顶部 · 已启用</small>
+          <button class="btn mini" data-ui-toast="广告位 4 已保存">保存广告</button>
+        </article>
+      </div>
+      <div class="admin-table-wrap" style="margin-top:14px">
+        <table class="table admin-table">
+          <thead><tr><th>位置</th><th>标题</th><th>跳转</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>搜索框前 1</td><td>钻石广告 SR-D01</td><td>supply-detail.html</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-D01">关停</span></td><td><button class="btn mini" data-ui-toast="已更新广告状态">保存</button></td></tr>
+            <tr><td>搜索框前 2</td><td>钻石广告 SR-D02</td><td>supply-detail.html</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-D02">关停</span></td><td><button class="btn mini" data-ui-toast="已更新广告状态">保存</button></td></tr>
+            <tr><td>搜索框后 1</td><td>黄金广告 SR-G01</td><td>demand-detail.html</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-G01">关停</span></td><td><button class="btn mini" data-ui-toast="已更新广告状态">保存</button></td></tr>
+            <tr><td>搜索框后 2</td><td>黄金广告 SR-G02</td><td>merchant-workbench.html</td><td><span class="tag gray" role="button" tabindex="0" data-ad-state-toggle data-ad-slot="SR-G02">关停</span></td><td><button class="btn mini" data-ui-toast="已更新广告状态">保存</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    </section>
+  </main>
+  <script src="assets/app.js?v=20260613-adtest2"></script>
+</body>
+</html>

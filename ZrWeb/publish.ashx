@@ -33,7 +33,56 @@ public class PublishHandler : IHttpHandler {
         string goodsSn = context.Request["goodsSn"];
         string name = context.Request["name"];
         string manufacturers = context.Request["manufacturers"];
-        string packaging = context.Request["packaging"];
+        
+        // 收集参数字段
+        string brand = context.Request["attr_品牌"] ?? "";
+        string packaging = context.Request["attr_封装"] ?? "";
+        string capacity = context.Request["attr_容值"] ?? "";
+        string resistance = context.Request["attr_阻值"] ?? "";
+        string precision = context.Request["attr_精度"] ?? "";
+        string voltage = context.Request["attr_耐压"] ?? "";
+        string power = context.Request["attr_功率"] ?? "";
+        string medium = context.Request["attr_介质"] ?? "";
+        string tcr = context.Request["attr_温漂"] ?? "";
+        
+        // 组合品牌和参数信息
+        string brandParams = "";
+        if (!string.IsNullOrEmpty(brand))
+        {
+            brandParams = brand;
+        }
+        
+        // 添加参数信息
+        System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
+        if (!string.IsNullOrEmpty(packaging)) paramsList.Add(packaging);
+        if (!string.IsNullOrEmpty(capacity)) paramsList.Add(capacity);
+        if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
+        if (!string.IsNullOrEmpty(precision)) paramsList.Add(precision);
+        if (!string.IsNullOrEmpty(voltage)) paramsList.Add(voltage);
+        if (!string.IsNullOrEmpty(power)) paramsList.Add(power);
+        if (!string.IsNullOrEmpty(medium)) paramsList.Add(medium);
+        if (!string.IsNullOrEmpty(tcr)) paramsList.Add(tcr);
+        
+        if (paramsList.Count > 0)
+        {
+            if (!string.IsNullOrEmpty(brandParams))
+            {
+                brandParams += " · " + string.Join(" · ", paramsList);
+            }
+            else
+            {
+                brandParams = string.Join(" · ", paramsList);
+            }
+        }
+        
+        // 如果没有参数信息，使用原来的 manufacturers 字段
+        if (string.IsNullOrEmpty(brandParams))
+        {
+            brandParams = manufacturers;
+        }
+        
+        // 获取有效期
+        string validity = context.Request["validity"] ?? "1个月";
         
         int goodsStock = 0;
         int.TryParse(context.Request["goodsStock"], out goodsStock);
@@ -55,13 +104,21 @@ public class PublishHandler : IHttpHandler {
         string remarks = context.Request["remarks"];
 
         if (context.Session == null) {
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.Charset = "utf-8";
             context.Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
+            context.Response.End();
             return;
         }
 
         int userId = UserHelper.GetUserId();
         if (userId == 0) {
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.Charset = "utf-8";
             context.Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
+            context.Response.End();
             return;
         }
 
@@ -80,26 +137,39 @@ public class PublishHandler : IHttpHandler {
         }
 
         if (shopId == 0) {
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.Charset = "utf-8";
             context.Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
+            context.Response.End();
             return;
         }
 
         if (string.IsNullOrEmpty(goodsSn)) {
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.Charset = "utf-8";
             context.Response.Write("{\"success\":false,\"message\":\"请输入型号\"}");
+            context.Response.End();
             return;
         }
 
         GoodsService service = new GoodsService();
         bool success = service.InsertGoods(
-            goodsSn, name, manufacturers, packaging,
+            goodsSn, name, brandParams, packaging,
             goodsStock, goodsUnit, shopPrice, isIncludingTax,
-            pubType, remarks, shopId, userId);
+            pubType, remarks, shopId, userId, validity);
 
+        context.Response.Clear();
+        context.Response.ContentType = "application/json";
+        context.Response.Charset = "utf-8";
+        
         if (success) {
             context.Response.Write("{\"success\":true,\"message\":\"发布成功\"}");
         } else {
             context.Response.Write("{\"success\":false,\"message\":\"数据库插入失败\"}");
         }
+        context.Response.End();
     }
     
     private int GetDefaultShopId(int userId) {
@@ -109,8 +179,9 @@ public class PublishHandler : IHttpHandler {
             if (result != null && result != DBNull.Value) {
                 return Convert.ToInt32(result);
             }
-        } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine("GetDefaultShopId 错误: " + ex.Message);
+        }
+        catch {
+            // 忽略错误
         }
         return 0;
     }

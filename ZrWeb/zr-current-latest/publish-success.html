@@ -1,0 +1,68 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>发布成功 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="" href="login.html"><span>登录</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>发布成功</h1>
+            </div>
+            <div class="actions"><a class="btn back" href="index.html" data-back>返回</a>
+              <button class="btn soft" type="button" data-quick-import-open>快捷发布</button>
+            </div>
+          </header>
+
+        <section class="panel empty-success">
+          <div class="check">✓</div><h2>发布成功</h2><p class="lead" style="margin:0 auto 18px">信息已进入对应广场，并会自动匹配可能感兴趣的采购商或供应商。</p>
+          <div class="actions" style="justify-content:center"><a class="btn primary" href="index.html">查看广场</a><a class="btn" href="index.html">继续发布</a><a class="btn" href="merchant-workbench.html">进入工作台</a></div>
+        </section>
+
+        </main>
+      </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

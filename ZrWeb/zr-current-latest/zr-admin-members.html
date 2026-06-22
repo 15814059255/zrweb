@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>会员管理 - 阻容网</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="admin-standalone">
+  <main class="admin-shell">
+    <header class="admin-hero">
+      <div>
+        <h1><a class="admin-logo" href="zr-admin-console.html"><i>ZR</i><span><b>阻容网</b><em>ZR.net.cn</em></span></a><a class="admin-home-setting" href="zr-admin-console.html" aria-label="返回控制台">⌂</a></h1>
+      </div>
+    </header>
+    <nav class="admin-page-nav">
+      <a href="zr-admin-members.html">会员管理</a>
+      <a href="zr-admin-supply.html">供需总览</a>
+      <a href="zr-admin-quotes.html">报价总览</a>
+      <a href="zr-admin-console.html">返回控制台</a>
+    </nav>
+    <article class="panel admin-panel">
+      <div class="section-title">
+        <div class="admin-title-actions"><button class="admin-home-setting inline-setting" type="button" data-default-member-open aria-label="新注册会员入口身份设置">⌂</button><h2>会员管理</h2></div>
+        <div class="admin-search-actions"><input class="input admin-search" data-admin-table-search placeholder="搜索会员、公司名、电话、IP"></div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="table admin-table" data-admin-table data-admin-page-size="100" data-db-name="zr_platform" data-db-source="members">
+          <thead><tr><th>会员</th><th>公司名</th><th>联系方式</th><th>注册时间</th><th>最近登录（时间 IP）</th><th><button class="admin-sort-th" type="button" data-sort-table="member" data-sort-col="5">采购数 ↕</button></th><th><button class="admin-sort-th" type="button" data-sort-table="member" data-sort-col="6">供应数 ↕</button></th><th>状态</th></tr></thead>
+          <tbody>
+            <tr class="admin-member-row" data-company="深圳市华南电子有限公司" data-contact="陈经理" data-phone="138-0000-2688" data-qq="80012688" data-address="深圳市福田区华强北路 1001 号" data-role="供应商 + 采购商"><td>U10028</td><td>深圳市华南电子有限公司</td><td>陈经理<br>138-0000-2688<br>sales@hn-zr.cn</td><td>2026-06-11 09:18</td><td>2026-06-12 17:12 113.87.22.18</td><td>86</td><td>412</td><td><span class="tag green">启用</span></td></tr>
+            <tr class="admin-member-row" data-company="东莞智造电子科技有限公司" data-contact="王经理" data-phone="139-0000-1048" data-qq="80011048" data-address="东莞市松山湖工业园 18 号" data-role="采购商"><td>U10031</td><td>东莞智造电子科技有限公司</td><td>王经理<br>139-0000-1048<br>buy@dgzz.cn</td><td>2026-06-10 14:06</td><td>2026-06-12 16:40 183.63.91.45</td><td>238</td><td>36</td><td><span class="tag green">启用</span></td></tr>
+            <tr class="admin-member-row" data-company="苏州精密制造有限公司" data-contact="李小姐" data-phone="136-0000-7710" data-qq="80017710" data-address="苏州市工业园区星湖街 328 号" data-role="供应商"><td>U10044</td><td>苏州精密制造有限公司</td><td>李小姐<br>136-0000-7710<br>pmc@suzhou-parts.cn</td><td>2026-06-08 11:52</td><td>2026-06-12 15:58 58.210.33.76</td><td>124</td><td>58</td><td><span class="tag gray">禁用</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" data-admin-pagination><button type="button" data-page-prev>上一页</button><em data-page-info>第 1 / 1 页</em><button type="button" data-page-next>下一页</button></div>
+    </article>
+  </main>
+  <script src="assets/app.js?v=20260613-adtest2"></script>
+</body>
+</html>

@@ -71,13 +71,21 @@
     </div>
     <div class="modal-backdrop" id="publishModal" hidden>
         <div class="modal publish-form-modal" role="dialog" aria-modal="true" aria-label="发布">
-            <div class="modal-head"><h2 data-publish-title>发布采购</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
+            <div class="modal-head"><h2 data-publish-title>发布</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
             <div class="modal-body">
                 <form class="quick-publish-form" data-quick-publish-form id="publishDemandForm">
                     <input type="hidden" name="action" value="publish_demand">
-                    <div class="form-row suggest-wrap inline-row"><label>型号</label><input class="input" name="goodsSn" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D"><div class="suggest-list" data-suggest-list hidden></div></div>
-                    <div class="form-row"><label>名称</label><input class="input" name="name" placeholder="商品名称（可选）"></div>
-                    <div class="form-row"><label>品牌/制造商</label><input class="input" name="manufacturers" placeholder="品牌或制造商（可选）"></div>
+                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-publish-kind="supply">发布供应</button><button type="button" data-publish-kind="demand">发布需求</button></div></div>
+                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-part-type="capacitor">电容</button><button type="button" data-part-type="resistor">电阻</button></div></div>
+                    <div class="form-row suggest-wrap inline-row">
+                        <label>型号</label>
+                        <input class="input" name="goodsSn" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D" onblur="validateAndFillPartNumber(this)">
+                        <div class="suggest-list" data-suggest-list hidden></div>
+                    </div>
+                    <div id="pnr-result" style="display:none;padding:12px;background:rgba(34,197,94,0.05);border-left:3px solid #22c55e;margin-bottom:12px;"></div>
+                    <div class="form-row">
+                        <div class="attr-grid" data-attr-grid></div>
+                    </div>
                     <div class="form-row trade-grid"><label>期望单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" name="price" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button><input type="hidden" name="isIncludingTax" value="0"></span></label><label><span data-qty-label>采购数量</span><span class="qty-unit-inline"><input class="input" name="quantity" data-required="数量" placeholder="填写数量" value=""><select class="input unit-inline-input" name="unit" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
                     <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
                 </form>
@@ -113,6 +121,20 @@
             var publishConfirmBtn = publishModal.querySelector('[data-publish-confirm]');
             var taxSwitch = publishModal.querySelector('[data-tax-toggle]');
             var isIncludingTaxInput = publishModal.querySelector('input[name="isIncludingTax"]');
+
+            // 初始渲染参数输入框
+            if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                renderQuickPublishAttrs(publishForm);
+            }
+
+            // 类型切换时重新渲染参数输入框
+            publishModal.querySelectorAll('[data-part-type]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                        renderQuickPublishAttrs(publishForm);
+                    }
+                });
+            });
 
             // 税赋切换
             if (taxSwitch) {

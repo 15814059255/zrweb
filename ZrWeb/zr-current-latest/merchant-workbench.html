@@ -1,0 +1,138 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>我是商家 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="active" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="" href="login.html"><span>登录</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>我是商家</h1>
+              <div class="grid cols-4 merchant-stats" style="margin:18px 0" data-merchant-stats-menu>
+                <div class="stat" data-merchant-stat="online"><strong>3</strong><span>在线供应</span></div>
+                <a class="stat stat-link inquiry-stat-link" href="received-inquiries.html" data-merchant-stat="inquiries"><div><strong>7</strong><span>收到询价</span></div><em data-db-source="inquiries" data-db-metric="COUNT(*) WHERE seller_id=:current_member AND read_at IS NULL">新询价 7</em><small>查看询价 ›</small></a>
+                <a class="stat stat-link quote-record-stat-link" href="quote-records.html" data-merchant-stat="quotes"><div><strong>3</strong><span>我的报价</span></div><small>查看记录 ›</small></a>
+                <button class="stat stat-action" type="button" data-expired-stat data-merchant-stat="expired"><strong>4</strong><span>到期数据</span><small>查看已下架 ›</small></button>
+              </div>
+            </div>
+            <div class="actions"><a class="btn back" href="merchant-workbench.html" data-back>返回商家</a>
+              <button class="btn soft" type="button" data-quick-import-open>快捷发布</button>
+            </div>
+          </header>
+
+        <section class="panel">
+          <div class="searchbar inventory-searchbar"><input class="input" data-inventory-search placeholder="搜索型号、品牌、参数"><button class="btn primary" data-inventory-search-btn>搜索</button></div>
+        </section>
+        <section class="panel site-ad-panel workbench-ad-panel" hidden>
+          <a class="search-ad-card" href="profile.html" data-ad-slot="MW-S01"><b>白银广告 MW-S01</b><span>商家工作台轻提示位，适合会员权益、上架工具和服务提醒。</span></a>
+        </section>
+        <section class="panel" style="margin-top:18px"><div class="section-title"><div><h2>库存管理</h2></div><div class="actions"><button class="btn primary merchant-publish-fab" type="button" data-publish-open data-publish-default="supply" data-publish-part-default="capacitor">发布供采</button></div></div>
+          <div class="table-wrap">
+            <table class="table inventory-table">
+              <thead><tr><th></th><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th>单价</th><th>税赋</th><th>剩余时间</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr class="inventory-item"><td><input type="checkbox"></td><td><span class="tag blue">供应</span></td><td><strong>GRM188R71H104KA93D</strong></td><td>村田 Murata · 0603 · 100nF · X7R · 50V</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="850"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-taxed"><input class="price-input" min="0.0001" step="0.0001" value="12.8"><span>含税</span></label></td><td><button class="tax-switch is-on" type="button" data-tax-toggle aria-pressed="true"><span></span></button></td><td>72 小时</td><td><button class="btn mini take-off" data-toggle-stock>下架</button><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                <tr class="inventory-item"><td><input type="checkbox"></td><td><span class="tag blue">供应</span></td><td><strong>RC0603FR-0710KL</strong></td><td>Yageo · 0603 · 10KΩ · ±1% · 1/10W</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="1200"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-taxed"><input class="price-input" min="0.0001" step="0.0001" value="6.5"><span>含税</span></label></td><td><button class="tax-switch is-on" type="button" data-tax-toggle aria-pressed="true"><span></span></button></td><td>72 小时</td><td><button class="btn mini take-off" data-toggle-stock>下架</button><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                <tr class="inventory-item"><td><input type="checkbox"></td><td><span class="tag orange">即将到期</span></td><td><strong>GRM21BR71H105KA12L</strong></td><td>村田 Murata · 0805 · 1uF · X7R · 50V</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="120"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value="18.0"><span>未税</span></label></td><td><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></td><td class="time-danger">小于 1 小时</td><td><button class="btn mini take-off" data-toggle-stock>下架</button><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all></label><button class="btn mini" data-ui-toast="已批量下架选中库存">批量下架</button></div><button class="btn" disabled>上一页</button><span>第 1 / 49 页</span><span class="page-size">每页 50 条</span><button class="btn">下一页</button></div></section>
+
+        <section class="panel expired-panel" id="expiredPanel" hidden style="margin-top:18px">
+          <div class="section-title"><div><h2>到期信息 · 已下架商品</h2></div><div class="actions"><button class="btn" data-toggle-expired>收起</button><button class="btn" data-ui-toast="已批量重新上架选中库存">批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
+          <div class="table-wrap">
+            <table class="table inventory-table">
+              <thead><tr><th></th><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th>单价</th><th>税赋</th><th>下架时间</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr class="inventory-item is-offline"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong>GRM21BR71H105KA12L</strong></td><td>村田 Murata · 0805 · 1uF · X7R · 50V</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="120"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value="18.0"><span>未税</span></label></td><td><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></td><td>2026-06-09 18:20</td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                <tr class="inventory-item is-offline"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong>CL10B104KB8NNNC</strong></td><td>三星 Samsung · 0603 · 100nF · 10% · 50V</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="500"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-taxed"><input class="price-input" min="0.0001" step="0.0001" value="5.0"><span>含税</span></label></td><td><button class="tax-switch is-on" type="button" data-tax-toggle aria-pressed="true"><span></span></button></td><td>2026-06-08 22:05</td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                <tr class="inventory-item is-offline"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong>RC0402FR-0710KL</strong></td><td>Yageo · 0402 · 10KΩ · ±1% · 1/16W</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="80"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value="3.2"><span>未税</span></label></td><td><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></td><td>2026-06-07 09:42</td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                <tr class="inventory-item is-offline"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong>GRM21BR71H105KA12L</strong></td><td>村田 Murata · 0805 · 1uF · X7R · 50V</td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="120"></td><td><select class="unit-select"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></td><td><label class="price-field is-taxed"><input class="price-input" min="0.0001" step="0.0001" value="22.5"><span>含税</span></label></td><td><button class="tax-switch is-on" type="button" data-tax-toggle aria-pressed="true"><span></span></button></td><td>2026-06-05 15:18</td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination"><button class="btn" disabled>上一页</button><span>第 1 / 12 页</span><button class="btn">下一页</button></div>
+        </section>
+
+        </main>
+      </div>
+      <div class="modal-backdrop" id="publishModal" hidden>
+        <div class="modal publish-form-modal" role="dialog" aria-modal="true" aria-label="发布">
+          <div class="modal-head"><h2 data-publish-title>发布</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <form class="quick-publish-form" data-quick-publish-form>
+              <div class="form-row">
+                <div class="segmented"><button class="active" type="button" data-publish-kind="supply">发布供应</button><button type="button" data-publish-kind="demand">发布需求</button></div>
+              </div>
+              <div class="form-row">
+                <div class="segmented"><button class="active" type="button" data-part-type="capacitor">电容</button><button type="button" data-part-type="resistor">电阻</button></div>
+              </div>
+              <div class="form-row suggest-wrap inline-row">
+                <label>型号</label>
+                <input class="input" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D">
+                <div class="suggest-list" data-suggest-list hidden></div>
+              </div>
+              <div class="form-row">
+                <div class="attr-grid" data-attr-grid></div>
+              </div>
+              <div class="form-row trade-grid">
+                <label>单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></span></label>
+                <label><span data-qty-label>可供数量</span><span class="qty-unit-inline"><input class="input" data-required="数量" placeholder="填写数量"><select class="input unit-inline-input" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label>
+              </div>
+              
+              <div class="publish-footer">
+                <div class="validity-picker" aria-label="有效期">
+                  <span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button>
+                </div>
+                <button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

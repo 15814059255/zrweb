@@ -110,153 +110,39 @@
     </div>
     <uc1:bottom runat="server" ID="bottom" />
     
-    <div class="modal-backdrop" id="tradeInteractionModal" hidden>
-        <div class="modal trade-modal" role="dialog" aria-modal="true" aria-label="交易交互">
-            <div class="modal-head">
-                <h2 id="tradeModalTitle">交易交互</h2>
-                <button class="modal-close" type="button" data-trade-close aria-label="关闭">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="tradeForm">
-                    <input type="hidden" name="action" id="tradeAction">
-                    <input type="hidden" name="goodsId" id="tradeGoodsId">
-                    <input type="hidden" name="goodsSn" id="tradeGoodsSn">
-                    <input type="hidden" name="toShopId" id="tradeToShopId">
-                    
-                    <div class="form-row">
-                        <label>型号</label>
-                        <input class="input" id="tradeModel" readonly>
-                    </div>
-                    
-                    <div class="form-row trade-grid">
-                        <label>数量
-                            <input class="input" name="quantity" data-required="数量" placeholder="填写数量">
-                        </label>
-                        <label>单价
-                            <span class="price-field is-untaxed">
-                                <input class="price-input" name="price" min="0.0001" step="0.0001" value="">
-                                <span>未税</span>
-                            </span>
-                            <button class="tax-switch" type="button" data-trade-tax-toggle aria-pressed="false"><span></span></button>
-                            <input type="hidden" name="isIncludingTax" value="0">
-                        </label>
-                    </div>
-                    
-                    <div class="form-row">
-                        <label>备注</label>
-                        <textarea name="remarks" placeholder="输入备注信息（可选）"></textarea>
-                    </div>
-                    
-                    <div class="form-row">
-                        <button class="btn primary" type="button" id="tradeSubmit">提交</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var tradeModal = document.getElementById('tradeInteractionModal');
-            var tradeForm = document.getElementById('tradeForm');
-            var tradeSubmitBtn = document.getElementById('tradeSubmit');
-            var taxSwitch = tradeModal.querySelector('[data-trade-tax-toggle]');
-            var isIncludingTaxInput = tradeModal.querySelector('input[name="isIncludingTax"]');
-
-            // 税赋切换
-            if (taxSwitch) {
-                taxSwitch.addEventListener('click', function() {
-                    var isOn = taxSwitch.classList.toggle('is-on');
-                    taxSwitch.setAttribute('aria-pressed', isOn);
-                    var priceField = taxSwitch.previousElementSibling;
-                    if (isOn) {
-                        priceField.classList.remove('is-untaxed');
-                        priceField.classList.add('is-taxed');
-                        priceField.querySelector('span').textContent = '含税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '1';
-                    } else {
-                        priceField.classList.remove('is-taxed');
-                        priceField.classList.add('is-untaxed');
-                        priceField.querySelector('span').textContent = '未税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '0';
-                    }
-                });
-            }
-
-            // 点击"我要报价"或"立即询价"按钮
-            document.querySelectorAll('[data-action]').forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var actionText = this.getAttribute('data-action');
-                    var goodsId = this.getAttribute('data-goods-id');
-                    var goodsSn = this.getAttribute('data-goods-sn');
-                    var shopId = this.getAttribute('data-shop-id');
-                    
-                    // 设置表单数据
-                    document.getElementById('tradeGoodsId').value = goodsId || '';
-                    document.getElementById('tradeGoodsSn').value = goodsSn || '';
-                    document.getElementById('tradeToShopId').value = shopId || '';
-                    document.getElementById('tradeModel').value = goodsSn || '';
-                    
-                    // 根据按钮文字判断是询价还是报价
-                    if (actionText === '我要报价') {
-                        document.getElementById('tradeModalTitle').textContent = '我要报价';
-                        document.getElementById('tradeAction').value = 'submit_quote';
-                    } else {
-                        document.getElementById('tradeModalTitle').textContent = '立即询价';
-                        document.getElementById('tradeAction').value = 'submit_inquiry';
-                    }
-                    
-                    tradeModal.removeAttribute('hidden');
-                });
-            });
-
-            // 关闭模态框
-            document.querySelector('[data-trade-close]').addEventListener('click', function() {
-                tradeModal.setAttribute('hidden', '');
-            });
-
-            // 提交表单
-            if (tradeSubmitBtn) {
-                tradeSubmitBtn.addEventListener('click', function() {
-                    var formData = new FormData(tradeForm);
-                    var quantity = formData.get('quantity');
-                    var price = formData.get('price');
-
-                    if (!quantity || quantity.trim() === '') {
-                        alert('请输入数量');
-                        return;
-                    }
-                    if (!price || price.trim() === '') {
-                        alert('请输入单价');
-                        return;
-                    }
-
-                    tradeSubmitBtn.disabled = true;
-                    tradeSubmitBtn.textContent = '提交中...';
-
-                    fetch('index.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert(data.message);
-                            tradeModal.setAttribute('hidden', '');
-                            tradeForm.reset();
-                        } else {
-                            alert('提交失败：' + data.message);
+            // 发布供应弹窗初始化
+            var publishModal = document.getElementById('publishModal');
+            if (publishModal) {
+                var publishForm = publishModal.querySelector('[data-quick-publish-form]');
+                if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                    renderQuickPublishAttrs(publishForm);
+                }
+                
+                // 类型切换时重新渲染参数输入框
+                publishModal.querySelectorAll('[data-part-type]').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                            renderQuickPublishAttrs(publishForm);
                         }
-                    })
-                    .catch(error => {
-                        alert('提交异常：' + error);
-                    })
-                    .finally(() => {
-                        tradeSubmitBtn.disabled = false;
-                        tradeSubmitBtn.textContent = '提交';
                     });
                 });
+                
+                // 型号输入框添加料号验证
+                var modelInput = publishModal.querySelector('[data-model-input]');
+                if (modelInput) {
+                    modelInput.setAttribute('onblur', 'validateAndFillPartNumber(this)');
+                }
+                
+                // 添加验证结果显示区域
+                var formRow = modelInput ? modelInput.closest('.form-row') : null;
+                if (formRow && !publishModal.querySelector('#pnr-result')) {
+                    var pnrResult = document.createElement('div');
+                    pnrResult.id = 'pnr-result';
+                    pnrResult.style.cssText = 'display:none;padding:12px;background:rgba(34,197,94,0.05);border-left:3px solid #22c55e;margin-bottom:12px;';
+                    formRow.insertAdjacentElement('afterend', pnrResult);
+                }
             }
         });
     </script>

@@ -23,6 +23,19 @@ public static class UserHelper
                 if (userId > 0)
                 {
                     HttpContext.Current.Session["UserID"] = userId;
+                    HttpContext.Current.Session["UserName"] = cookie["UserName"] ?? "";
+                    HttpContext.Current.Session["LinkMan"] = cookie["LinkMan"] ?? "";
+                    HttpContext.Current.Session["MobilePhone"] = cookie["MobilePhone"] ?? "";
+                    HttpContext.Current.Session["RoseID"] = cookie["RoseID"] ?? "";
+                    HttpContext.Current.Session["UserGuid"] = cookie["UserGuid"] ?? "";
+                    
+                    int shopId = 0;
+                    if (int.TryParse(cookie["ShopId"], out shopId))
+                    {
+                        HttpContext.Current.Session["ShopId"] = shopId;
+                    }
+                    HttpContext.Current.Session["ShopName"] = cookie["ShopName"] ?? "";
+                    HttpContext.Current.Session["ShopCompany"] = cookie["ShopCompany"] ?? "";
                 }
             }
         }

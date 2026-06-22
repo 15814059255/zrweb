@@ -1,50 +1,3 @@
-// Toast 提示系统
-(function() {
-  // 创建 Toast 容器
-  if (!document.querySelector('.zr-toast-container')) {
-    const container = document.createElement('div');
-    container.className = 'zr-toast-container';
-    document.body.appendChild(container);
-  }
-
-  // Toast 函数
-  window.ZrToast = function(message, type, duration) {
-    type = type || 'info';
-    duration = duration || 3000;
-    
-    const container = document.querySelector('.zr-toast-container');
-    const toast = document.createElement('div');
-    toast.className = 'zr-toast zr-toast-' + type;
-    toast.innerHTML = '<span>' + message + '</span>';
-    container.appendChild(toast);
-
-    // 自动消失
-    setTimeout(function() {
-      toast.classList.add('toast-exit');
-      setTimeout(function() { toast.remove(); }, 250);
-    }, duration);
-  };
-
-  // 快捷方法
-  window.ZrToast.success = function(msg, dur) { ZrToast(msg, 'success', dur); };
-  window.ZrToast.error = function(msg, dur) { ZrToast(msg, 'error', dur); };
-  window.ZrToast.warning = function(msg, dur) { ZrToast(msg, 'warning', dur); };
-  window.ZrToast.info = function(msg, dur) { ZrToast(msg, 'info', dur); };
-})();
-
-// 表单验证辅助
-function showFieldError(input, message) {
-  input.classList.add('input-error');
-  input.classList.remove('input-success');
-  ZrToast.error(message);
-  setTimeout(function() { input.classList.remove('input-error'); }, 2000);
-}
-
-function showFieldSuccess(input) {
-  input.classList.add('input-success');
-  input.classList.remove('input-error');
-}
-
 document.querySelectorAll('[data-publish-open]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const modal = document.getElementById('publishModal');
@@ -473,16 +426,16 @@ document.querySelectorAll('[data-publish-close]').forEach((btn) => {
 });
 document.querySelectorAll('.modal-backdrop').forEach((mask) => {
   mask.addEventListener('click', (e) => {
-    // 发布供应弹窗和询价报价弹窗只能通过关闭按钮关闭
-    if (mask.id === 'publishModal' || mask.id === 'tradeInteractionModal') return;
+    // 发布供应弹窗只能通过关闭按钮关闭
+    if (mask.id === 'publishModal') return;
     if (e.target === mask) mask.setAttribute('hidden', '');
   });
 });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   document.querySelectorAll('.modal-backdrop').forEach((m) => {
-    // 发布供应弹窗和询价报价弹窗只能通过关闭按钮关闭
-    if (m.id === 'publishModal' || m.id === 'tradeInteractionModal') return;
+    // 发布供应弹窗只能通过关闭按钮关闭
+    if (m.id === 'publishModal') return;
     if (m.id === 'tradeInteractionModal') resetTradeInteractionModal(m);
     m.setAttribute('hidden', '');
   });
@@ -524,13 +477,7 @@ function isBuyerOnlyPage() {
   return ['buyer-workbench.html', 'received-quotes.html', 'demand-detail.html'].includes(page);
 }
 
-function isMerchantWorkbenchPage() {
-  const page = location.pathname.split('/').pop();
-  return page === 'merchant-workbench.aspx';
-}
-
 function isNonSupplierContext() {
-  if (isMerchantWorkbenchPage()) return false;
   return (isCurrentMemberLoggedIn() && !isSupplierRole()) || isBuyerOnlyPage();
 }
 
@@ -1006,7 +953,7 @@ function renderQuickPublishAttrs(form) {
   const requiredMap = { capacitor: ['封装', '容值'], resistor: ['封装', '阻值'] };
   const attrs = getPartAttrs(activeType);
   grid.innerHTML = attrs.map((name) => (
-    `<label>${name}<input class="input" name="attr_${name}" data-clear-on-click data-attr-name="${name}" ${(requiredMap[activeType] || []).includes(name) ? `data-required="${name}"` : ''} list="attr-${name}" placeholder="填写${name}"></label>`
+    `<label>${name}<input class="input" data-clear-on-click data-attr-name="${name}" ${(requiredMap[activeType] || []).includes(name) ? `data-required="${name}"` : ''} list="attr-${name}" placeholder="填写${name}"></label>`
   )).join('') + attrs.map((name) => (
     `<datalist id="attr-${name}">${(quickPublishAttrOptions[name] || []).map((value) => `<option value="${value}"></option>`).join('')}</datalist>`
   )).join('');
@@ -1185,12 +1132,11 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
     const modal = btn.closest('.modal-backdrop');
     if (!form) return;
     const kind = form.querySelector('[data-publish-kind].active')?.dataset.publishKind || 'supply';
-
-    if (!isCurrentMemberLoggedIn()) {
-      ZrToast.error('请先登录后再发布');
-      return;
+    if (kind === 'demand') {
+      form.querySelectorAll('input').forEach((input) => {
+        if (!input.value.trim()) input.value = '不限';
+      });
     }
-    
     const requiredInputs = [...form.querySelectorAll('[data-required]')];
     const emptyInputs = requiredInputs.filter((input) => !input.value.trim());
     requiredInputs.forEach((input) => input.classList.remove('input-error'));
@@ -1203,7 +1149,6 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
       emptyInputs[0].focus();
       return;
     }
-    
     const priceInput = form.querySelector('.price-input');
     if (priceInput) {
       if (!(kind === 'demand' && priceInput.value.trim() === '不限')) {
@@ -1218,77 +1163,15 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
         return;
       }
     }
-    
-    const model = form.querySelector('[data-model-input]')?.value || '';
-    const qtyInput = form.querySelector('[data-required="数量"]')?.closest('label')?.querySelector('input');
-    const qty = qtyInput?.value || '0';
-    const qtyUnit = form.querySelector('.unit-inline-input')?.value || 'Kpcs';
-    const price = priceInput?.value || '0';
-    const isTaxed = form.querySelector('[data-tax-toggle]')?.getAttribute('aria-pressed') === 'true';
-    
-    // 获取有效期
-    const validityBtn = form.querySelector('[data-validity].active');
-    const validity = validityBtn ? validityBtn.dataset.validity : '1个月';
-    
-    const data = new FormData();
-    data.append('action', 'publish_goods');
-    data.append('goodsSn', model);
-    data.append('goodsStock', qty);
-    data.append('goodsUnit', qtyUnit);
-    data.append('shopPrice', price);
-    data.append('isIncludingTax', isTaxed ? '1' : '0');
-    data.append('pubType', kind === 'supply' ? '1' : '2');
-    data.append('validity', validity);
-    if (window.ZR_CURRENT_MEMBER && window.ZR_CURRENT_MEMBER.shopId) {
-      data.append('shopId', window.ZR_CURRENT_MEMBER.shopId);
-    }
-    
-    // 获取参数字段
-    const attrInputs = form.querySelectorAll('[data-attr-grid] input');
-    attrInputs.forEach((input) => {
-      const attrName = input.dataset.attrName;
-      if (attrName && input.value) {
-        data.append('attr_' + attrName, input.value);
-      }
-    });
-    
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/publish.ashx', true);
-    xhr.onload = function() {
-      let result;
-      try {
-        result = JSON.parse(xhr.responseText);
-      } catch (e) {
-        result = { success: false, message: '服务器返回无效数据' };
-      }
-      
-      const toast = document.createElement('div');
-      toast.className = 'publish-toast';
-      if (result.success) {
-        toast.textContent = kind === 'demand' ? '需求发布成功！请到后台查看' : '供应发布成功！请到后台查看';
-      } else {
-        toast.textContent = result.message || '发布失败，请重试';
-        toast.style.backgroundColor = '#e53935';
-      }
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-        if (result.success) {
-          resetQuickPublishForm(form);
-          modal?.setAttribute('hidden', '');
-        }
-      }, 2000);
-    };
-    xhr.onerror = function() {
-      const toast = document.createElement('div');
-      toast.className = 'publish-toast';
-      toast.textContent = '网络错误，请重试';
-      toast.style.backgroundColor = '#e53935';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2000);
-    };
-    xhr.send(data);
+    const toast = document.createElement('div');
+    toast.className = 'publish-toast';
+    toast.textContent = kind === 'demand' && priceInput && !priceInput.value.trim() ? '需求已按面议发布！请到后台查看' : '成功发布！请到后台查看';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+      resetQuickPublishForm(form);
+      modal?.setAttribute('hidden', '');
+    }, 1500);
   });
 });
 
@@ -1558,7 +1441,10 @@ document.addEventListener('click', (event) => {
     row?.querySelectorAll('[data-interaction-validity]').forEach((button) => button.classList.toggle('active', button === validity));
     return;
   }
-  // 询价报价弹窗只能通过关闭按钮关闭，点击模糊区域不关闭
+  if (event.target?.id === 'tradeInteractionModal') {
+    resetTradeInteractionModal(event.target);
+    event.target.setAttribute('hidden', '');
+  }
   if (event.target.closest('[data-interaction-close]')) {
     const modal = document.getElementById('tradeInteractionModal');
     resetTradeInteractionModal(modal);
@@ -2872,161 +2758,3 @@ document.addEventListener('click', (event) => {
 });
 
 document.querySelectorAll('[data-list-scope]').forEach((scope) => applyAdminListFilter(scope));
-
-// ===== 料号验证与自动填充工具 =====
-window.PART_NUMBER_RULES = {
-    samsung: { brandIds: ['samsung','samsung-cn','samsung-tw','samsung-kr'], cat: 'capacitor',
-        rules: [{ seriesCode: 'CL', seriesName: 'MLCC',
-            regex: '^CL(R1|01|02|03|05|10|21|31|32|42|43|55)([A-Z])(\\d{3}|\\dR\\d)([A-Z])([A-Z])([A-Z0-9])(.{3,4})$',
-            parser: function(model){var m=model.match(/^CL(R1|01|02|03|05|10|21|31|32|42|43|55)([A-Z])(\d{3}|\dR\d)([A-Z])([A-Z])([A-Z0-9])(.{3,4})$/);if(!m)return null;var sM={'R1':'0201','01':'01005','02':'0402','03':'0201','05':'0402','10':'0603','21':'0805','31':'1206','32':'1210','42':'1808','43':'1812','55':'2220'};var dM={'C':'C0G(NP0)','G':'X8G','A':'X5R','X':'X6S','W':'X6T','B':'X7R','K':'X7R(S)','Y':'X7S','Z':'X7T','F':'Y5V','M':'X8M','E':'X8L','J':'JIS-B'};var cc=m[3],capStr='';if(cc.includes('R')){capStr=cc.replace('R','.')+'pF';}else{var sig=parseInt(cc.substring(0,2)),mul=Math.pow(10,parseInt(cc[2])),pf=sig*mul;capStr=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}var tM={'N':'±0.03pF','A':'±0.05pF','B':'±0.1pF','C':'±0.25pF','D':'±0.5pF','F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%','Z':'+80/-20%'};var vM={'S':'2.5V','R':'4V','Q':'6.3V','P':'10V','O':'16V','A':'25V','L':'35V','B':'50V','T':'75V','C':'100V','D':'200V','E':'250V','G':'500V','H':'630V','I':'1kV','J':'2kV','K':'3kV'};return[{name:'系列',code:'CL',meaning:'MLCC贴片电容'},{name:'封装尺寸',code:m[1],meaning:sM[m[1]]||m[1]},{name:'温度特性',code:m[2],meaning:dM[m[2]]||m[2]},{name:'容值',code:cc,meaning:capStr},{name:'精度',code:m[4],meaning:tM[m[4]]||m[4]},{name:'电压',code:m[5],meaning:vM[m[5]]||m[5]}];}
-        }]
-    },
-    murata: { brandIds: ['murata','murata-cn','murata-tw','murata-jp'], cat: 'capacitor',
-        rules: [{ seriesCode: 'GRM/GCM/GCD/GCE/GCG/GCJ/GRJ/GRT/GJM', seriesName: 'MLCC',
-            regex: '^(GRM|GCM|GCD|GCE|GCG|GCJ|GRJ|GRT|GJM|GQM)(\\d{2})([3-9A-EMQ])([A-Z0-9]{2})([A-Z0-9]{2})(\\d{3}|R\\d{2}|\\dR\\d)([A-Z])([A-Z0-9]{3})([A-Z]?)$',
-            parser: function(model){var m=model.match(/^(GRM|GCM|GCD|GCE|GCG|GCJ|GRJ|GRT|GJM|GQM)(\d{2})([3-9A-EMQ])([A-Z0-9]{2})([A-Z0-9]{2})(\d{3}|R\d{2}|\dR\d)([A-Z])([A-Z0-9]{3})([A-Z]?)$/);if(!m)return null;var seriesM={'GRM':'标准民用SMD MLCC','GCM':'AEC-Q200车规级MLCC','GCD':'防静电专用设计(车规)','GCE':'防静电+端子电极(车规)','GCG':'导电引脚兼容型(车规)','GCJ':'端子电极/软端子(车规)','GRJ':'低ESR紧凑型高容值MLCC','GRT':'汽车信息娱乐/车身电子','GJM':'高频RF/微波MLCC','GQM':'高Q低ESR MLCC'};var sM={'03':'0201','06':'0402','15':'0402(旧)','18':'0603','21':'0805','31':'1206','32':'1210','43':'1812','55':'2220'};var dM={'5C':'C0G(NP0)','5G':'X8G','7U':'U2J','9E':'ZLM','C7':'X7S','D7':'X7T','L8':'X8L','R7':'X7R','R9':'X8R','R6':'X5R','F5':'Y5V'};var vM={'0E':'2.5V','0G':'4V','0J':'6.3V','1A':'10V','1C':'16V','1E':'25V','YA':'35V','1H':'50V','1J':'63V','1K':'80V','2A':'100V','2E':'250V','2W':'450V','2J':'630V','3A':'1000V'};var cc=m[6],cap='';if(cc.includes('R')){cap=cc.replace('R','.')+'pF';}else{var sig=parseInt(cc.substring(0,2)),mul=Math.pow(10,parseInt(cc[2])),pf=sig*mul;cap=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}var tM={'C':'±0.25pF','D':'±0.5pF','J':'±5%','K':'±10%','M':'±20%','W':'±0.05pF','B':'±0.1pF','F':'±1%','G':'±2%'};return[{name:'系列',code:m[1],meaning:seriesM[m[1]]||m[1]+' MLCC'},{name:'尺寸',code:m[2],meaning:sM[m[2]]||m[2]},{name:'温度特性',code:m[4],meaning:dM[m[4]]||m[4]},{name:'电压',code:m[5],meaning:vM[m[5]]||m[5]+'V'},{name:'容值',code:cc,meaning:cap},{name:'精度',code:m[7],meaning:tM[m[7]]||m[7]}];}
-        }]
-    },
-    yageo: { brandIds: ['yageo','yageo-tw'], cat: 'resistor',
-        rules: [{ seriesCode: 'RC', seriesName: 'Chip Resistor',
-            regex: '^(RC|AC)(\\d{4})([FGJKMWBZ])([A-Z])-(\\d{2})([0-9]{3}[A-Z]|[0-9]{4}|[0-9R]+[KM]?|[0-9R]K[0-9R])([A-Z])$',
-            parser: function(model){var m=model.match(/^(RC|AC)(\d{4})([FGJKMWBZ])([A-Z])-(\d{2})([0-9]{3}[A-Z]|[0-9]{4}|[0-9R]+[KM]?|[0-9R]K[0-9R])([A-Z])$/);if(!m)return null;var grade=m[1]==='AC'?'AEC-Q200 车规':'普通';var tM={'F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%','W':'±0.05%','B':'±0.1%'};var pM={'01':'1/32W','02':'1/16W','03':'1/10W','04':'1/8W','05':'1/4W','06':'1/3W','07':'1/5W','08':'1/2W','10':'1W'};var rv=m[6],res='';if(rv.includes('R')){res=rv.replace('R','.')+'Ω';}else if(rv.includes('K')){if(rv.endsWith('K')){var kn=parseFloat(rv);res=kn+'kΩ';}else{var parts=rv.split('K');res=parts[0]+'.'+parts[1]+'kΩ';}}else if(rv.endsWith('M')){var mn=parseFloat(rv);res=mn+'MΩ';}else{res=rv+'Ω';}return[{name:'系列',code:m[1],meaning:grade+' 贴片电阻'},{name:'封装',code:m[2],meaning:m[2]},{name:'精度',code:m[3],meaning:tM[m[3]]||m[3]},{name:'功率',code:m[5],meaning:pM[m[5]]||m[5]},{name:'阻值',code:rv,meaning:res}];}
-        }]
-    },
-    fojan: { brandIds: ['fojan'], cat: 'capacitor',
-        rules: [{ seriesCode: 'FCC', seriesName: 'MLCC',
-            regex: '^(FCC)(0402|0603|0805|1206|1210)([BNX])(\\d{3})([JKM])(\\d{3})(CT|DT|HT|NT|AT)$',
-            parser: function(model){var m=model.match(/^(FCC)(0402|0603|0805|1206|1210)([BNX])(\d{3})([JKM])(\d{3})(CT|DT|HT|NT|AT)$/);if(!m)return null;var diM={'B':'X7R','X':'X5R','N':'NPO/C0G'};var tM={'J':'±5%','K':'±10%','M':'±20%'};var vM={'160':'16V','250':'25V','500':'50V'};var cc=m[4],sig=parseInt(cc.substring(0,2)),mul=Math.pow(10,parseInt(cc[2])),pf=sig*mul,capStr=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';return[{name:'系列',code:'FCC',meaning:'富捷MLCC'},{name:'封装',code:m[2],meaning:m[2]},{name:'介质',code:m[3],meaning:diM[m[3]]||m[3]},{name:'容值',code:cc,meaning:capStr},{name:'精度',code:m[5],meaning:tM[m[5]]||m[5]},{name:'电压',code:m[6],meaning:vM[m[6]]||m[6]+'V'}];}
-        }]
-    },
-    nv: { brandIds: ['nv'], cat: 'capacitor',
-        rules: [{ seriesCode: 'NV', seriesName: 'MLCC (汇聚系列)',
-            regex: '^(NL|NM|NV|NH|NC|ND|OP|AB|IR|AN|SX|SY)(0603|0805|1206|1210|1812|2220)([NBHXDS])([0-9R]{3,4})([ABCDFGJKMZ])(\\d{3}|\\dR\\d)([LCBE])([PERLBD])([A-Z])([A-Z])$',
-            parser: function(model){var m=model.match(/^(NL|NM|NV|NH|NC|ND|OP|AB|IR|AN|SX|SY)(0603|0805|1206|1210|1812|2220)([NBHXDS])([0-9R]{3,4})([ABCDFGJKMZ])(\d{3}|\dR\d)([LCBE])([PERLB])([A-Z])([A-Z])$/);if(!m)return null;var sM={'NL':'低压(≤50V)','NM':'中压(100~630V)','NV':'高压(1~3kV)','NH':'超高压(>3~6kV)','NC':'高电容系列','ND':'低损耗系列','OP':'开路模式系列','AB':'软端电极(抗弯曲)','IR':'工业高可靠','AN':'车规(AEC-Q200)','SX':'安规X2','SY':'安规X1/Y2'};var diM={'N':'C0G/NP0','B':'X7R','X':'X5R','D':'X7E','S':'X7S','H':'C0H'};var cc=m[4],cap='';if(cc.includes('R')){var cp=cc.split('R');cap=cp[0]+'.'+cp[1]+'pF';}else{var sig=parseInt(cc.substring(0,cc.length-1)),mul=Math.pow(10,parseInt(cc[cc.length-1])),pf=sig*mul;cap=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}var tM={'A':'±0.05pF','B':'±0.1pF','C':'±0.25pF','D':'±0.5pF','F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%','Z':'-20%~+80%'};var vv=m[6],vStr='';if(vv.includes('R')){var vp=vv.split('R');vStr=vp[0]+'.'+vp[1]+'V';}else{var vNum=parseInt(vv.substring(0,2)),vMul=Math.pow(10,parseInt(vv[2])),vVal=vNum*vMul;vStr=vVal>=1000?vVal/1000+'kV':vVal+'V';}return[{name:'系列',code:m[1],meaning:sM[m[1]]||m[1]},{name:'封装',code:m[2],meaning:m[2]},{name:'介质',code:m[3],meaning:diM[m[3]]||m[3]},{name:'容值',code:cc,meaning:cap},{name:'精度',code:m[5],meaning:tM[m[5]]||m[5]},{name:'电压',code:vv,meaning:vStr}];}
-        }]
-    },
-    chinocera: { brandIds: ['chinocera'], cat: 'capacitor',
-        rules: [{ seriesCode: 'HGC', seriesName: 'MLCC',
-            regex: '^(HGC)(\\d{4})(R5|R6|R7|S6|S7|G0|T7|R8|X5|X7|Y5|Z5)(\\d{3}|\\dR\\d)([A-KM-Z])(\\d{3})([NC])([TBS])([A-Z])([DJK])$',
-            parser: function(model){var m=model.match(/^(HGC)(\d{4})(R5|R6|R7|S6|S7|G0|T7|R8|X5|X7|Y5|Z5)(\d{3}|\dR\d)([A-KM-Z])(\d{3})([NC])([TBS])([A-Z])([DJK])$/);if(!m)return null;var diM={'R5':'X5R','R6':'X6R','R7':'X7R','R8':'X8R','S6':'X6S','S7':'X7S','G0':'C0G/NP0','T7':'X7T','X5':'X5R','X7':'X7R','Y5':'Y5V','Z5':'Z5U'};var tM={'A':'±0.05pF','B':'±0.1pF','C':'±0.25pF','D':'±0.5pF','F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%','Z':'±80/-20%'};var cc=m[4],capStr='';if(cc.includes('R')){var cp=cc.split('R');capStr=cp[0]+'.'+cp[1]+'pF';}else{var sig=parseInt(cc.substring(0,2)),mul=Math.pow(10,parseInt(cc[2])),pf=sig*mul;capStr=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}return[{name:'系列',code:'HGC',meaning:'中瓷MLCC'},{name:'封装',code:m[2],meaning:m[2]},{name:'温度特性',code:m[3],meaning:diM[m[3]]||m[3]},{name:'容值',code:cc,meaning:capStr},{name:'精度',code:m[5],meaning:tM[m[5]]||m[5]}];}
-        }]
-    },
-    fenghua: { brandIds: ['fenghua'], cat: 'capacitor',
-        rules: [{ seriesCode: 'FH', seriesName: 'MLCC (通用型)',
-            regex: '^(0201|0402|0603|0805|1206|1210|1812|2225)(CG|C0G|COG|B|F|E|X7R|X5R|X6S|Y5V)(\\d{3}|\\dR\\d|[0-9R]{4})([CDFGJKM])(\\d{3}|\\dR\\d)([NSC])([T])$',
-            parser: function(model){var m=model.match(/^(0201|0402|0603|0805|1206|1210|1812|2225)(CG|C0G|COG|B|F|E|X7R|X5R|X6S|Y5V)(\d{3}|\dR\d|[0-9R]{4})([CDFGJKM])(\d{3}|\dR\d)([NSC])([T])$/);if(!m)return null;var diM={'CG':'C0G/NP0','C0G':'C0G/NP0','COG':'C0G/NP0','B':'X7R','F':'Y5V','E':'Z5U','X7R':'X7R','X5R':'X5R','X6S':'X6S','Y5V':'Y5V'};var cc=m[3],cap='';if(cc.includes('R')){var cp=cc.split('R');cap=cp[0]+'.'+cp[1]+'pF';}else{var sig=parseInt(cc.substring(0,cc.length-1)),mul=Math.pow(10,parseInt(cc[cc.length-1])),pf=sig*mul;cap=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}var tM={'C':'±0.25pF','D':'±0.5pF','F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%'};return[{name:'系列',code:'FH',meaning:'风华高科MLCC'},{name:'封装',code:m[1],meaning:m[1]},{name:'介质',code:m[2],meaning:diM[m[2]]||m[2]},{name:'容值',code:cc,meaning:cap},{name:'精度',code:m[4],meaning:tM[m[4]]||m[4]}];}
-        }]
-    },
-    yageoCC: { brandIds: ['yageo','yageo-tw'], cat: 'capacitor',
-        rules: [{ seriesCode: 'CC', seriesName: 'MLCC',
-            regex: '^(CC|AC)(\\d{4}|01005)([BCDGFGJKMNWZ])([RKPF])(NPO|X5R|X7R|X6S|Y5V|YSV|X7T|C0G|COG)([0-9A-Z])([NB])([NB])([A-Z0-9]{3,4})$',
-            parser: function(model){var m=model.match(/^(CC|AC)(\d{4}|01005)([BCDGFGJKMNWZ])([RKPF])(NPO|X5R|X7R|X6S|Y5V|YSV|X7T|C0G|COG)([0-9A-Z])([NB])([NB])([A-Z0-9]{3,4})$/);if(!m)return null;var grade=m[1]==='AC'?'AEC-Q200 车规':'普通';var tM={'B':'±0.1pF','C':'±0.25pF','D':'±0.5pF','F':'±1%','G':'±2%','J':'±5%','K':'±10%','M':'±20%','W':'±0.05%','Z':'-20%~+80%'};var vM={'4':'4V','5':'6.3V','6':'10V','7':'16V','8':'25V','9':'50V','0':'100V','1':'200V','Y':'250V','B':'500V','C':'1KV','D':'2KV','E':'3KV','Z':'630V'};var cc=m[9],capStr='';if(cc.includes('R')){var cp=cc.split('R');capStr=cp[0]+'.'+cp[1]+'pF';}else{var sig=parseInt(cc.substring(0,2)),mul=Math.pow(10,parseInt(cc[2])),pf=sig*mul;capStr=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}return[{name:'系列',code:m[1],meaning:grade+' MLCC'},{name:'封装',code:m[2],meaning:m[2]},{name:'精度',code:m[3],meaning:tM[m[3]]||m[3]},{name:'包装',code:m[4],meaning:m[4]},{name:'温度特性',code:m[5],meaning:m[5]},{name:'电压',code:m[6],meaning:vM[m[6]]||m[6]+'V'},{name:'容值',code:cc,meaning:capStr}];}
-        }]
-    },
-    taiyo: { brandIds: ['taiyo'], cat: 'capacitor',
-        rules: [{ seriesCode: 'HMK/EMK/LMK/TMK/UMK/GMK/JMK/AMK', seriesName: 'MLCC (短格式)',
-            regex: '^([A-Z])MK([0-9]{3})([A-Z]?)(B5|B7|C6|C7|D7|CG|CH|CJ|CK|SD|BJ|LD|AC)([0-9R]{3})([A-Z])([A-Z]?)(-?)([A-Z])([A-Z]*)$',
-            parser: function(model){var m=model.match(/^([A-Z])MK([0-9]{3})([A-Z]?)(B5|B7|C6|C7|D7|CG|CH|CJ|CK|SD|BJ|LD|AC)([0-9R]{3})([A-Z])([A-Z]?)(-?)([A-Z])([A-Z]*)$/);if(!m)return null;var vM={'H':'100V','G':'35V','E':'16V','U':'50V','L':'10V','S':'630V','T':'25V','J':'6.3V','A':'4V','P':'2.5V','Q':'250V','X':'2000V','K':'16V','F':'25V','D':'20V','M':'500V','N':'1000V','B':'12.5V','C':'15V','R':'7.5V','W':'450V','Y':'3000V'};var sM={'105':'1005(0402)','107':'1608(0603)','212':'2012(0805)','316':'3216(1206)','325':'3225(1210)','432':'4532(1812)','01':'0201','02':'0201','03':'0301','04':'0402','06':'0603','08':'0805','12':'1206','21':'2010','25':'2512'};var dM={'B5':'X5R','B7':'X7R','C6':'X6S','C7':'X7S','D7':'X7T','CG':'C0G/NP0','CH':'C0H','CJ':'C0J','CK':'C0K','SD':'低失真/音鸣','BJ':'X5R(低失真)','LD':'X5R(低失真)','AC':'C0G/NP0'};var cc=m[5],cap='';if(cc.includes('R')){var cp=cc.split('R');cap=cp[0]+'.'+cp[1]+'pF';}else{var sig=parseInt(cc.substring(0,cc.length-1)),mul=Math.pow(10,parseInt(cc[cc.length-1])),pf=sig*mul;cap=pf>=1e6?(pf/1e6)+'uF':pf>=1e3?(pf/1e3)+'nF':pf+'pF';}var tM={'A':'±0.05pF','B':'±0.1pF','C':'±0.25pF','D':'±0.5pF','G':'±2%','J':'±5%','K':'±10%','M':'±20%'};var dCode=m[3]+m[4];var dStr=dM[dCode]||dM[m[4]]||m[4];return[{name:'系列',code:m[1]+'MK',meaning:'太阳诱电MLCC'},{name:'电压',code:m[1],meaning:vM[m[1]]||m[1]},{name:'封装',code:m[2],meaning:sM[m[2]]||m[2]},{name:'介质',code:dCode,meaning:dStr},{name:'容值',code:cc,meaning:cap},{name:'精度',code:m[6],meaning:tM[m[6]]||m[6]}];}
-        }]
-    }
-};
-
-// 品牌名称映射
-window.PART_NUMBER_BRAND_MAP = {
-    'samsung': 'Samsung', 'samsung-cn': 'Samsung', 'samsung-tw': 'Samsung', 'samsung-kr': 'Samsung',
-    'murata': 'Murata', 'murata-cn': 'Murata', 'murata-tw': 'Murata', 'murata-jp': 'Murata',
-    'yageo': 'Yageo', 'yageo-tw': 'Yageo',
-    'fojan': '富捷',
-    'nv': 'NV',
-    'chinocera': '中瓷',
-    'fenghua': '风华',
-    'taiyo': '太阳诱电'
-};
-
-// 字段名称映射
-window.PART_NUMBER_FIELD_MAP = {
-    '封装尺寸': '封装',
-    '封装/功率': '封装',
-    '尺寸': '封装',
-    '容值': '容值',
-    '精度': '精度',
-    '电压': '耐压',
-    '耐压': '耐压',
-    '温度特性': '介质',
-    '阻值': '阻值',
-    '功率': '功率',
-    '温漂': '温漂'
-};
-
-// 通用料号验证和自动填充函数
-window.validateAndFillPartNumber = function(input) {
-    const model = input.value.trim();
-    const form = input.closest('form');
-    if (!form) return;
-    
-    const resultDiv = form.querySelector('#pnr-result') || form.querySelector('[data-pnr-result]');
-    const attrGrid = form.querySelector('[data-attr-grid]');
-    
-    if (!model) {
-        if (resultDiv) resultDiv.style.display = 'none';
-        if (attrGrid) attrGrid.querySelectorAll('input').forEach(inp => inp.value = '');
-        return;
-    }
-
-    const results = [];
-    for (const [pKey, pnr] of Object.entries(window.PART_NUMBER_RULES)) {
-        for (const r of pnr.rules) {
-            if (!r.regex) continue;
-            try {
-                const re = new RegExp(r.regex);
-                const m = model.match(re);
-                if (m) {
-                    let parsed = null;
-                    if (r.parser) {
-                        try { parsed = r.parser(model); } catch (e) { parsed = null; }
-                    }
-                    results.push({ cat: pnr.cat, rule: r, parsed, match: m, brandIds: pnr.brandIds });
-                }
-            } catch (e) {}
-        }
-    }
-
-    if (results.length === 0) {
-        if (resultDiv) {
-            resultDiv.style.display = 'block';
-            resultDiv.style.background = 'rgba(239,68,68,0.05)';
-            resultDiv.style.borderLeftColor = '#ef4444';
-            resultDiv.innerHTML = '<span style="font-size:12px;color:#ef4444;">未识别到该料号规则，请手动填写参数</span>';
-        }
-        return;
-    }
-
-    const best = results[0];
-    let html = '<div style="display:flex;align-items:center;gap:8px;font-size:12px;">';
-    html += '<span style="color:#22c55e;">✓ 已识别</span>';
-    html += '<span style="color:#6b7280;">品牌规则匹配</span>';
-    if (best.rule.seriesName) html += '<span style="color:#f97316;">' + best.rule.seriesName + '</span>';
-    html += '</div>';
-
-    if (resultDiv) {
-        resultDiv.style.display = 'block';
-        resultDiv.style.background = 'rgba(34,197,94,0.05)';
-        resultDiv.style.borderLeftColor = '#22c55e';
-        resultDiv.innerHTML = html;
-    }
-
-    if (attrGrid && best.parsed && best.parsed.length > 0) {
-        const brandName = best.brandIds && best.brandIds.length > 0 ? (window.PART_NUMBER_BRAND_MAP[best.brandIds[0]] || best.brandIds[0]) : '';
-
-        const brandInput = attrGrid.querySelector('input[data-attr-name="品牌"]');
-        if (brandInput && brandName) brandInput.value = brandName;
-
-        best.parsed.forEach(f => {
-            const attrName = window.PART_NUMBER_FIELD_MAP[f.name] || f.name;
-            const attrInput = attrGrid.querySelector(`input[data-attr-name="${attrName}"]`);
-            if (attrInput) {
-                attrInput.value = f.meaning || f.code;
-            }
-        });
-    }
-};

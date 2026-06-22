@@ -59,10 +59,58 @@ public partial class buyer_workbench : System.Web.UI.Page
             string unit = Request["unit"] ?? "Kpcs";
             decimal price = 0;
             int isIncludingTax = 0;
+            string validity = Request["validity"] ?? "1个月";
 
             int.TryParse(Request["quantity"], out quantity);
             decimal.TryParse(Request["price"], out price);
             int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+
+            // 收集参数字段
+            string brand = Request["attr_品牌"] ?? "";
+            string packaging = Request["attr_封装"] ?? "";
+            string capacity = Request["attr_容值"] ?? "";
+            string resistance = Request["attr_阻值"] ?? "";
+            string precision = Request["attr_精度"] ?? "";
+            string voltage = Request["attr_耐压"] ?? "";
+            string power = Request["attr_功率"] ?? "";
+            string medium = Request["attr_介质"] ?? "";
+            string tcr = Request["attr_温漂"] ?? "";
+
+            // 组合品牌和参数信息
+            string brandParams = "";
+            if (!string.IsNullOrEmpty(brand))
+            {
+                brandParams = brand;
+            }
+            
+            // 添加参数信息
+            System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
+            if (!string.IsNullOrEmpty(packaging)) paramsList.Add(packaging);
+            if (!string.IsNullOrEmpty(capacity)) paramsList.Add(capacity);
+            if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
+            if (!string.IsNullOrEmpty(precision)) paramsList.Add(precision);
+            if (!string.IsNullOrEmpty(voltage)) paramsList.Add(voltage);
+            if (!string.IsNullOrEmpty(power)) paramsList.Add(power);
+            if (!string.IsNullOrEmpty(medium)) paramsList.Add(medium);
+            if (!string.IsNullOrEmpty(tcr)) paramsList.Add(tcr);
+            
+            if (paramsList.Count > 0)
+            {
+                if (!string.IsNullOrEmpty(brandParams))
+                {
+                    brandParams += " · " + string.Join(" · ", paramsList);
+                }
+                else
+                {
+                    brandParams = string.Join(" · ", paramsList);
+                }
+            }
+
+            // 如果没有参数信息，使用原来的 manufacturers 字段
+            if (string.IsNullOrEmpty(brandParams))
+            {
+                brandParams = manufacturers;
+            }
 
             int userId = UserHelper.GetUserId();
             if (userId == 0)
@@ -80,6 +128,20 @@ public partial class buyer_workbench : System.Web.UI.Page
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
             }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
+            }
 
             if (shopId == 0)
             {
@@ -92,7 +154,7 @@ public partial class buyer_workbench : System.Web.UI.Page
             }
 
             GoodsService service = new GoodsService();
-            bool success = service.PublishDemand(goodsSn, name, manufacturers, quantity, unit, price, isIncludingTax, userId, shopId);
+            bool success = service.PublishDemand(goodsSn, name, brandParams, quantity, unit, price, isIncludingTax, userId, shopId, validity);
 
             Response.Clear();
             Response.ContentType = "application/json";
@@ -227,6 +289,20 @@ public partial class buyer_workbench : System.Web.UI.Page
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
             }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
+            }
 
             GoodsService service = new GoodsService();
             OnlineDemandCount = shopId > 0 ? service.GetOnlineSupplyCount(2, shopId) : 0;
@@ -261,6 +337,22 @@ public partial class buyer_workbench : System.Web.UI.Page
             if (Session["ShopId"] != null)
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                        Session["ShopName"] = userCookie["ShopName"] ?? "";
+                        Session["ShopCompany"] = userCookie["ShopCompany"] ?? "";
+                    }
+                }
             }
 
             GoodsService service = new GoodsService();
@@ -305,6 +397,20 @@ public partial class buyer_workbench : System.Web.UI.Page
             if (Session["ShopId"] != null)
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
             }
 
             GoodsService service = new GoodsService();

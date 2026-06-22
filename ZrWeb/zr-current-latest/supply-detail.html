@@ -1,0 +1,101 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>供应详情 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="active" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="" href="login.html"><span>登录</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>供应详情</h1>
+            </div>
+            <div class="actions"><a class="btn back" href="index.html" data-back>返回</a><button class="btn soft" type="button" data-quick-import-open>快捷发布</button></div>
+          </header>
+
+          <section class="detail-hero supply-detail-hero">
+            <div class="detail-hero-main">
+              <div class="detail-tags"><span class="tag green">现货供应</span><span class="tag blue">原装现货</span></div>
+              <h2>GRM188R71H104KA93D</h2>
+              <p>Murata 村田 · 电容 · 0603 · 100nF · X7R · 50V · ±10%</p>
+            </div>
+            <div class="detail-price-card"><span>参考单价</span><strong>¥12.8 /Kpcs</strong><small>未税 · 深圳交付</small></div>
+          </section>
+
+          <div class="detail-layout">
+            <section class="panel detail-main-card">
+              <div class="section-title"><div><h2>供应参数</h2></div></div>
+              <div class="detail-metrics">
+                <div><span>品牌</span><strong>Murata 村田</strong></div>
+                <div><span>库存</span><strong>850</strong><small>Kpcs</small></div>
+                <div><span>是否含税</span><strong>否</strong></div>
+                <div><span>交付地</span><strong>深圳</strong></div>
+              </div>
+              <div class="detail-spec-grid">
+                <div><span>品类</span><b>贴片电容</b></div>
+                <div><span>封装</span><b>0603</b></div>
+                <div><span>容量</span><b>100nF</b></div>
+                <div><span>材质</span><b>X7R</b></div>
+                <div><span>耐压</span><b>50V</b></div>
+                <div><span>精度</span><b>±10%</b></div>
+              </div>
+              <div class="detail-action-bar"><span>向供应商填写采购数量和期望单价。</span><a class="btn primary detail-floating-action" href="#tradeInteractionModal">立即询价</a></div>
+            </section>
+            <aside class="panel supplier-detail-card">
+              <div class="supplier-avatar">华南现货</div>
+              <h2>深圳市华南电子有限公司</h2>
+              <p>主营村田、国巨、三星被动件，支持现货快速交付。</p>
+              <div class="meta"><span class="tag blue">资料完整</span><span class="tag green">已认证</span></div>
+              <div class="supplier-trust-list"><span><b>主营品牌</b>Murata / Yageo / Samsung</span><span><b>发货能力</b>深圳仓，当天可发</span><span><b>交易说明</b>支持分批交付，可提供追溯资料</span></div>
+              <div class="site-ad-panel detail-side-ad" hidden>
+                <a class="search-ad-card" href="search.html" data-ad-slot="SUP-G01"><b>黄金广告 SUP-G01</b><span>供应详情侧栏，适合同品牌、同封装库存推荐。</span></a>
+              </div>
+            </aside>
+          </div>
+
+        </main>
+      </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

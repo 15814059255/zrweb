@@ -1,0 +1,130 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>我的资料 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="active" href="profile.html"><span>我的</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>我的资料</h1>
+            </div>
+            <div class="actions"><a class="btn back" href="index.html" data-back>返回</a>
+              <button class="btn soft" type="button" data-quick-import-open>快捷发布</button>
+            </div>
+          </header>
+
+        <div class="profile-layout profile-layout-v2">
+          <section class="profile-main-v2">
+            <section class="profile-hero-card">
+              <div class="profile-avatar" data-profile-avatar>MLCC</div>
+              <div class="profile-hero-info">
+                <h2>深圳市华南电子有限公司</h2>
+                <p>主营村田、国巨、三星被动件，支持现货快速交付，可提供原装追溯资料。</p>
+                <div class="profile-badges"><span data-profile-badge="role">供应商</span><span data-profile-badge="location">深圳 · 福田</span><span data-profile-badge="delivery">次日可发</span><span data-profile-badge="tax">支持含税 / 未税</span></div>
+              </div>
+              <button class="btn primary" type="button" data-profile-save>保存资料</button>
+            </section>
+
+            <div class="profile-card-grid">
+              <section class="profile-edit-card">
+                <div class="profile-card-head"><div><h3>联系人信息</h3><p>用于交易沟通，仅交易相关方可见。</p></div><span>01</span></div>
+                <div class="form-grid compact-form-grid">
+                  <div><label>姓名 <em>*</em></label><input class="input" data-lock-once value="张经理" placeholder="填写真实姓名"></div>
+                  <div><label>手机号 <em>*</em></label><input class="input" data-lock-once value="13888888888" inputmode="numeric" placeholder="填写手机号"></div>
+                  <div><label>微信</label><div class="bind-field"><input class="input" data-bind-contact="wechat" placeholder="方便对方快速联系"><span class="bind-status unbound" data-bind-status="wechat">未绑定</span></div></div>
+                  <div><label>QQ</label><div class="bind-field"><input class="input" data-bind-contact="qq" value="80012688" placeholder="填写 QQ 号"><span class="bind-status bound" data-bind-status="qq">已绑定</span></div></div>
+                  <div><label>职位</label><input class="input" data-lock-once value="销售经理" placeholder="如采购、销售、老板"></div>
+                </div>
+              </section>
+
+              <section class="profile-edit-card">
+                <div class="profile-card-head"><div><h3>公司资料</h3><p>对外展示的公司信息，建议与营业执照一致。</p></div><span>02</span></div>
+                <div class="form-grid compact-form-grid">
+                  <div class="company-name-field"><label>公司名称 <em>*</em></label><input class="input" data-lock-once value="深圳市华南电子有限公司" placeholder="填写营业执照公司名称"></div>
+                  <div class="company-short-field"><label>公司简称</label><input class="input" data-profile-short-name value="华南现货" placeholder="对外展示简称"></div>
+                  <div><label>经营身份</label><select class="select" data-profile-role><option>采购商</option><option selected>供应商</option><option>供应商 + 采购商</option></select></div>
+                  <div class="full address-field"><label>详细地址 <em>*</em></label><div class="address-select-grid" data-ip-location><label>省<select class="select" aria-label="省"><option>广东省</option></select></label><label>市<select class="select" aria-label="市" data-profile-city><option>深圳市</option></select></label><label>区<select class="select" aria-label="区" data-profile-district><option>福田区</option></select></label><label>街道<select class="select" aria-label="街道"><option>华强北街道</option></select></label></div><input class="input" data-required-address value="华强北路 1001 号 A 座 12 层" placeholder="请填写详细地址，不能为空"></div>
+                  <div class="full"><label>公司简介</label><textarea class="profile-textarea" placeholder="介绍主营品类、代理线、库存优势、服务能力等">主营村田、国巨、三星被动件，支持现货快速交付，可提供原装追溯资料。</textarea></div>
+                </div>
+              </section>
+
+              <section class="profile-edit-card wide">
+                <div class="profile-card-head"><div><h3>经营能力</h3><p>帮助采购商更快判断你是否适合报价或合作。</p></div><span>03</span></div>
+                <div class="form-grid compact-form-grid profile-business-grid">
+                  <div><label>主营品类</label><div class="chip-box"><button type="button" class="active">电容</button><button type="button" class="active">电阻</button></div></div>
+                  <div><label>交易方式</label><select class="select"><option>现货交易</option><option>期货订货</option><option>现货 + 订货</option></select></div>
+                  <div><label>发货时效</label><select class="select" data-profile-delivery><option>当天可发</option><option selected>次日可发</option><option>按订单确认</option></select></div>
+                  <div><label>是否支持含税</label><select class="select" data-profile-tax><option selected>支持含税 / 未税</option><option>只支持含税</option><option>只支持未税</option></select></div>
+                  <div class="full"><label>主营品牌</label><div class="brand-picker" data-db-name="zr_platform" data-db-source="brands" data-brand-picker><input class="input" data-brand-search placeholder="搜索品牌后点击勾选，最多选 6 个"><div class="brand-dropdown" data-brand-dropdown hidden></div><div class="brand-selected" data-brand-selected></div></div></div>
+                  <div class="full"><label>优势型号</label><textarea class="profile-textarea small" placeholder="如 GRM188R71H104KA93D、RC0603FR-0710KL、CL10B104KB8NNNC">GRM188R71H104KA93D、RC0603FR-0710KL、CL10B104KB8NNNC</textarea></div>
+                </div>
+              </section>
+
+              <section class="profile-edit-card wide">
+                <div class="profile-card-head"><div><h3>认证与形象资料</h3><p>上传真实资料后，平台展示更可信。</p></div><span>04</span></div>
+                <div class="profile-upload-grid profile-upload-grid-v2">
+                  <label class="upload-card"><input type="file" hidden><b>营业执照</b><span>上传后展示认证标识</span><small>未上传</small></label>
+                  <label class="upload-card"><input type="file" hidden><b>公司门头 / 办公室</b><span>提升资料可信度</span><small>未上传</small></label>
+                  <label class="upload-card"><input type="file" hidden><b>仓库 / 库存照片</b><span>证明现货能力</span><small>未上传</small></label>
+                  <label class="upload-card"><input type="file" hidden><b>授权 / 代理证明</b><span>可选上传</span><small>未上传</small></label>
+                </div>
+              </section>
+            </div>
+
+          </section>
+
+          <aside class="profile-side profile-side-v2">
+            <section class="panel profile-complete-card"><div class="profile-percent"><strong>80%</strong><span>资料完整度</span></div><div class="progress"><i style="width:80%"></i></div><p class="lead">补充营业执照、仓库照片和优势型号后，资料会更容易获得对方信任。</p></section>
+            <section class="panel"><div class="section-title"><div><h2>展示状态</h2></div></div><div class="profile-status-list"><span><b>已公开</b> 公司名称、主营品牌、优势型号</span><span><b>仅交易可见</b> 手机号、微信 / QQ</span><span><b>待补充</b> 认证图片、仓库照片</span></div></section>
+            <section class="panel"><div class="section-title"><div><h2>资料建议</h2></div></div><ul class="profile-tips"><li>公司名称建议与营业执照一致。</li><li>优势型号建议填写常备库存型号。</li><li>上传真实仓库照片能提升排序权重。</li></ul></section>
+          </aside>
+        </div>
+
+        </main>
+      </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

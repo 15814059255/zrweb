@@ -197,7 +197,9 @@ public partial class login : System.Web.UI.Page
         userCookie["ShopCompany"] = shopCompany;
         userCookie.Expires = DateTime.Now.AddDays(7);
         userCookie.HttpOnly = true;
-        userCookie.Secure = Request.IsSecureConnection;
+        // 移除 Secure 设置，允许在 HTTP 和 HTTPS 环境下都能工作
+        // userCookie.Secure = Request.IsSecureConnection;
+        userCookie.Path = "/";
         Response.Cookies.Add(userCookie);
     }
 

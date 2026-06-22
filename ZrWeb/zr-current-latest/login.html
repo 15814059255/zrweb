@@ -1,0 +1,70 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>登录 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="active" href="login.html"><span>登录</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>登录</h1>
+            </div>
+            <div class="actions"><a class="btn back" href="index.html" data-back>返回</a></div>
+          </header>
+
+        <section class="login-shell">
+          <div class="login-panel-card">
+            <div class="login-tabs" role="tablist">
+              <button class="active" type="button" data-login-method="qq">QQ 登录</button>
+              <button type="button" data-login-method="wechat">微信登录</button>
+              <button type="button" data-login-method="sms">手机验证码</button>
+            </div>
+            <div class="login-method-panel active" data-login-panel="qq">
+              <div class="qr-box qq"><div class="qr-fake">QQ</div></div>
+              <h3>使用 QQ 快速登录</h3>
+              <p>适合老用户或常用 QQ 沟通的销售、采购。</p>
+            </div>
+            <div class="login-method-panel" data-login-panel="wechat" hidden>
+              <div class="qr-box"><div class="qr-fake">微信</div></div>
+              <h3>使用微信扫码登录</h3>
+              <p>扫码后可绑定手机号，方便后续交易联系。</p>
+            </div>
+            <div class="login-method-panel" data-login-panel="sms" hidden>
+              <div class="sms-login-form sms-code-row">
+                <label>手机号<input class="input" data-login-phone inputmode="numeric" placeholder="请输入手机号"></label>
+                <label>验证码<input class="input" data-login-code inputmode="numeric" placeholder="6 位验证码"></label>
+                <button class="btn soft" type="button" data-ui-toast="验证码已发送">获取验证码</button>
+              </div>
+            </div>
+            <label class="privacy-check"><input type="checkbox" data-login-privacy> <span>已阅读并同意 <a href="#" data-policy-link>《隐私政策》</a></span></label>
+            <button class="btn primary login-submit" type="button" data-login-submit>登录并继续</button>
+            <p class="login-tip" data-login-tip>当前选择 QQ 登录，请扫码后继续。</p>
+          </div>
+        </section>
+
+        </main>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

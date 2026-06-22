@@ -155,14 +155,17 @@ public class GoodsService
 
     public bool InsertGoods(string goodsSn, string name, string manufacturers, string packaging,
         int goodsStock, string goodsUnit, decimal shopPrice, int isIncludingTax,
-        int pubType, string remarks, int shopId, int userId)
+        int pubType, string remarks, int shopId, int userId, string validity = "1个月")
     {
         try
         {
+            // 根据有效期计算过期时间
+            DateTime validityDate = CalculateExpireTime(validity);
+            
             string sql = @"INSERT INTO goods (goodsSn, [Name], Manufacturers, Packaging, goodsStock, goodsUnit, 
-                          shopPrice, isIncludingTax, pubType, remarks, shopId, dataFlag, goodsStatus, isSale, createTime, updateTime)
+                          shopPrice, isIncludingTax, pubType, remarks, shopId, dataFlag, goodsStatus, isSale, createTime, updateTime, validityDate)
                           VALUES (@goodsSn, @Name, @Manufacturers, @Packaging, @goodsStock, @goodsUnit, 
-                          @shopPrice, @isIncludingTax, @pubType, @remarks, @shopId, 1, 1, 1, GETDATE(), GETDATE())";
+                          @shopPrice, @isIncludingTax, @pubType, @remarks, @shopId, 1, 1, 1, GETDATE(), GETDATE(), @validityDate)";
 
             SqlParameter[] parameters = new SqlParameter[]
             {
@@ -176,18 +179,38 @@ public class GoodsService
                 new SqlParameter("@isIncludingTax", isIncludingTax),
                 new SqlParameter("@pubType", pubType),
                 new SqlParameter("@remarks", remarks ?? (object)DBNull.Value),
-                new SqlParameter("@shopId", shopId)
+                new SqlParameter("@shopId", shopId),
+                new SqlParameter("@validityDate", validityDate)
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
-            System.Diagnostics.Debug.WriteLine("InsertGoods affected rows: " + result);
             return result > 0;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("GoodsService.InsertGoods 错误: " + ex.Message);
-            System.Diagnostics.Debug.WriteLine("InsertGoods StackTrace: " + ex.StackTrace);
             return false;
+        }
+    }
+    
+    private DateTime CalculateExpireTime(string validity)
+    {
+        DateTime now = DateTime.Now;
+        switch (validity)
+        {
+            case "24小时":
+                return now.AddHours(24);
+            case "3天":
+                return now.AddDays(3);
+            case "7天":
+                return now.AddDays(7);
+            case "15天":
+                return now.AddDays(15);
+            case "1个月":
+                return now.AddMonths(1);
+            case "长期":
+                return now.AddYears(10); // 长期设置为10年后
+            default:
+                return now.AddMonths(1); // 默认1个月
         }
     }
 
@@ -737,12 +760,15 @@ public class GoodsService
     /// <summary>
     /// 发布采购需求
     /// </summary>
-    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId)
+    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "1个月")
     {
         try
         {
+            // 根据有效期计算过期时间
+            DateTime validityDate = CalculateExpireTime(validity);
+            
             string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId)
-                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), DATEADD(day, 30, GETDATE()), @shopId)";
+                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@goodsSn", goodsSn ?? ""),
@@ -753,14 +779,14 @@ public class GoodsService
                 new SqlParameter("@price", price),
                 new SqlParameter("@isIncludingTax", isIncludingTax),
                 new SqlParameter("@shopId", shopId),
+                new SqlParameter("@validityDate", validityDate),
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
             return result > 0;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine("PublishDemand 错误: " + ex.Message);
             return false;
         }
     }

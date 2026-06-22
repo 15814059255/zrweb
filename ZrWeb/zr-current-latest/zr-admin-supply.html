@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>供需总览 - 阻容网</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="admin-standalone">
+  <main class="admin-shell">
+    <header class="admin-hero">
+      <div>
+        <h1><a class="admin-logo" href="zr-admin-console.html"><i>ZR</i><span><b>阻容网</b><em>ZR.net.cn</em></span></a><a class="admin-home-setting" href="zr-admin-console.html" aria-label="返回控制台">⌂</a></h1>
+      </div>
+    </header>
+    <nav class="admin-page-nav">
+      <a href="zr-admin-members.html">会员管理</a>
+      <a href="zr-admin-supply.html">供需总览</a>
+      <a href="zr-admin-quotes.html">报价总览</a>
+      <a href="zr-admin-console.html">返回控制台</a>
+    </nav>
+    <section class="panel admin-panel">
+      <div class="section-title">
+        <div><h2>供需总览</h2></div>
+        <input class="input admin-search" data-admin-supply-search placeholder="搜索公司、型号、供应、需求">
+      </div>
+      <div class="admin-table-wrap" data-admin-supply-list>
+        <table class="table admin-table admin-supply-table" data-admin-page-size="100">
+          <thead><tr><th>选择</th><th>会员公司</th><th>类型</th><th>型号</th><th><button class="admin-sort-th" type="button" data-sort-table="supply" data-sort-col="4">数量 ↕</button></th><th><button class="admin-sort-th" type="button" data-sort-table="supply" data-sort-col="5">价格 ↕</button></th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox"></td><td>深圳市华南电子有限公司</td><td><span class="tag blue">供应</span></td><td>GRM188R71H104KA93D</td><td>现货 850/Kpcs</td><td>¥12.8 /Kpcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>东莞智造电子科技有限公司</td><td><span class="tag orange">需求</span></td><td>CL10B104KB8NNNC</td><td>需求 500/Kpcs</td><td>¥5.0 /Kpcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>深圳市华南电子有限公司</td><td><span class="tag blue">供应</span></td><td>RC0603FR-0710KL</td><td>现货 1200/Pcs</td><td>¥6.5 /Pcs</td><td><span class="tag green">在线</span></td></tr>
+            <tr><td><input type="checkbox"></td><td>苏州精密制造有限公司</td><td><span class="tag orange">需求</span></td><td>1206 10uF X5R</td><td>需求 90/件</td><td>¥22.0 /件</td><td><span class="tag green">在线</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn primary" data-password-action="下架已勾选供需信息">勾选下架</button>
+      <div class="admin-pagination" data-admin-pagination><button type="button" data-page-prev>上一页</button><em data-page-info>第 1 / 1 页</em><button type="button" data-page-next>下一页</button></div>
+    </section>
+  </main>
+  <script src="assets/app.js?v=20260613-adtest2"></script>
+</body>
+</html>

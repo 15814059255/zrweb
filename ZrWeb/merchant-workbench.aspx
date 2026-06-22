@@ -85,9 +85,15 @@
                     <input type="hidden" name="action" value="publish_goods">
                     <div class="form-row"><div class="segmented"><button class="active" type="button" data-publish-kind="supply">发布供应</button><button type="button" data-publish-kind="demand">发布需求</button></div></div>
                     <div class="form-row"><div class="segmented"><button class="active" type="button" data-part-type="capacitor">电容</button><button type="button" data-part-type="resistor">电阻</button></div></div>
-                    <div class="form-row suggest-wrap inline-row"><label>型号</label><input class="input" name="goodsSn" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D"><div class="suggest-list" data-suggest-list hidden></div></div>
-                    <div class="form-row"><label>名称</label><input class="input" name="name" placeholder="商品名称（可选）"></div>
-                    <div class="form-row"><label>品牌/制造商</label><input class="input" name="manufacturers" placeholder="品牌或制造商（可选）"></div>
+                    <div class="form-row suggest-wrap inline-row">
+                        <label>型号</label>
+                        <input class="input" name="goodsSn" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D" onblur="validateAndFillPartNumber(this)">
+                        <div class="suggest-list" data-suggest-list hidden></div>
+                    </div>
+                    <div id="pnr-result" style="display:none;padding:12px;background:rgba(34,197,94,0.05);border-left:3px solid #22c55e;margin-bottom:12px;"></div>
+                    <div class="form-row">
+                        <div class="attr-grid" data-attr-grid></div>
+                    </div>
                     <div class="form-row trade-grid"><label>单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" name="shopPrice" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button><input type="hidden" name="isIncludingTax" value="0"></span></label><label><span data-qty-label>可供数量</span><span class="qty-unit-inline"><input class="input" name="goodsStock" data-required="数量" placeholder="填写数量"><select class="input unit-inline-input" name="goodsUnit" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
                     <input type="hidden" name="pubType" id="pubTypeInput" value="1">
                     <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
@@ -126,7 +132,20 @@
             var isIncludingTaxInput = publishModal.querySelector('input[name="isIncludingTax"]');
             var pubTypeInput = document.getElementById('pubTypeInput');
 
-            // 发布类型切换
+            // 初始渲染参数输入框
+            if (publishForm) renderQuickPublishAttrs(publishForm);
+
+            // 类型切换按钮（电容/电阻）
+            var partTypeBtns = publishModal.querySelectorAll('[data-part-type]');
+            partTypeBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    partTypeBtns.forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    // 重新渲染参数输入框
+                    if (publishForm) renderQuickPublishAttrs(publishForm);
+                });
+            });
+
             var kindBtns = publishModal.querySelectorAll('[data-publish-kind]');
             kindBtns.forEach(function(btn) {
                 btn.addEventListener('click', function() {
@@ -139,7 +158,6 @@
                 });
             });
 
-            // 税赋切换
             if (taxSwitch) {
                 taxSwitch.addEventListener('click', function() {
                     var isOn = taxSwitch.classList.toggle('is-on');
@@ -159,7 +177,6 @@
                 });
             }
 
-            // 发布确认
             if (publishConfirmBtn) {
                 publishConfirmBtn.addEventListener('click', function() {
                     var formData = new FormData(publishForm);
@@ -202,7 +219,6 @@
                 });
             }
 
-            // 下架按钮点击
             document.querySelectorAll('.take-off').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var tr = this.closest('tr');
@@ -241,7 +257,6 @@
                 });
             });
 
-            // 重新上架按钮点击
             document.querySelectorAll('.restock').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var tr = this.closest('tr');

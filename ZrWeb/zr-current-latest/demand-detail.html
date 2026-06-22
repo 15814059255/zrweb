@@ -1,0 +1,101 @@
+<!doctype html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>需求详情 - 电子元器件 B2B 平台</title>
+      <link rel="stylesheet" href="assets/styles.css">
+    </head>
+    <body>
+      <div class="app">
+        <aside class="sidebar">
+                  <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                    <div class="logo logo-v2"><span>ZR</span></div>
+                    <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                  </a>
+                  <nav class="nav">
+                    <a class="active" href="index.html"><span>广场</span><small>›</small></a>
+                    <a class="" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                    <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="" href="login.html"><span>登录</span><small>›</small></a>
+                  </nav>
+                  <div class="sidebar-footer">
+                    <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                    <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                    <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                  </div>
+                </aside>
+        <main class="main">
+          <header class="topbar">
+            <div>
+              <h1>需求详情</h1>
+            </div>
+            <div class="actions"><a class="btn back" href="index.html" data-back>返回</a><button class="btn soft" type="button" data-quick-import-open>快捷发布</button></div>
+          </header>
+
+          <section class="detail-hero demand-detail-hero">
+            <div class="detail-hero-main">
+              <div class="detail-tags"><span class="tag orange">急采</span><span class="tag green">采购需求</span><span class="tag blue validity-line">有效期 24 小时</span></div>
+              <h2>CL10B104KB8NNNC</h2>
+              <p>Samsung 三星 · 采购需求 · 0603 · 100nF · X7R · 50V</p>
+            </div>
+            <div class="detail-price-card demand-price-card"><span>期望单价</span><strong>¥11 /Kpcs</strong><small>可议 · 东莞收货</small></div>
+          </section>
+
+          <div class="detail-layout">
+            <section class="panel detail-main-card">
+              <div class="section-title"><div><h2>需求参数</h2></div></div>
+              <div class="detail-metrics">
+                <div><span>需求数量</span><strong>500</strong><small>Kpcs</small></div>
+                <div><span>期望单价</span><strong>¥11 /Kpcs</strong></div>
+                <div><span>是否含税</span><strong>可议</strong></div>
+                <div><span>有效期</span><strong>24 小时</strong></div>
+              </div>
+              <div class="detail-spec-grid">
+                <div><span>品类</span><b>贴片电容</b></div>
+                <div><span>封装</span><b>0603</b></div>
+                <div><span>容量</span><b>100nF</b></div>
+                <div><span>材质</span><b>X7R</b></div>
+                <div><span>耐压</span><b>50V</b></div>
+                <div><span>交期</span><b>3 天内</b></div>
+              </div>
+              <div class="detail-action-bar"><span>向采购商提交可供数量、批次和报价。</span><a class="btn primary detail-floating-action detail-floating-action-green" href="#tradeInteractionModal">我要报价</a></div>
+            </section>
+            <aside class="panel supplier-detail-card buyer-detail-card">
+              <div class="supplier-avatar buyer-avatar">东莞EMS</div>
+              <h2>东莞某 EMS 工厂</h2>
+              <p>长期采购被动件、连接器，偏好原装可追溯货源。</p>
+              <div class="meta"><span class="tag blue">采购活跃</span><span class="tag green">公司已完善</span></div>
+              <div class="supplier-trust-list"><span><b>采购偏好</b>原装可追溯，支持长期合作</span><span><b>交付要求</b>3 天内送达东莞</span><span><b>沟通重点</b>请注明含税、批次和最快交期</span></div>
+              <div class="site-ad-panel detail-side-ad" hidden>
+                <a class="search-ad-card" href="merchant-workbench.html" data-ad-slot="DEM-G01"><b>黄金广告 DEM-G01</b><span>需求详情侧栏，适合认证供应商、快速报价服务。</span></a>
+              </div>
+            </aside>
+          </div>
+
+        </main>
+      </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+    </body>
+    </html>

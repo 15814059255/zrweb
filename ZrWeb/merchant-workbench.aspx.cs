@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Web;
 
 public partial class merchant_workbench : System.Web.UI.Page
 {
@@ -47,6 +48,16 @@ public partial class merchant_workbench : System.Web.UI.Page
         Response.ContentType = "application/json";
         try
         {
+            if (Session == null)
+            {
+                Response.Clear();
+                Response.ContentType = "application/json";
+                Response.Charset = "utf-8";
+                Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
+                Response.End();
+                return;
+            }
+            
             string goodsSn = Request["goodsSn"];
             string name = Request["name"];
             string manufacturers = Request["manufacturers"];
@@ -66,16 +77,67 @@ public partial class merchant_workbench : System.Web.UI.Page
             int pubType = 1;
             int.TryParse(Request["pubType"], out pubType);
 
+            // 收集参数字段
+            string brand = Request["attr_品牌"] ?? "";
+            string packaging = Request["attr_封装"] ?? "";
+            string capacity = Request["attr_容值"] ?? "";
+            string resistance = Request["attr_阻值"] ?? "";
+            string precision = Request["attr_精度"] ?? "";
+            string voltage = Request["attr_耐压"] ?? "";
+            string power = Request["attr_功率"] ?? "";
+            string medium = Request["attr_介质"] ?? "";
+            string tcr = Request["attr_温漂"] ?? "";
+
+            // 组合品牌和参数信息
+            string brandParams = "";
+            if (!string.IsNullOrEmpty(brand))
+            {
+                brandParams = brand;
+            }
+            
+            // 添加参数信息
+            System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
+            if (!string.IsNullOrEmpty(packaging)) paramsList.Add(packaging);
+            if (!string.IsNullOrEmpty(capacity)) paramsList.Add(capacity);
+            if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
+            if (!string.IsNullOrEmpty(precision)) paramsList.Add(precision);
+            if (!string.IsNullOrEmpty(voltage)) paramsList.Add(voltage);
+            if (!string.IsNullOrEmpty(power)) paramsList.Add(power);
+            if (!string.IsNullOrEmpty(medium)) paramsList.Add(medium);
+            if (!string.IsNullOrEmpty(tcr)) paramsList.Add(tcr);
+            
+            if (paramsList.Count > 0)
+            {
+                if (!string.IsNullOrEmpty(brandParams))
+                {
+                    brandParams += " · " + string.Join(" · ", paramsList);
+                }
+                else
+                {
+                    brandParams = string.Join(" · ", paramsList);
+                }
+            }
+
+            // 如果没有参数信息，使用原来的 manufacturers 字段
+            if (string.IsNullOrEmpty(brandParams))
+            {
+                brandParams = manufacturers;
+            }
+
             if (string.IsNullOrEmpty(goodsSn))
             {
+                Response.Clear();
                 Response.Write("{\"success\":false,\"message\":\"请输入型号\"}");
+                Response.End();
                 return;
             }
 
             int userId = UserHelper.GetUserId();
             if (userId == 0)
             {
+                Response.Clear();
                 Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
+                Response.End();
                 return;
             }
 
@@ -84,33 +146,59 @@ public partial class merchant_workbench : System.Web.UI.Page
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
             }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                        Session["ShopName"] = userCookie["ShopName"] ?? "";
+                        Session["ShopCompany"] = userCookie["ShopCompany"] ?? "";
+                    }
+                }
+            }
 
             if (shopId == 0)
             {
+                Response.Clear();
                 Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
+                Response.End();
                 return;
             }
 
             GoodsService service = new GoodsService();
             bool success = service.InsertGoods(
-                goodsSn, name, manufacturers, "",
+                goodsSn, name, brandParams, "",
                 goodsStock, goodsUnit, shopPrice, isIncludingTax,
                 pubType, "", shopId, userId);
 
             if (success)
             {
+                Response.Clear();
                 Response.Write("{\"success\":true,\"message\":\"发布成功\"}");
             }
             else
             {
+                Response.Clear();
                 Response.Write("{\"success\":false,\"message\":\"发布失败\"}");
             }
+            Response.End();
+        }
+        catch (System.Threading.ThreadAbortException)
+        {
+            // 忽略 ThreadAbortException，这是 Response.End() 导致的
         }
         catch (Exception ex)
         {
+            Response.Clear();
             Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            Response.End();
         }
-        Response.End();
     }
 
     private void HandleTakeOff()
@@ -188,6 +276,20 @@ public partial class merchant_workbench : System.Web.UI.Page
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
             }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
+            }
 
             GoodsService service = new GoodsService();
             OnlineSupplyCount = shopId > 0 ? service.GetOnlineSupplyCount(1, shopId) : 0;
@@ -227,6 +329,20 @@ public partial class merchant_workbench : System.Web.UI.Page
             if (Session["ShopId"] != null)
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
             }
 
             GoodsService service = new GoodsService();
@@ -271,6 +387,20 @@ public partial class merchant_workbench : System.Web.UI.Page
             if (Session["ShopId"] != null)
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            
+            // 如果Session中没有ShopId，尝试从Cookie恢复
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
             }
 
             GoodsService service = new GoodsService();

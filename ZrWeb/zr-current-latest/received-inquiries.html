@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>收到询价 - 阻容网</title>
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+                <a class="brand brand-v2" href="index.html" aria-label="阻容网首页">
+                  <div class="logo logo-v2"><span>ZR</span></div>
+                  <div class="brand-copy"><strong>阻容网</strong><span>ZR.net.cn</span><small>阻容元件供需撮合</small></div>
+                </a>
+                <nav class="nav">
+                  <a class="" href="index.html"><span>广场</span><small>›</small></a>
+                  <a class="active" href="merchant-workbench.html"><span>商家</span><small>›</small></a>
+                  <a class="" href="buyer-workbench.html"><span>采购</span><small>›</small></a>
+                    <a class="" href="login.html"><span>登录</span><small>›</small></a>
+                </nav>
+                <div class="sidebar-footer">
+                  <a class="sidebar-footer-link" href="about-us.html">关于我们</a>
+                  <a class="sidebar-footer-link" href="help-center.html">网站帮助</a>
+                  <div class="sidebar-legal"><span>© 阻容网 ZR.net.cn</span><span><a class="icp-link" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026073346</a></span></div>
+                </div>
+              </aside>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1>收到询价</h1>
+          </div>
+          <div class="actions"><a class="btn back" href="merchant-workbench.html" data-back>返回商家</a>
+            <button class="btn soft" type="button" data-quick-import-open>快捷发布</button>
+          </div>
+        </header>
+
+        <section class="panel inquiry-toolbar-panel">
+          <div class="inquiry-toolbar">
+            <input class="input" data-inquiry-search placeholder="搜索型号、采购商、参数，如 GRM188 / 0603">
+            <div class="quote-filter-tabs inquiry-tabs">
+              <button class="active" type="button" data-inquiry-filter="all">全部</button>
+              <button type="button" data-inquiry-filter="waiting">待报价</button>
+              <button type="button" data-inquiry-filter="quoted">已报价</button>
+              <button type="button" data-inquiry-filter="urgent">即将过期</button>
+              <button type="button" data-inquiry-filter="expired">已过期</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel received-inquiries" style="margin-top:18px">
+          <div class="section-title"><div><h2>询价列表</h2></div><div class="quote-live"><button class="quote-new-badge" type="button" data-inquiry-show-new>新询价 7</button><button class="quote-refresh" type="button" data-ui-toast="询价已刷新">最近更新：刚刚</button></div></div>
+          
+          <div class="inquiry-list">
+            <article class="inquiry-card is-new" data-inquiry-mark="new waiting" data-inquiry-text="GRM188R71H104KA93D 村田 Murata 0603 100nF X7R 50V 深圳华南电子">
+              <div class="inquiry-head"><div><h3>GRM188R71H104KA93D<span class="tag orange">新询价</span><b>今天 10:42</b></h3><p>村田 Murata · 0603 · 100nF · X7R · 50V</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>850</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>需要含税</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>3 天</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · GRM188R71H104KA93D</strong></div>
+              </div>
+              <div class="buyer-box"><b>深圳华南电子有限公司</b><span>联系人：刘经理 · 138-0000-9018</span><span>地址：广东省深圳市福田区华强北路 2008 号</span><span>备注：要求原装现货，可接受分批交付，请注明是否含税和最快交期。</span></div>
+              <div class="quote-submit-row">
+                <label>税赋<select class="select"><option>含税</option><option>未税</option></select></label>
+                <label>可供数量<input class="input" data-quote-qty data-required-quote inputmode="numeric" pattern="[1-9][0-9]*" value="850" placeholder="如 850"></label><label>单位<select class="input unit-inline-input"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
+                <label>批次<input class="input" placeholder="如 2025+ 或 2633"></label>
+                <label class="quote-note-field">备注说明<input class="input" placeholder="如一盘多少数量或者厚度多少"></label>
+                <label>我的报价<input class="input" data-required-quote data-quote-price inputmode="decimal" placeholder="优势价格"></label>
+                <button class="btn primary" type="button" data-ui-toast="报价已提交给采购商">提交报价</button>
+              </div>
+            </article>
+
+            <article class="inquiry-card" data-inquiry-mark="waiting" data-inquiry-text="RC0603FR-0710KL Yageo 0603 10KΩ ±1% 1/10W 东莞 EMS">
+              <div class="inquiry-head"><div><h3>RC0603FR-0710KL<span class="tag blue">待报价</span><b>今天 09:15</b></h3><p>Yageo · 0603 · 10KΩ · ±1% · 1/10W</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>1200</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>未说明</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>7 天</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · RC0603FR-0710KL</strong></div>
+              </div>
+              <div class="buyer-box"><b>东莞 EMS 电子制造有限公司</b><span>联系人：陈小姐 · 136-0000-7710</span><span>地址：广东省东莞市长安镇振安路 88 号</span><span>备注：希望确认是否有整盘包装，价格按 Kpcs 报。</span></div>
+              <div class="quote-submit-row">
+                <label>税赋<select class="select"><option>未税</option><option>含税</option></select></label>
+                <label>可供数量<input class="input" data-quote-qty data-required-quote inputmode="numeric" pattern="[1-9][0-9]*" value="1200" placeholder="如 1200"></label><label>单位<select class="input unit-inline-input"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
+                <label>批次<input class="input" placeholder="如 2025+ 或 2633"></label>
+                <label class="quote-note-field">备注说明<input class="input" placeholder="如一盘多少数量或者厚度多少"></label>
+                <label>我的报价<input class="input" data-required-quote data-quote-price inputmode="decimal" placeholder="优势价格"></label>
+                <button class="btn primary" type="button" data-ui-toast="报价已提交给采购商">提交报价</button>
+              </div>
+            </article>
+
+            <article class="inquiry-card is-urgent" data-inquiry-mark="urgent waiting" data-inquiry-text="CL10B104KB8NNNC Samsung 0603 100nF 50V 深圳优选电子">
+              <div class="inquiry-head"><div><h3>CL10B104KB8NNNC<span class="tag orange">即将过期</span><b>剩余 45 分钟</b></h3><p>Samsung · 0603 · 100nF · 10% · 50V</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>500</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>需要含税</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>小于 1 小时</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · CL10B104KB8NNNC</strong></div>
+              </div>
+              <div class="buyer-box"><b>深圳优选电子有限公司</b><span>联系人：黄经理 · 135-0000-7066</span><span>地址：广东省深圳市宝安区西乡街道 66 号</span><span>备注：急需确认现货数量，优先含税报价。</span></div>
+              <div class="quote-submit-row">
+                <label>税赋<select class="select"><option>含税</option><option>未税</option></select></label>
+                <label>可供数量<input class="input" data-quote-qty data-required-quote inputmode="numeric" pattern="[1-9][0-9]*" value="500" placeholder="如 500"></label><label>单位<select class="input unit-inline-input"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
+                <label>批次<input class="input" placeholder="如 2025+ 或 2633"></label>
+                <label class="quote-note-field">备注说明<input class="input" placeholder="如一盘多少数量或者厚度多少"></label>
+                <label>我的报价<input class="input" data-required-quote data-quote-price inputmode="decimal" placeholder="优势价格"></label>
+                <button class="btn primary" type="button" data-ui-toast="报价已提交给采购商">提交报价</button>
+              </div>
+            </article>
+
+            <article class="inquiry-card is-urgent" data-inquiry-mark="urgent waiting" data-inquiry-text="RC0402FR-0710KL Yageo 0402 10KΩ ±1% 上海启明">
+              <div class="inquiry-head"><div><h3>RC0402FR-0710KL<span class="tag orange">即将过期</span><b>剩余 2 小时</b></h3><p>Yageo · 0402 · 10KΩ · ±1% · 1/16W</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>80</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>可未税</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>2 小时</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · RC0402FR-0710KL</strong></div>
+              </div>
+              <div class="buyer-box"><b>上海启明电子有限公司</b><span>联系人：周工 · 137-0000-4020</span><span>地址：上海市浦东新区张江高科园区</span><span>备注：需要原包装，报价请注明是否整盘。</span></div>
+              <div class="quote-submit-row">
+                <label>税赋<select class="select"><option>未税</option><option>含税</option></select></label>
+                <label>可供数量<input class="input" data-quote-qty data-required-quote inputmode="numeric" pattern="[1-9][0-9]*" value="80" placeholder="如 80"></label><label>单位<select class="input unit-inline-input"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
+                <label>批次<input class="input" placeholder="如 2025+ 或 2633"></label>
+                <label class="quote-note-field">备注说明<input class="input" placeholder="如一盘多少数量或者厚度多少"></label>
+                <label>我的报价<input class="input" data-required-quote data-quote-price inputmode="decimal" placeholder="优势价格"></label>
+                <button class="btn primary" type="button" data-ui-toast="报价已提交给采购商">提交报价</button>
+              </div>
+            </article>
+
+            <article class="inquiry-card is-urgent" data-inquiry-mark="urgent waiting" data-inquiry-text="GRM21BR71H105KA12L 村田 Murata 0805 1uF X7R 50V 宁波工业控制">
+              <div class="inquiry-head"><div><h3>GRM21BR71H105KA12L<span class="tag orange">即将过期</span><b>剩余 3 小时</b></h3><p>村田 Murata · 0805 · 1uF · X7R · 50V</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>120</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>未说明</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>3 小时</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · GRM21BR71H105KA12L</strong></div>
+              </div>
+              <div class="buyer-box"><b>宁波工业控制设备有限公司</b><span>联系人：林经理 · 138-0000-1120</span><span>地址：浙江省宁波市鄞州区工业园</span><span>备注：可接受分批交付，需要注明最快发货时间。</span></div>
+              <div class="quote-submit-row">
+                <label>税赋<select class="select"><option>未税</option><option>含税</option></select></label>
+                <label>可供数量<input class="input" data-quote-qty data-required-quote inputmode="numeric" pattern="[1-9][0-9]*" value="120" placeholder="如 120"></label><label>单位<select class="input unit-inline-input"><option selected>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
+                <label>批次<input class="input" placeholder="如 2025+ 或 2633"></label>
+                <label class="quote-note-field">备注说明<input class="input" placeholder="如一盘多少数量或者厚度多少"></label>
+                <label>我的报价<input class="input" data-required-quote data-quote-price inputmode="decimal" placeholder="优势价格"></label>
+                <button class="btn primary" type="button" data-ui-toast="报价已提交给采购商">提交报价</button>
+              </div>
+            </article>
+
+            <article class="inquiry-card is-quoted" data-inquiry-mark="quoted" data-inquiry-text="GRM188R71H104KA93D 村田 Murata 0603 100nF X7R 50V 深圳华南电子 已报价">
+              <div class="inquiry-head"><div><h3>GRM188R71H104KA93D<span class="tag green">已报价</span><b>今天 11:08</b></h3><p>村田 Murata · 0603 · 100nF · X7R · 50V</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>850</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>我的报价</span><strong>¥12.8</strong><small>含税</small></div>
+                <div class="inquiry-block"><span>报价有效期</span><strong>3 天</strong></div>
+                <div class="inquiry-block"><span>批次</span><strong>2024+</strong></div>
+              </div>
+              <div class="buyer-box"><b>深圳华南电子有限公司</b><span>联系人：刘经理 · 138-0000-9018</span><span>地址：广东省深圳市福田区华强北路 2008 号</span><span>我给客户的备注：现货，今天可发，支持分批。</span></div>
+            </article>
+
+            <article class="inquiry-card is-quoted" data-inquiry-mark="quoted" data-inquiry-text="RC0603FR-0710KL Yageo 0603 10KΩ 已报价 东莞 EMS">
+              <div class="inquiry-head"><div><h3>RC0603FR-0710KL<span class="tag green">已报价</span><b>今天 09:30</b></h3><p>Yageo · 0603 · 10KΩ · ±1% · 1/10W</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>1200</strong><small>Pcs</small></div>
+                <div class="inquiry-block"><span>我的报价</span><strong>¥6.5</strong><small>未税</small></div>
+                <div class="inquiry-block"><span>报价有效期</span><strong>7 天</strong></div>
+                <div class="inquiry-block"><span>批次</span><strong>2025+</strong></div>
+              </div>
+              <div class="buyer-box"><b>东莞 EMS 电子制造有限公司</b><span>联系人：陈小姐 · 136-0000-7710</span><span>地址：广东省东莞市长安镇振安路 88 号</span><span>我给客户的备注：整盘包装，明天可发。</span></div>
+            </article>
+
+            <article class="inquiry-card is-expired" data-inquiry-mark="expired" data-inquiry-text="RC1206FR-0710KL Yageo 1206 10KΩ ±1% 杭州芯联">
+              <div class="inquiry-head"><div><h3>RC1206FR-0710KL<span class="tag gray">已过期</span><b>昨天 23:10</b></h3><p>Yageo · 1206 · 10KΩ · ±1% · 1/4W</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>60</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>需要含税</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>已过期</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · RC1206FR-0710KL</strong></div>
+              </div>
+              <div class="buyer-box"><b>杭州芯联半导体有限公司</b><span>联系人：赵经理 · 135-0000-5518</span><span>地址：杭州市滨江区江南大道 588 号</span><span>备注：该询价已超过采购商有效期，仅用于记录查看。</span></div>
+            </article>
+
+            <article class="inquiry-card is-expired" data-inquiry-mark="expired" data-inquiry-text="GRM188R71H103KA01D 村田 Murata 0603 10nF X7R 50V 北京泰科">
+              <div class="inquiry-head"><div><h3>GRM188R71H103KA01D<span class="tag gray">已过期</span><b>06-08 16:20</b></h3><p>村田 Murata · 0603 · 10nF · X7R · 50V</p></div></div>
+              <div class="inquiry-grid">
+                <div class="inquiry-block"><span>采购数量</span><strong>200</strong><small>Kpcs</small></div>
+                <div class="inquiry-block"><span>税赋要求</span><strong>未说明</strong></div>
+                <div class="inquiry-block"><span>采购商有效期</span><strong>已过期</strong></div>
+                <div class="inquiry-block"><span>对应商品</span><strong>你的库存 · GRM188R71H103KA01D</strong></div>
+              </div>
+              <div class="buyer-box"><b>北京泰科电子有限公司</b><span>联系人：孙经理 · 136-0000-2016</span><span>地址：北京市海淀区中关村南路 12 号</span><span>备注：历史询价，报价入口已关闭。</span></div>
+            </article>
+          </div>
+          <div class="quote-empty" data-inquiry-empty hidden>没有找到匹配的询价，请换个型号、采购商或参数关键词。</div>
+          <div class="pagination"><button class="btn" disabled>上一页</button><span>第 1 / 3 页</span><span class="page-size">每页 10 条询价</span><button class="btn">下一页</button></div>
+        </section>
+      </main>
+    </div>
+      <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+          <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+          <div class="modal-body">
+            <section class="panel quick-paste-panel" data-quick-paste-panel>
+              <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+              <textarea data-quick-paste-text></textarea>
+              <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.html" data-quick-parse>开始解析</a></div>
+            </section>
+            <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+              <div class="table-wrap">
+                <table class="table inventory-table quick-preview-table">
+                  <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">单价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                  <tbody data-quick-preview-body></tbody>
+                </table>
+              </div>
+              <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <script src="assets/app.js?v=20260613-adtest2"></script>
+  </body>
+</html>
