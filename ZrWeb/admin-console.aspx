@@ -34,6 +34,10 @@
                     <span class="nav-icon">💰</span>
                     <span>报价管理</span>
                 </a>
+                <a href="admin-brands.aspx">
+                    <span class="nav-icon">🏷️</span>
+                    <span>品牌管理</span>
+                </a>
                 <a href="admin-ads.aspx">
                     <span class="nav-icon">📢</span>
                     <span>广告管理</span>

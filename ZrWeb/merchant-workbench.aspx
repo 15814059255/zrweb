@@ -184,11 +184,11 @@
                     var goodsStock = formData.get('goodsStock');
 
                     if (!goodsSn || goodsSn.trim() === '') {
-                        alert('请输入型号');
+                        Toast.warning('请输入型号');
                         return;
                     }
                     if (!goodsStock || goodsStock.trim() === '') {
-                        alert('请输入数量');
+                        Toast.warning('请输入数量');
                         return;
                     }
 
@@ -202,15 +202,15 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('发布成功！');
+                            Toast.success('发布成功！');
                             publishModal.hidden = true;
-                            location.reload();
+                            setTimeout(function() { location.reload(); }, 1500);
                         } else {
-                            alert('发布失败：' + data.message);
+                            Toast.error('发布失败：' + data.message);
                         }
                     })
                     .catch(error => {
-                        alert('发布异常：' + error);
+                        Toast.error('发布异常：' + error);
                     })
                     .finally(() => {
                         publishConfirmBtn.disabled = false;
@@ -225,34 +225,34 @@
                     var goodsId = tr ? tr.querySelector('[data-goods-id]')?.getAttribute('data-goods-id') : null;
                     if (!goodsId) return;
 
-                    if (!confirm('确定要下架此商品吗？')) return;
+                    ConfirmDialog.show('确定要下架此商品吗？', function() {
+                        var formData = new FormData();
+                        formData.append('action', 'take_off');
+                        formData.append('goodsId', goodsId);
 
-                    var formData = new FormData();
-                    formData.append('action', 'take_off');
-                    formData.append('goodsId', goodsId);
+                        btn.disabled = true;
+                        btn.textContent = '下架中...';
 
-                    this.disabled = true;
-                    this.textContent = '下架中...';
-
-                    fetch('merchant-workbench.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('下架成功！');
-                            location.reload();
-                        } else {
-                            alert('下架失败：' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert('下架异常：' + error);
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                        this.textContent = '下架';
+                        fetch('merchant-workbench.aspx', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Toast.success('下架成功！');
+                                setTimeout(function() { location.reload(); }, 1500);
+                            } else {
+                                Toast.error('下架失败：' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            Toast.error('下架异常：' + error);
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            btn.textContent = '下架';
+                        });
                     });
                 });
             });
@@ -263,34 +263,34 @@
                     var goodsId = tr ? tr.querySelector('[data-goods-id]')?.getAttribute('data-goods-id') : null;
                     if (!goodsId) return;
 
-                    if (!confirm('确定要重新上架此商品吗？')) return;
+                    ConfirmDialog.show('确定要重新上架此商品吗？', function() {
+                        var formData = new FormData();
+                        formData.append('action', 'restock');
+                        formData.append('goodsId', goodsId);
 
-                    var formData = new FormData();
-                    formData.append('action', 'restock');
-                    formData.append('goodsId', goodsId);
+                        btn.disabled = true;
+                        btn.textContent = '上架中...';
 
-                    this.disabled = true;
-                    this.textContent = '上架中...';
-
-                    fetch('merchant-workbench.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('重新上架成功！');
-                            location.reload();
-                        } else {
-                            alert('重新上架失败：' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert('重新上架异常：' + error);
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                        this.textContent = '重新上架';
+                        fetch('merchant-workbench.aspx', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Toast.success('重新上架成功！');
+                                setTimeout(function() { location.reload(); }, 1500);
+                            } else {
+                                Toast.error('重新上架失败：' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            Toast.error('重新上架异常：' + error);
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            btn.textContent = '重新上架';
+                        });
                     });
                 });
             });

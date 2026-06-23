@@ -2033,7 +2033,11 @@ document.addEventListener('click', (event) => {
   const qqBtn = event.target.closest('.qq-contact');
   if (!qqBtn) return;
   event.stopPropagation();
-  window.alert(`正在通过 QQ 联系：${qqBtn.dataset.qq || '未填写 QQ'}`);
+  if (typeof Toast !== 'undefined') {
+    Toast.info('正在通过 QQ 联系：' + (qqBtn.dataset.qq || '未填写 QQ'));
+  } else {
+    window.alert('正在通过 QQ 联系：' + (qqBtn.dataset.qq || '未填写 QQ'));
+  }
 });
 
 document.addEventListener('click', async (event) => {
@@ -2060,7 +2064,11 @@ document.addEventListener('click', async (event) => {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 1200);
   } catch (err) {
-    window.alert(`复制内容：${text}`);
+    if (typeof Toast !== 'undefined') {
+      Toast.error('复制内容：' + text);
+    } else {
+      window.alert('复制内容：' + text);
+    }
   }
 });
 
@@ -2408,7 +2416,11 @@ document.addEventListener('click', (event) => {
   } else if (/下架/.test(action)) {
     const checked = [...document.querySelectorAll('[data-admin-supply-list] input[type="checkbox"]:checked')];
     if (!checked.length) {
-      window.alert('请先勾选需要下架的供需信息');
+      if (typeof Toast !== 'undefined') {
+        Toast.warning('请先勾选需要下架的供需信息');
+      } else {
+        window.alert('请先勾选需要下架的供需信息');
+      }
       return;
     }
     checked.forEach((checkbox) => {

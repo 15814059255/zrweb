@@ -109,19 +109,22 @@
             </section>
         </main>
     </div>
+    <script src="/assets/js/toast.js"></script>
     <script>
         function showAddAd() {
-            alert('新增广告功能正在开发中，敬请期待！');
+            Toast.info('新增广告功能正在开发中，敬请期待！');
         }
         
         function toggleAdStatus(adId, status) {
-            if (!confirm(status == 1 ? '确定启用该广告？' : '确定停用该广告？')) return;
-            window.location.href = '/admin-ads.aspx?action=toggleStatus&adId=' + adId + '&status=' + status;
+            ConfirmDialog.show(status == 1 ? '确定启用该广告？' : '确定停用该广告？', function() {
+                window.location.href = '/admin-ads.aspx?action=toggleStatus&adId=' + adId + '&status=' + status;
+            });
         }
         
         function deleteAd(adId) {
-            if (!confirm('确定删除该广告？')) return;
-            window.location.href = '/admin-ads.aspx?action=delete&adId=' + adId;
+            ConfirmDialog.show('确定删除该广告？此操作不可恢复。', function() {
+                window.location.href = '/admin-ads.aspx?action=delete&adId=' + adId;
+            });
         }
     </script>
 </body>

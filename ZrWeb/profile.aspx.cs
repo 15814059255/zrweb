@@ -11,8 +11,11 @@ public partial class profile : System.Web.UI.Page
     public string CompanyName = "";
     public string ContactName = "";
     public string ContactPhone = "";
-    public string MainBrands = "";
-    public string BusinessCapability = "";
+    public string MainBrand1 = "";
+    public string MainBrand2 = "";
+    public string MainBrand3 = "";
+    public string MainBrand4 = "";
+    public string MainBrand5 = "";
     public string CompanyDescription = "";
     public string Province = "";
     public string City = "";
@@ -53,7 +56,8 @@ public partial class profile : System.Web.UI.Page
                 return;
             }
 
-            DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone, Province, City, District, Street, Address FROM userinfo WHERE UserID = @userId AND SysStatus = 0",
+            // 先查询基本信息（不包含可能不存在的新字段）
+            DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone FROM userinfo WHERE UserID = @userId AND SysStatus = 0",
                 DbHelper.CreateParameter("@userId", userId));
             
             if (userDt != null && userDt.Rows.Count > 0)
@@ -66,13 +70,36 @@ public partial class profile : System.Web.UI.Page
                 {
                     ContactPhone = ContactPhone.Substring(0, 3) + "****" + ContactPhone.Substring(7);
                 }
+            }
 
-                // 加载地址信息
-                Province = GetStringValue(userRow["Province"]);
-                City = GetStringValue(userRow["City"]);
-                District = GetStringValue(userRow["District"]);
-                Street = GetStringValue(userRow["Street"]);
-                Address = GetStringValue(userRow["Address"]);
+            // 尝试加载地址信息（如果字段存在）
+            try
+            {
+                string addrCheckSql = "SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('userinfo', 'U') AND name = 'Province'";
+                object checkResult = DbHelper.ExecuteScalar(addrCheckSql);
+                if (checkResult != null && Convert.ToInt32(checkResult) > 0)
+                {
+                    string addrSql = "SELECT Province, City, District, Street, Address FROM userinfo WHERE UserID = @userId";
+                    DataTable addrDt = DbHelper.ExecuteQuery(addrSql,
+                        DbHelper.CreateParameter("@userId", userId));
+                    
+                    if (addrDt != null && addrDt.Rows.Count > 0)
+                    {
+                        DataRow addrRow = addrDt.Rows[0];
+                        Province = GetStringValue(addrRow["Province"]);
+                        City = GetStringValue(addrRow["City"]);
+                        District = GetStringValue(addrRow["District"]);
+                        Street = GetStringValue(addrRow["Street"]);
+                        Address = GetStringValue(addrRow["Address"]);
+                        
+                        // 调试日志（可在日志文件中查看）
+                        System.Diagnostics.Debug.WriteLine("加载地址: Province=" + Province + ", City=" + City + ", District=" + District + ", Street=" + Street + ", Address=" + Address);
+                    }
+                }
+            }
+            catch
+            {
+                // 地址字段可能不存在，忽略错误
             }
 
             DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopName, shopCompany, shopAddress FROM shops WHERE userId = @userId AND dataFlag = 1",
@@ -81,17 +108,24 @@ public partial class profile : System.Web.UI.Page
             if (shopDt != null && shopDt.Rows.Count > 0)
             {
                 DataRow shopRow = shopDt.Rows[0];
-                CompanyName = GetStringValue(shopRow["shopName"]);
-                if (string.IsNullOrEmpty(CompanyName))
-                {
-                    CompanyName = GetStringValue(shopRow["shopCompany"]);
-                }
+                // shopName 用于存储主营品牌（多个品牌用|分隔）
+                string mainBrandsStr = GetStringValue(shopRow["shopName"]);
+                string[] brands = mainBrandsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                MainBrand1 = brands.Length > 0 ? brands[0] : "";
+                MainBrand2 = brands.Length > 1 ? brands[1] : "";
+                MainBrand3 = brands.Length > 2 ? brands[2] : "";
+                MainBrand4 = brands.Length > 3 ? brands[3] : "";
+                MainBrand5 = brands.Length > 4 ? brands[4] : "";
+                
+                // shopCompany 用于存储公司名称
+                CompanyName = GetStringValue(shopRow["shopCompany"]);
                 
                 if (string.IsNullOrEmpty(CompanyName))
                 {
-                    CompanyName = "请完善店铺信息";
+                    CompanyName = "请完善公司信息";
                 }
                 
+                // shopAddress 用于存储公司简介
                 CompanyDescription = GetStringValue(shopRow["shopAddress"]);
                 if (string.IsNullOrEmpty(CompanyDescription))
                 {
@@ -100,7 +134,7 @@ public partial class profile : System.Web.UI.Page
             }
             else
             {
-                CompanyName = "请完善店铺信息";
+                CompanyName = "请完善公司信息";
                 CompanyDescription = "暂无公司简介";
             }
 
@@ -127,6 +161,18 @@ public partial class profile : System.Web.UI.Page
     {
         return value != null && value != DBNull.Value ? value.ToString().Trim() : "";
     }
+    
+    // JavaScript 字符串转义
+    protected string jsEncode(string str)
+    {
+        if (string.IsNullOrEmpty(str)) return "";
+        return str
+            .Replace("\\", "\\\\")
+            .Replace("'", "\\'")
+            .Replace("\"", "\\\"")
+            .Replace("\n", "\\n")
+            .Replace("\r", "\\r");
+    }
 
     private void SaveProfile()
     {
@@ -142,10 +188,6 @@ public partial class profile : System.Web.UI.Page
                 return;
             }
 
-            string companyName = Request["companyName"] ?? "";
-            string mainBrands = Request["mainBrands"] ?? "";
-            string businessCapability = Request["businessCapability"] ?? "";
-            string companyDescription = Request["companyDescription"] ?? "";
             string contactName = Request["contactName"] ?? "";
             string contactPhone = Request["contactPhone"] ?? "";
             string province = Request["province"] ?? "";
@@ -154,52 +196,119 @@ public partial class profile : System.Web.UI.Page
             string street = Request["street"] ?? "";
             string addressDetail = Request["address"] ?? "";
 
-            bool success = false;
-            int affectedRows = 0;
-
-            // 保存联系人信息（不含地址）
-            string updateUserSql = "UPDATE userinfo SET LinkMan = @linkMan, MobilePhone = @mobilePhone, Province = @province, City = @city, District = @district, Street = @street, Address = @address WHERE UserID = @userId";
-            affectedRows = DbHelper.ExecuteNonQuery(updateUserSql,
+            // 1. 保存联系人信息（必须成功）
+            string updateUserSql = "UPDATE userinfo SET LinkMan = @linkMan, MobilePhone = @mobilePhone WHERE UserID = @userId";
+            int userRows = DbHelper.ExecuteNonQuery(updateUserSql,
                 DbHelper.CreateParameter("@linkMan", contactName),
                 DbHelper.CreateParameter("@mobilePhone", contactPhone),
-                DbHelper.CreateParameter("@province", province),
-                DbHelper.CreateParameter("@city", city),
-                DbHelper.CreateParameter("@district", district),
-                DbHelper.CreateParameter("@street", street),
-                DbHelper.CreateParameter("@address", addressDetail),
                 DbHelper.CreateParameter("@userId", userId));
-            success = affectedRows > 0;
+            
+            bool success = userRows > 0;
+            string message = success ? "保存成功" : "保存失败";
 
-            if (!string.IsNullOrEmpty(companyName) || !string.IsNullOrEmpty(mainBrands) || 
-                !string.IsNullOrEmpty(businessCapability) || !string.IsNullOrEmpty(companyDescription))
+            // 2. 保存地址信息（必须保存）
+            string addrMessage = "";
+            try
             {
-                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId FROM shops WHERE userId = @userId AND dataFlag = 1",
-                    DbHelper.CreateParameter("@userId", userId));
+                string addrCheckSql = "SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('userinfo', 'U') AND name = 'Province'";
+                object checkResult = DbHelper.ExecuteScalar(addrCheckSql);
                 
-                if (shopDt != null && shopDt.Rows.Count > 0)
+                if (checkResult == null || Convert.ToInt32(checkResult) == 0)
                 {
-                    int shopId = Convert.ToInt32(shopDt.Rows[0]["shopId"]);
-                    string updateShopSql = "UPDATE shops SET shopName = @shopName, shopCompany = @shopCompany, shopAddress = @shopAddress WHERE shopId = @shopId";
-                    affectedRows = DbHelper.ExecuteNonQuery(updateShopSql,
-                        DbHelper.CreateParameter("@shopName", companyName),
-                        DbHelper.CreateParameter("@shopCompany", companyName),
-                        DbHelper.CreateParameter("@shopAddress", companyDescription),
-                        DbHelper.CreateParameter("@shopId", shopId));
-                    success = success || affectedRows > 0;
+                    // 字段不存在，需要先添加
+                    addrMessage = "地址字段不存在，请联系管理员添加数据库字段";
                 }
+                else
+                {
+                    string updateAddrSql = "UPDATE userinfo SET Province = @province, City = @city, District = @district, Street = @street, Address = @address WHERE UserID = @userId";
+                    int addrRows = DbHelper.ExecuteNonQuery(updateAddrSql,
+                        DbHelper.CreateParameter("@province", province),
+                        DbHelper.CreateParameter("@city", city),
+                        DbHelper.CreateParameter("@district", district),
+                        DbHelper.CreateParameter("@street", street),
+                        DbHelper.CreateParameter("@address", addressDetail),
+                        DbHelper.CreateParameter("@userId", userId));
+                    
+                    if (addrRows > 0)
+                    {
+                        addrMessage = "地址保存成功";
+                    }
+                    else
+                    {
+                        addrMessage = "地址保存失败";
+                    }
+                }
+            }
+            catch (Exception addrEx)
+            {
+                addrMessage = "地址保存异常：" + addrEx.Message;
+            }
+            
+            // 如果联系人保存成功但地址有问题，显示提示
+            if (success && !string.IsNullOrEmpty(addrMessage) && !addrMessage.Contains("成功"))
+            {
+                message = "联系人保存成功，但" + addrMessage;
+            }
+
+            // 3. 尝试保存公司信息到 shops 表（可选）
+            try
+            {
+                string companyName = Request["companyName"] ?? "";
+                string mainBrand1 = Request["mainBrand1"] ?? "";
+                string mainBrand2 = Request["mainBrand2"] ?? "";
+                string mainBrand3 = Request["mainBrand3"] ?? "";
+                string mainBrand4 = Request["mainBrand4"] ?? "";
+                string mainBrand5 = Request["mainBrand5"] ?? "";
+                string companyDescription = Request["companyDescription"] ?? "";
+                
+                // 合并5个品牌为用|分隔的字符串
+                string mainBrands = "";
+                if (!string.IsNullOrEmpty(mainBrand1)) mainBrands = mainBrand1;
+                if (!string.IsNullOrEmpty(mainBrand2)) mainBrands += "|" + mainBrand2;
+                if (!string.IsNullOrEmpty(mainBrand3)) mainBrands += "|" + mainBrand3;
+                if (!string.IsNullOrEmpty(mainBrand4)) mainBrands += "|" + mainBrand4;
+                if (!string.IsNullOrEmpty(mainBrand5)) mainBrands += "|" + mainBrand5;
+                
+                if (!string.IsNullOrEmpty(companyName) || !string.IsNullOrEmpty(mainBrands))
+                {
+                    DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId FROM shops WHERE userId = @userId AND dataFlag = 1",
+                        DbHelper.CreateParameter("@userId", userId));
+                    
+                    if (shopDt != null && shopDt.Rows.Count > 0)
+                    {
+                        int shopId = Convert.ToInt32(shopDt.Rows[0]["shopId"]);
+                        string updateShopSql = "UPDATE shops SET shopName = @shopName, shopCompany = @shopCompany, shopAddress = @shopAddress WHERE shopId = @shopId";
+                        DbHelper.ExecuteNonQuery(updateShopSql,
+                            DbHelper.CreateParameter("@shopName", mainBrands),
+                            DbHelper.CreateParameter("@shopCompany", companyName),
+                            DbHelper.CreateParameter("@shopAddress", companyDescription),
+                            DbHelper.CreateParameter("@shopId", shopId));
+                    }
+                }
+            }
+            catch
+            {
+                // shops 表保存失败不影响主保存
             }
 
             Response.Clear();
             Response.ContentType = "application/json";
-            Response.Write(success ? "{\"success\":true,\"message\":\"保存成功\"}" : "{\"success\":false,\"message\":\"保存失败\"}");
+            Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + message + "\"}");
             Response.End();
+        }
+        catch (ThreadAbortException)
+        {
         }
         catch (Exception ex)
         {
-            Response.Clear();
-            Response.ContentType = "application/json";
-            Response.Write("{\"success\":false,\"message\":\"保存异常: " + ex.Message.Replace("\"", "\\\"") + "\"}");
-            Response.End();
+            try
+            {
+                Response.Clear();
+                Response.ContentType = "application/json";
+                Response.Write("{\"success\":false,\"message\":\"异常: " + EscapeJsonString(ex.Message) + "\"}");
+                Response.Flush();
+            }
+            catch { }
         }
     }
 
@@ -275,7 +384,6 @@ public partial class profile : System.Web.UI.Page
         }
         catch (ThreadAbortException)
         {
-            throw;
         }
         catch (Exception ex)
         {
@@ -283,14 +391,24 @@ public partial class profile : System.Web.UI.Page
             {
                 Response.Clear();
                 Response.ContentType = "application/json";
-                Response.Write("{\"success\":false,\"message\":\"修改异常: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+                Response.Write("{\"success\":false,\"message\":\"修改异常: " + EscapeJsonString(ex.Message) + "\"}");
                 Response.Flush();
-                Response.End();
             }
-            catch (ThreadAbortException)
-            {
-            }
+            catch { }
         }
+    }
+
+    private string EscapeJsonString(string str)
+    {
+        if (string.IsNullOrEmpty(str)) return "";
+        return str
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("\n", "\\n")
+            .Replace("\r", "\\r")
+            .Replace("\t", "\\t")
+            .Replace("\b", "\\b")
+            .Replace("\f", "\\f");
     }
 
     private void WriteJsonResponse(bool success, string message)
@@ -300,7 +418,7 @@ public partial class profile : System.Web.UI.Page
             Response.Clear();
             Response.ContentType = "application/json";
             Response.Charset = "utf-8";
-            Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + message.Replace("\"", "\\\"") + "\"}");
+            Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + EscapeJsonString(message) + "\"}");
             Response.Flush();
             Response.End();
         }

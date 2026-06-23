@@ -22,10 +22,15 @@
             </header>
             <section class="panel profile-panel">
                 <div class="profile-header">
-                    <div class="avatar"><span class="avatar-placeholder">ZR</span></div>
                     <div class="profile-info">
                         <h2><%= CompanyName %></h2>
                         <p><%= ContactName %> · <%= ContactPhone %></p>
+                    </div>
+                    <div class="profile-actions-top">
+                        <button class="btn primary" type="button" id="editBtn">编辑资料</button>
+                        <button class="btn primary" type="submit" id="saveBtn" form="profileForm" hidden>保存资料</button>
+                        <button class="btn soft" type="button" id="cancelBtn" hidden>取消</button>
+                        <button class="btn soft" type="button" id="changePwdBtn">修改密码</button>
                     </div>
                 </div>
                 <div class="profile-form">
@@ -34,8 +39,16 @@
                         <div class="form-section">
                             <h3>公司信息</h3>
                             <div class="form-row"><label>公司名称</label><input class="input" name="companyName" value="<%= CompanyName %>" disabled></div>
-                            <div class="form-row"><label>主营品牌</label><input class="input" name="mainBrands" value="<%= MainBrands %>" disabled></div>
-                            <div class="form-row"><label>经营能力</label><input class="input" name="businessCapability" value="<%= BusinessCapability %>" disabled></div>
+                            <div class="form-row">
+                                <label>主营品牌</label>
+                                <div class="brands-select-grid">
+                                    <select class="select" name="mainBrand1" id="mainBrand1" disabled><option value="">品牌1</option></select>
+                                    <select class="select" name="mainBrand2" id="mainBrand2" disabled><option value="">品牌2</option></select>
+                                    <select class="select" name="mainBrand3" id="mainBrand3" disabled><option value="">品牌3</option></select>
+                                    <select class="select" name="mainBrand4" id="mainBrand4" disabled><option value="">品牌4</option></select>
+                                    <select class="select" name="mainBrand5" id="mainBrand5" disabled><option value="">品牌5</option></select>
+                                </div>
+                            </div>
                             <div class="form-row"><label>公司简介</label><textarea name="companyDescription" disabled><%= CompanyDescription %></textarea></div>
                         </div>
                         <div class="form-section">
@@ -52,12 +65,6 @@
                                 <div class="form-row"><label>街道</label><select class="select" name="street" id="selStreet" disabled><option value="">请选择街道</option></select></div>
                             </div>
                             <div class="form-row address-detail"><label>详细地址</label><input class="input" name="address" value="<%= Address %>" placeholder="请输入详细地址，如街道、门牌号等" disabled></div>
-                        </div>
-                        <div class="form-actions">
-                            <button class="btn primary" type="button" id="editBtn">编辑资料</button>
-                            <button class="btn primary" type="submit" id="saveBtn" hidden>保存资料</button>
-                            <button class="btn soft" type="button" id="cancelBtn" hidden>取消</button>
-                            <button class="btn soft" type="button" id="changePwdBtn">修改密码</button>
                         </div>
                     </form>
                 </div>
@@ -84,20 +91,51 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 安全转义 JavaScript 字符串
+            function jsEncode(str) {
+                if (!str) return '';
+                return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+            }
+            
+            // 加载品牌列表
+            function loadBrands() {
+                fetch('api/brands.aspx')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.brands) {
+                        var selects = ['mainBrand1', 'mainBrand2', 'mainBrand3', 'mainBrand4', 'mainBrand5'];
+                        var savedBrands = [<%= jsEncode(MainBrand1) %>, <%= jsEncode(MainBrand2) %>, <%= jsEncode(MainBrand3) %>, <%= jsEncode(MainBrand4) %>, <%= jsEncode(MainBrand5) %>];
+                        
+                        selects.forEach(function(selectId, index) {
+                            var select = document.getElementById(selectId);
+                            select.innerHTML = '<option value="">品牌' + (index + 1) + '</option>';
+                            data.brands.forEach(function(brand) {
+                                var selected = (brand.BrandName === savedBrands[index]) ? ' selected' : '';
+                                select.innerHTML += '<option value="' + brand.BrandName + '"' + selected + '>' + brand.BrandName + '</option>';
+                            });
+                        });
+                    }
+                });
+            }
+            loadBrands();
+
             // 初始化地址选择器
-            initAddressSelector({
-                province: '<%= Province %>',
-                city: '<%= City %>',
-                district: '<%= District %>',
-                street: '<%= Street %>'
-            });
+            var addrOptions = {
+                province: '<%= jsEncode(Province) %>',
+                city: '<%= jsEncode(City) %>',
+                district: '<%= jsEncode(District) %>',
+                street: '<%= jsEncode(Street) %>'
+            };
+            
+            initAddressSelector(addrOptions);
 
             var editBtn = document.getElementById('editBtn');
             var saveBtn = document.getElementById('saveBtn');
             var cancelBtn = document.getElementById('cancelBtn');
             var form = document.getElementById('profileForm');
             
-            var inputs = form.querySelectorAll('input:not([type="hidden"]), textarea');
+            // 获取所有表单元素（包括 input、textarea、select）
+            var inputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
             
             editBtn.addEventListener('click', function() {
                 inputs.forEach(function(input) {
@@ -130,14 +168,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('保存成功！');
-                        location.reload();
+                        Toast.success('保存成功！');
+                        setTimeout(function() { location.reload(); }, 1500);
                     } else {
-                        alert('保存失败：' + data.message);
+                        Toast.error('保存失败：' + data.message);
                     }
                 })
                 .catch(error => {
-                    alert('保存异常：' + error);
+                    Toast.error('保存异常：' + error);
                 });
             });
             
@@ -167,22 +205,22 @@
                 var confirmPassword = changePwdForm.querySelector('input[name="confirmPassword"]').value;
                 
                 if (!oldPassword) {
-                    alert('请输入原密码');
+                    Toast.warning('请输入原密码');
                     return;
                 }
                 
                 if (!newPassword) {
-                    alert('请输入新密码');
+                    Toast.warning('请输入新密码');
                     return;
                 }
                 
                 if (newPassword.length < 6) {
-                    alert('新密码长度不能少于6位');
+                    Toast.warning('新密码长度不能少于6位');
                     return;
                 }
                 
                 if (newPassword !== confirmPassword) {
-                    alert('两次输入的密码不一致');
+                    Toast.error('两次输入的密码不一致');
                     return;
                 }
                 
@@ -195,14 +233,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('密码修改成功！请重新登录');
-                        window.location.href = 'login.aspx';
+                        Toast.success('密码修改成功！请重新登录');
+                        setTimeout(function() { window.location.href = 'login.aspx'; }, 1500);
                     } else {
-                        alert('密码修改失败：' + data.message);
+                        Toast.error('密码修改失败：' + data.message);
                     }
                 })
                 .catch(error => {
-                    alert('密码修改异常：' + error);
+                    Toast.error('密码修改异常：' + error);
                 });
             });
         });

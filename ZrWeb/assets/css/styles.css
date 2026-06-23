@@ -3038,6 +3038,35 @@ label { display: block; margin-bottom: 7px; color: #344054; font-weight: 700; fo
     opacity: .7;
 }
 
+/* 品牌选择框样式 */
+.brands-select-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.brands-select-grid .select {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    background: #fff;
+    color: #101828;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .brands-select-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .brands-select-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .address-select-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -3047,5 +3076,50 @@ label { display: block; margin-bottom: 7px; color: #344054; font-weight: 700; fo
 @media (max-width: 480px) {
     .address-select-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Profile 页面头部样式 */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #fff7ed, #fff);
+    border-radius: 18px;
+    margin-bottom: 20px;
+    border: 1px solid #ffd7ad;
+}
+
+.profile-info h2 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 950;
+    color: #101828;
+}
+
+.profile-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #475467;
+}
+
+.profile-actions-top {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .profile-actions-top {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
