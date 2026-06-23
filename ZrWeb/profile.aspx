@@ -10,6 +10,7 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <script src="/assets/js/area-data.js"></script>
 </head>
 <body>
     <div class="app">
@@ -42,6 +43,16 @@
                             <div class="form-row"><label>联系人</label><input class="input" name="contactName" value="<%= ContactName %>" disabled></div>
                             <div class="form-row"><label>联系电话</label><input class="input" name="contactPhone" value="<%= ContactPhone %>" disabled></div>
                         </div>
+                        <div class="form-section">
+                            <h3>收货地址</h3>
+                            <div class="address-select-grid">
+                                <div class="form-row"><label>省</label><select class="select" name="province" id="selProvince" disabled><option value="">请选择省</option></select></div>
+                                <div class="form-row"><label>市</label><select class="select" name="city" id="selCity" disabled><option value="">请选择市</option></select></div>
+                                <div class="form-row"><label>区/县</label><select class="select" name="district" id="selDistrict" disabled><option value="">请选择区/县</option></select></div>
+                                <div class="form-row"><label>街道</label><select class="select" name="street" id="selStreet" disabled><option value="">请选择街道</option></select></div>
+                            </div>
+                            <div class="form-row address-detail"><label>详细地址</label><input class="input" name="address" value="<%= Address %>" placeholder="请输入详细地址，如街道、门牌号等" disabled></div>
+                        </div>
                         <div class="form-actions">
                             <button class="btn primary" type="button" id="editBtn">编辑资料</button>
                             <button class="btn primary" type="submit" id="saveBtn" hidden>保存资料</button>
@@ -73,6 +84,14 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化地址选择器
+            initAddressSelector({
+                province: '<%= Province %>',
+                city: '<%= City %>',
+                district: '<%= District %>',
+                street: '<%= Street %>'
+            });
+
             var editBtn = document.getElementById('editBtn');
             var saveBtn = document.getElementById('saveBtn');
             var cancelBtn = document.getElementById('cancelBtn');

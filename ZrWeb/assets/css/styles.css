@@ -2606,3 +2606,446 @@ label { display: block; margin-bottom: 7px; color: #344054; font-weight: 700; fo
     font-size: 14px;
     font-weight: 500;
 }
+
+.admin-login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top left, #ffe1bd 0, transparent 28rem), radial-gradient(circle at 86% 8%, rgba(15,159,110,.14), transparent 22rem), var(--bg);
+}
+
+.admin-login-shell {
+    width: min(420px, calc(100vw - 32px));
+}
+
+.admin-login-card {
+    background: rgba(255,255,255,.96);
+    border: 1px solid #ffe1bd;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 34px 90px rgba(16, 24, 40, .22);
+}
+
+.admin-login-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.admin-logo-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary), #fb923c);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 950;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 14px 28px rgba(249, 115, 22, .24);
+}
+
+.admin-logo-text {
+    display: grid;
+    gap: 2px;
+}
+
+.admin-logo-text strong {
+    font-size: 24px;
+    letter-spacing: -.05em;
+    color: transparent;
+    background: linear-gradient(135deg, #22160f 0%, #f97316 55%, #0f9f6e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.admin-logo-text span {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.admin-logo-text small {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.admin-login-btn {
+    width: 100%;
+    min-height: 46px;
+    font-size: 15px;
+}
+
+.admin-login-tip {
+    text-align: center;
+    margin: 16px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.error-msg {
+    display: none;
+    color: var(--red);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 0;
+}
+
+.error-msg.visible {
+    display: block;
+}
+
+.admin-app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    background: rgba(255,255,255,.92);
+    border-right: 1px solid var(--line);
+    padding: 20px 12px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-brand-text {
+    display: grid;
+    gap: 1px;
+}
+
+.admin-brand-text strong {
+    font-size: 18px;
+    letter-spacing: -.04em;
+    color: #101828;
+    font-weight: 950;
+}
+
+.admin-brand-text span {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.admin-nav {
+    display: grid;
+    gap: 4px;
+    flex: 1;
+}
+
+.admin-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    color: #475467;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background .18s ease, color .18s ease;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+    background: var(--soft);
+    color: var(--primary);
+}
+
+.nav-icon {
+    font-size: 16px;
+    flex: 0 0 auto;
+}
+
+.admin-sidebar-footer {
+    display: grid;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.admin-user-info {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+}
+
+.admin-user-info span {
+    font-size: 14px;
+    font-weight: 900;
+    color: #101828;
+}
+
+.admin-user-info small {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.admin-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    border-radius: 10px;
+    background: #f2f4f7;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.admin-logout:hover {
+    background: #fee2e2;
+    color: var(--red);
+}
+
+.admin-main {
+    padding: 20px 24px;
+    background: var(--bg);
+}
+
+.admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.admin-topbar h1 {
+    font-size: 24px;
+    margin: 0;
+    letter-spacing: -.03em;
+}
+
+.admin-breadcrumb {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-date {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.admin-kpi {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    background: rgba(255,255,255,.94);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(16, 24, 40, .06);
+}
+
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--soft);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+}
+
+.kpi-content {
+    display: grid;
+    gap: 2px;
+}
+
+.kpi-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 950;
+    color: #101828;
+    letter-spacing: -.02em;
+}
+
+.kpi-change {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 800;
+}
+
+.admin-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-panel {
+    background: rgba(255,255,255,.94);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 12px 28px rgba(16, 24, 40, .06);
+}
+
+.admin-panel .section-title {
+    margin-bottom: 14px;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.admin-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    text-align: left;
+}
+
+.admin-table th {
+    background: #f8fafc;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.admin-table tr:hover {
+    background: #fafbfc;
+}
+
+.admin-search-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-search {
+    width: 200px;
+}
+
+.admin-table-count {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 8px;
+}
+
+.admin-pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.admin-pagination .btn {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+}
+
+.admin-pagination .btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+/* 地址选择框样式 */
+.address-select-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.address-select-grid .form-row {
+    display: grid;
+    gap: 7px;
+}
+
+.address-detail {
+    margin-top: 0;
+}
+
+.address-detail .input {
+    width: 100%;
+}
+
+.select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid rgba(240, 223, 208, .88);
+    border-radius: 15px;
+    background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,250,245,.76));
+    font-size: 14px;
+    color: #344054;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23735c4c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, .15);
+}
+
+.select:disabled {
+    background-color: #f8fafc;
+    cursor: not-allowed;
+    opacity: .7;
+}
+
+@media (max-width: 768px) {
+    .address-select-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .address-select-grid {
+        grid-template-columns: 1fr;
+    }
+}

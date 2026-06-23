@@ -62,9 +62,11 @@ public partial class register : System.Web.UI.Page
             return;
         }
 
-        // 检查手机号是否已存在
-        string checkSql = "SELECT COUNT(*) FROM userinfo WHERE MobilePhone=@MobilePhone";
-        object result = DbHelper.ExecuteScalar(checkSql, DbHelper.CreateParameter("@MobilePhone", mobilePhone));
+        // 检查手机号是否已存在（同时检查UserName和MobilePhone）
+        string checkSql = "SELECT COUNT(*) FROM userinfo WHERE MobilePhone=@MobilePhone OR UserName=@UserName";
+        object result = DbHelper.ExecuteScalar(checkSql, 
+            DbHelper.CreateParameter("@MobilePhone", mobilePhone),
+            DbHelper.CreateParameter("@UserName", mobilePhone));
         int count = Convert.ToInt32(result);
 
         if (count > 0)
@@ -76,31 +78,60 @@ public partial class register : System.Web.UI.Page
         // 生成用户GUID
         string userGuid = Guid.NewGuid().ToString();
 
+        // 密码MD5加密
+        string encryptedPassword = GetMD5Hash(password);
 
-        // 插入用户数据，使用手机号作为用户名，并返回新插入的用户ID
-        string insertSql = "INSERT INTO userinfo (UserName, Password, UserGuid, SysStatus, LinkMan, MobilePhone, RoseID, IsCheck, CreateTime) OUTPUT INSERTED.UserID VALUES (@UserName, @Password, @UserGuid, 0, @LinkMan, @MobilePhone, 1, 1, GETDATE())";
-        object userIdObj = DbHelper.ExecuteScalar(insertSql,
-            DbHelper.CreateParameter("@UserName", mobilePhone),
-            DbHelper.CreateParameter("@Password", GetMD5Hash(password)),
-            DbHelper.CreateParameter("@UserGuid", userGuid),
-            DbHelper.CreateParameter("@LinkMan", linkMan),
-            DbHelper.CreateParameter("@MobilePhone", mobilePhone));
-
-        int userId = userIdObj != DBNull.Value && userIdObj != null ? Convert.ToInt32(userIdObj) : 0;
-
-        if (userId > 0)
+        try
         {
-            // 自动创建店铺记录
-            CreateShopForUser(userId, mobilePhone, linkMan);
+            // 插入用户数据，使用手机号作为用户名，并返回新插入的用户ID
+            string insertSql = "INSERT INTO userinfo (UserName, Password, UserGuid, SysStatus, LinkMan, MobilePhone, RoseID, IsCheck, CreateTime) OUTPUT INSERTED.UserID VALUES (@UserName, @Password, @UserGuid, 0, @LinkMan, @MobilePhone, 1, 1, GETDATE())";
+            object userIdObj = DbHelper.ExecuteScalar(insertSql,
+                DbHelper.CreateParameter("@UserName", mobilePhone),
+                DbHelper.CreateParameter("@Password", encryptedPassword),
+                DbHelper.CreateParameter("@UserGuid", userGuid),
+                DbHelper.CreateParameter("@LinkMan", linkMan),
+                DbHelper.CreateParameter("@MobilePhone", mobilePhone));
 
-            ShowSuccess("注册成功！使用手机号登录。");
-            txtMobilePhone.Text = "";
-            txtPassword.Text = "";
-            txtLinkMan.Text = "";
+            int userId = userIdObj != DBNull.Value && userIdObj != null ? Convert.ToInt32(userIdObj) : 0;
+
+            if (userId > 0)
+            {
+                // 自动创建店铺记录
+                CreateShopForUser(userId, mobilePhone, linkMan);
+
+                // 注册成功后验证数据是否正确写入
+                string verifySql = "SELECT UserID, Password, IsCheck FROM userinfo WHERE UserID=@UserID";
+                DataTable verifyDt = DbHelper.ExecuteQuery(verifySql, DbHelper.CreateParameter("@UserID", userId));
+                
+                if (verifyDt != null && verifyDt.Rows.Count > 0)
+                {
+                    string storedPassword = verifyDt.Rows[0]["Password"].ToString();
+                    if (storedPassword == encryptedPassword)
+                    {
+                        ShowSuccess("注册成功！使用手机号登录。");
+                        txtMobilePhone.Text = "";
+                        txtPassword.Text = "";
+                        txtLinkMan.Text = "";
+                    }
+                    else
+                    {
+                        ShowError("注册验证失败，密码不匹配");
+                    }
+                }
+                else
+                {
+                    ShowError("注册验证失败，无法读取用户数据");
+                }
+            }
+            else
+            {
+                ShowError("注册失败，请稍后重试");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ShowError("注册失败，请稍后重试");
+            System.Diagnostics.Debug.WriteLine("注册异常: " + ex.Message);
+            ShowError("注册失败：" + ex.Message);
         }
     }
 

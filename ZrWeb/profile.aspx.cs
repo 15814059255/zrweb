@@ -14,6 +14,11 @@ public partial class profile : System.Web.UI.Page
     public string MainBrands = "";
     public string BusinessCapability = "";
     public string CompanyDescription = "";
+    public string Province = "";
+    public string City = "";
+    public string District = "";
+    public string Street = "";
+    public string Address = "";
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -48,7 +53,7 @@ public partial class profile : System.Web.UI.Page
                 return;
             }
 
-            DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone FROM userinfo WHERE UserID = @userId AND SysStatus = 0",
+            DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone, Province, City, District, Street, Address FROM userinfo WHERE UserID = @userId AND SysStatus = 0",
                 DbHelper.CreateParameter("@userId", userId));
             
             if (userDt != null && userDt.Rows.Count > 0)
@@ -61,6 +66,13 @@ public partial class profile : System.Web.UI.Page
                 {
                     ContactPhone = ContactPhone.Substring(0, 3) + "****" + ContactPhone.Substring(7);
                 }
+
+                // 加载地址信息
+                Province = GetStringValue(userRow["Province"]);
+                City = GetStringValue(userRow["City"]);
+                District = GetStringValue(userRow["District"]);
+                Street = GetStringValue(userRow["Street"]);
+                Address = GetStringValue(userRow["Address"]);
             }
 
             DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopName, shopCompany, shopAddress FROM shops WHERE userId = @userId AND dataFlag = 1",
@@ -136,19 +148,27 @@ public partial class profile : System.Web.UI.Page
             string companyDescription = Request["companyDescription"] ?? "";
             string contactName = Request["contactName"] ?? "";
             string contactPhone = Request["contactPhone"] ?? "";
+            string province = Request["province"] ?? "";
+            string city = Request["city"] ?? "";
+            string district = Request["district"] ?? "";
+            string street = Request["street"] ?? "";
+            string addressDetail = Request["address"] ?? "";
 
             bool success = false;
             int affectedRows = 0;
 
-            if (!string.IsNullOrEmpty(contactName) || !string.IsNullOrEmpty(contactPhone))
-            {
-                string updateUserSql = "UPDATE userinfo SET LinkMan = @linkMan, MobilePhone = @mobilePhone WHERE UserID = @userId";
-                affectedRows = DbHelper.ExecuteNonQuery(updateUserSql,
-                    DbHelper.CreateParameter("@linkMan", contactName),
-                    DbHelper.CreateParameter("@mobilePhone", contactPhone),
-                    DbHelper.CreateParameter("@userId", userId));
-                success = success || affectedRows > 0;
-            }
+            // 保存联系人信息（不含地址）
+            string updateUserSql = "UPDATE userinfo SET LinkMan = @linkMan, MobilePhone = @mobilePhone, Province = @province, City = @city, District = @district, Street = @street, Address = @address WHERE UserID = @userId";
+            affectedRows = DbHelper.ExecuteNonQuery(updateUserSql,
+                DbHelper.CreateParameter("@linkMan", contactName),
+                DbHelper.CreateParameter("@mobilePhone", contactPhone),
+                DbHelper.CreateParameter("@province", province),
+                DbHelper.CreateParameter("@city", city),
+                DbHelper.CreateParameter("@district", district),
+                DbHelper.CreateParameter("@street", street),
+                DbHelper.CreateParameter("@address", addressDetail),
+                DbHelper.CreateParameter("@userId", userId));
+            success = affectedRows > 0;
 
             if (!string.IsNullOrEmpty(companyName) || !string.IsNullOrEmpty(mainBrands) || 
                 !string.IsNullOrEmpty(businessCapability) || !string.IsNullOrEmpty(companyDescription))

@@ -72,11 +72,11 @@
     </div>
     <div class="modal-backdrop" id="publishModal" hidden>
         <div class="modal publish-form-modal" role="dialog" aria-modal="true" aria-label="发布">
-            <div class="modal-head"><h2 data-publish-title>发布</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
+            <div class="modal-head"><h2 data-publish-title>发布需求</h2><button class="modal-close" type="button" data-publish-close aria-label="关闭">×</button></div>
             <div class="modal-body">
                 <form class="quick-publish-form" data-quick-publish-form id="publishDemandForm">
                     <input type="hidden" name="action" value="publish_demand">
-                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-publish-kind="supply">发布供应</button><button type="button" data-publish-kind="demand">发布需求</button></div></div>
+                    <div class="form-row"><div class="segmented"><button class="active" type="button" data-publish-kind="demand">发布需求</button></div></div>
                     <div class="form-row"><div class="segmented"><button class="active" type="button" data-part-type="capacitor">电容</button><button type="button" data-part-type="resistor">电阻</button></div></div>
                     <div class="form-row suggest-wrap inline-row">
                         <label>型号</label>
@@ -109,7 +109,7 @@
                             <tbody data-quick-preview-body></tbody>
                         </table>
                     </div>
-                    <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="supply">发布供应</button><button type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+                    <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button class="active" type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
                 </section>
             </div>
         </div>
