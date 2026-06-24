@@ -38,7 +38,8 @@ CREATE TABLE [dbo].[userinfo] (
   [UserImg] nvarchar(512) COLLATE Chinese_PRC_CI_AS  NULL,
   [IDCardName] nvarchar(50) COLLATE Chinese_PRC_CI_AS  NULL,
   [IDCardNumber] nvarchar(50) COLLATE Chinese_PRC_CI_AS  NULL,
-  [Source] int  NULL
+  [Source] int  NULL,
+  [QQ] nvarchar(50) COLLATE Chinese_PRC_CI_AS  NULL
 )
 GO
 
@@ -120,6 +121,13 @@ EXEC sp_addextendedproperty
 'SCHEMA', N'dbo',
 'TABLE', N'userinfo',
 'COLUMN', N'Email'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'QQ号码',
+'SCHEMA', N'dbo',
+'TABLE', N'userinfo',
+'COLUMN', N'QQ'
 GO
 
 

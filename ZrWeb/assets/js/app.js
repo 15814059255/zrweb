@@ -516,7 +516,9 @@ function getCurrentMemberRole() {
 }
 
 function isSupplierRole(role = getCurrentMemberRole()) {
-  return /供应商/.test(role);
+  const roleStr = String(role || '');
+  if (/供应商/.test(roleStr)) return true;
+  return roleStr === '3';
 }
 
 function isBuyerOnlyPage() {
@@ -1487,6 +1489,72 @@ function markInteractionInputError(input) {
 }
 
 document.addEventListener('click', (event) => {
+  const quoteBtn = event.target.closest('[data-quote-open]');
+  if (quoteBtn) {
+    event.preventDefault();
+    const row = quoteBtn.closest('tr');
+    const modal = ensureTradeModal();
+    resetTradeInteractionModal(modal);
+    
+    const brandParams = row?.dataset.brandParams || '';
+    const qty = row?.dataset.quantity || '0';
+    const unit = row?.dataset.unit || 'Kpcs';
+    const expectedPrice = row?.dataset.expectedPrice || '面议';
+    
+    modal.dataset.goodsId = row?.dataset.goodsId || '';
+    modal.dataset.toShopId = row?.dataset.toShopId || '';
+    modal.dataset.goodsSn = row?.dataset.model || '';
+    modal.dataset.brandName = brandParams;
+    
+    modal.dataset.tradeMode = 'quote';
+    modal.querySelector('[data-trade-title]').textContent = '向采购商报价';
+    modal.querySelector('[data-trade-subtitle]').textContent = '填写你可供应的数量和报价，采购商收到后可对比选择。';
+    modal.querySelector('[data-trade-model]').textContent = row?.dataset.model || '未命名型号';
+    modal.querySelector('[data-trade-attrs]').textContent = brandParams || '品牌不限';
+    modal.querySelector('[data-trade-company]').textContent = row?.dataset.buyerName || '采购商';
+    modal.querySelector('[data-trade-qty]').textContent = `采购商需求：${qty}/${unit} · 期望单价：${expectedPrice}`;
+    modal.querySelector('[data-trade-valid]').textContent = '有效期：报价后生效';
+    modal.querySelector('[data-interaction-qty-label]').textContent = '我可供应';
+    modal.querySelector('[data-interaction-price-label]').textContent = '我的报价';
+    modal.querySelector('[data-interaction-qty]').value = qty;
+    modal.querySelector('[data-interaction-unit]').value = unit;
+    modal.querySelector('[data-interaction-validity-row]')?.removeAttribute('hidden');
+    const interactionPrice = modal.querySelector('[data-interaction-price]');
+    if (interactionPrice) {
+      interactionPrice.value = '';
+      interactionPrice.placeholder = '如 0.0001';
+    }
+    const brandRow = modal.querySelector('[data-interaction-brand-row]');
+    const brandInput = modal.querySelector('[data-interaction-brand]');
+    const brandHint = modal.querySelector('[data-interaction-brand-hint]');
+    const noteRow = modal.querySelector('.interaction-note');
+    if (brandRow && brandInput && brandHint) {
+      const isBrandOpen = !brandParams || /不限|其它|其他|未知/.test(brandParams);
+      if (isBrandOpen) {
+        brandRow.removeAttribute('hidden');
+        noteRow?.classList.add('interaction-note-brand');
+        brandInput.value = '';
+        brandInput.removeAttribute('readonly');
+        brandInput.classList.remove('is-locked');
+        brandInput.placeholder = '请提供品牌';
+        brandHint.textContent = '';
+      } else {
+        brandRow.setAttribute('hidden', '');
+        noteRow?.classList.remove('interaction-note-brand');
+        brandInput.value = brandParams;
+        brandInput.setAttribute('readonly', 'readonly');
+        brandInput.classList.add('is-locked');
+        brandInput.placeholder = brandParams;
+        brandHint.textContent = '品牌已锁定';
+      }
+    }
+    modal.querySelector('[data-interaction-submit]').textContent = '提交报价';
+    modal.querySelector('[data-interaction-submit]').setAttribute('data-ui-toast', '报价已提交给采购商');
+    setTradeModalTax(modal, false);
+    modal.removeAttribute('hidden');
+    return;
+  }
+  
   const trigger = event.target.closest('a');
   if (!trigger || !['我要报价', '立即询价'].includes(trigger.textContent.trim())) return;
   event.preventDefault();
@@ -1494,6 +1562,14 @@ document.addEventListener('click', (event) => {
   const context = getTradeContext(trigger);
   const modal = ensureTradeModal();
   resetTradeInteractionModal(modal);
+  
+  const detailContainer = trigger.closest('.detail-container');
+  const itemContainer = trigger.closest('.item');
+  modal.dataset.goodsId = detailContainer?.dataset.goodsId || '';
+  modal.dataset.toShopId = detailContainer?.dataset.shopId || itemContainer?.dataset.shopId || '';
+  modal.dataset.goodsSn = detailContainer?.dataset.goodsSn || context.model;
+  modal.dataset.brandName = detailContainer?.dataset.brand || context.brand || '';
+  
   modal.dataset.tradeMode = isQuote ? 'quote' : 'inquiry';
   modal.querySelector('[data-trade-title]').textContent = isQuote ? '向采购商报价' : '向供应商询价';
   modal.querySelector('[data-trade-subtitle]').textContent = isQuote ? '填写你可供应的数量和报价，采购商收到后可对比选择。' : '填写您的采购数量、期望价格；供应商尽快回复报价！';
@@ -1591,14 +1667,51 @@ document.addEventListener('click', (event) => {
     markInteractionInputError(brandInput);
     return;
   }
-  const toast = document.createElement('div');
-  toast.className = 'publish-toast';
+  
   const isInquiry = modal?.dataset.tradeMode === 'inquiry';
-  toast.textContent = isInquiry ? '您已成功发布询价！' : (submit.getAttribute('data-ui-toast') || '已提交');
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2000);
-  modal?.setAttribute('hidden', '');
-  resetTradeInteractionModal(modal);
+  const eqType = isInquiry ? 1 : 2;
+  
+  const formData = new FormData();
+  formData.append('action', 'submit_quote');
+  formData.append('goodsId', modal?.dataset.goodsId || '0');
+  formData.append('goodsSn', modal?.dataset.goodsSn || '');
+  formData.append('quantity', qtyInput?.value || '0');
+  formData.append('unit', modal?.querySelector('[data-interaction-unit]')?.value || 'Kpcs');
+  formData.append('price', priceInput?.value || '0');
+  formData.append('isIncludingTax', modal?.querySelector('[data-tax-toggle]')?.classList.contains('is-on') ? '1' : '0');
+  formData.append('brandName', brandInput?.value || modal?.dataset.brandName || '');
+  formData.append('remarks', modal?.querySelector('.interaction-note input')?.value || '');
+  formData.append('toShopId', modal?.dataset.toShopId || '0');
+  formData.append('eqType', eqType.toString());
+  
+  submit.disabled = true;
+  submit.textContent = '提交中...';
+  
+  fetch('/publish.ashx', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const toast = document.createElement('div');
+      toast.className = 'publish-toast';
+      toast.textContent = isInquiry ? '您已成功发布询价！' : '报价已提交给采购商';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+      modal?.setAttribute('hidden', '');
+      resetTradeInteractionModal(modal);
+    } else {
+      Toast.error(data.message || '提交失败，请重试');
+    }
+  })
+  .catch(error => {
+    Toast.error('提交异常：' + error);
+  })
+  .finally(() => {
+    submit.disabled = false;
+    submit.textContent = isInquiry ? '发送询价' : '提交报价';
+  });
 });
 
 function getResponsivePageSize() {
@@ -2539,16 +2652,45 @@ document.querySelectorAll('[data-feed-list]').forEach((list) => {
 });
 
 document.querySelectorAll('[data-toggle-stock]').forEach((btn) => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     const item = btn.closest('.inventory-item');
     if (!item) return;
+    const goodsId = item.dataset.goodsId;
+    if (!goodsId) return;
+    
     const offline = btn.textContent.trim() === '下架';
-    item.classList.toggle('is-offline', offline);
-    const tag = item.querySelector('.tag');
-    if (tag) {
-      tag.classList.toggle('blue', !offline);
-      tag.classList.toggle('orange', offline);
-      tag.textContent = offline ? '已下架' : '供应';
+    const isBuyerPage = window.location.pathname.includes('buyer-workbench');
+    const action = offline ? (isBuyerPage ? 'take_off' : 'takeoff') : 'restock';
+    const url = isBuyerPage ? '/buyer-workbench.aspx' : '/merchant-workbench.aspx';
+    
+    try {
+      const formData = new FormData();
+      formData.append('action', action);
+      formData.append('goodsId', goodsId);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        item.classList.toggle('is-offline', offline);
+        const tag = item.querySelector('.tag');
+        if (tag) {
+          tag.classList.toggle('blue', !offline);
+          tag.classList.toggle('orange', offline);
+          tag.textContent = offline ? '已下架' : '供应';
+        }
+        btn.textContent = offline ? '重新上架' : '下架';
+        btn.classList.toggle('take-off', !offline);
+        btn.classList.toggle('restock', offline);
+      } else {
+        Toast.error(result.message || '操作失败');
+      }
+    } catch (error) {
+      console.error('操作失败:', error);
+      Toast.error('操作失败，请重试');
     }
   });
 });

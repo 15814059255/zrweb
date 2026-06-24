@@ -221,7 +221,7 @@ public class GoodsService
                 goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
                 shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag
                 FROM goods 
-                WHERE dataFlag = 1 AND pubType = @pubType AND shopId = @shopId
+                WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId
                 ORDER BY createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, 
@@ -417,7 +417,6 @@ public class GoodsService
                 newRow["BrandParams"] = "品牌不限";
             }
 
-            newRow["goodsId"] = goodsId;
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
@@ -601,6 +600,7 @@ public class GoodsService
     private DataTable ConvertToInventoryData(DataTable sourceTable)
     {
         DataTable dt = new DataTable();
+        dt.Columns.Add("GoodsId", typeof(int));
         dt.Columns.Add("Status", typeof(string));
         dt.Columns.Add("StatusClass", typeof(string));
         dt.Columns.Add("Model", typeof(string));
@@ -614,6 +614,8 @@ public class GoodsService
         foreach (DataRow row in sourceTable.Rows)
         {
             DataRow newRow = dt.NewRow();
+            
+            newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
             
             string goodsSn = GetStringValue(row["goodsSn"]);
             string name = GetStringValue(row["Name"]);
@@ -697,7 +699,7 @@ public class GoodsService
     private DataTable ConvertToExpiredInventoryData(DataTable sourceTable)
     {
         DataTable dt = new DataTable();
-        dt.Columns.Add("goodsId", typeof(int));
+        dt.Columns.Add("GoodsId", typeof(int));
         dt.Columns.Add("Model", typeof(string));
         dt.Columns.Add("BrandParams", typeof(string));
         dt.Columns.Add("Quantity", typeof(string));
@@ -711,6 +713,7 @@ public class GoodsService
             DataRow newRow = dt.NewRow();
             
             int goodsId = GetIntValue(row["goodsId"], 0);
+            newRow["GoodsId"] = goodsId;
             string goodsSn = GetStringValue(row["goodsSn"]);
             string name = GetStringValue(row["Name"]);
             string manufacturers = GetStringValue(row["Manufacturers"]);
@@ -742,7 +745,6 @@ public class GoodsService
                 newRow["BrandParams"] = "品牌不限";
             }
 
-            newRow["goodsId"] = goodsId;
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";

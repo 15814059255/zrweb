@@ -31,6 +31,17 @@ public partial class quote_records : System.Web.UI.Page
             {
                 int.TryParse(Session["ShopId"].ToString(), out shopId);
             }
+            
+            if (shopId == 0 && userId > 0)
+            {
+                string sql = "SELECT shopId FROM shops WHERE userId = @userId";
+                DataTable shopDt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@userId", userId));
+                if (shopDt != null && shopDt.Rows.Count > 0)
+                {
+                    shopId = GetIntValue(shopDt.Rows[0]["shopId"], 0);
+                    Session["ShopId"] = shopId;
+                }
+            }
 
             EnquiryQuoteService service = new EnquiryQuoteService();
             
@@ -60,6 +71,8 @@ public partial class quote_records : System.Web.UI.Page
             dt.Columns.Add("Quantity", typeof(string));
             dt.Columns.Add("Unit", typeof(string));
             dt.Columns.Add("Price", typeof(string));
+            dt.Columns.Add("Batch", typeof(string));
+            dt.Columns.Add("Remarks", typeof(string));
             dt.Columns.Add("BuyerName", typeof(string));
             dt.Columns.Add("QuoteTime", typeof(string));
             dt.Columns.Add("Validity", typeof(string));
@@ -72,5 +85,12 @@ public partial class quote_records : System.Web.UI.Page
 
         rptQuoteRecords.DataSource = dt;
         rptQuoteRecords.DataBind();
+    }
+
+    private int GetIntValue(object value, int defaultValue)
+    {
+        if (value == DBNull.Value || value == null)
+            return defaultValue;
+        return Convert.ToInt32(value);
     }
 }

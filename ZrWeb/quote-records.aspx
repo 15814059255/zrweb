@@ -25,11 +25,11 @@
             <section class="panel quote-record-panel">
                 <div class="table-wrap">
                     <table class="table quote-record-table">
-                        <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>报价数量</th><th>报价单价</th><th>采购商</th><th>报价时间</th><th>有效期</th><th>操作</th></tr></thead>
+                        <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>报价数量</th><th>报价单价</th><th>批次</th><th>备注</th><th>采购商</th><th>报价时间</th><th>有效期</th></tr></thead>
                         <tbody>
                             <asp:Repeater ID="rptQuoteRecords" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><%# Eval("Quantity") %>&nbsp;<%# Eval("Unit") %></td><td><%# Eval("Price") %></td><td><%# Eval("BuyerName") %></td><td><%# Eval("QuoteTime") %></td><td><%# Eval("Validity") %></td><td><a class="btn mini" href="/quote-detail.aspx?id=<%# Eval("EqId") %>">查看详情</a></td></tr>
+                                    <tr><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><%# Eval("Quantity") %>&nbsp;<%# Eval("Unit") %></td><td><%# Eval("Price") %></td><td><%# Eval("Batch") %></td><td><%# Eval("Remarks") %></td><td><%# Eval("BuyerName") %></td><td><%# Eval("QuoteTime") %></td><td><%# Eval("Validity") %></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </tbody>

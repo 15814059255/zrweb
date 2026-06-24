@@ -29,4 +29,10 @@ BEGIN
 END
 GO
 
-PRINT '地址字段添加完成'
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[userinfo]') AND name = 'QQ')
+BEGIN
+    ALTER TABLE [dbo].[userinfo] ADD [QQ] nvarchar(50) NULL
+END
+GO
+
+PRINT '字段添加完成'

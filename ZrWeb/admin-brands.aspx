@@ -65,16 +65,16 @@
                 <div class="section-title">
                     <div>
                         <h2>品牌列表</h2>
-                        <span class="admin-table-count">共 <span id="brandCount">0</span> 个品牌</span>
+                        <span class="admin-table-count">共 <%= BrandCount %> 个品牌</span>
                     </div>
                     <div class="admin-search-actions">
-                        <input class="input admin-search" id="txtSearch" placeholder="搜索品牌名称">
-                        <button class="btn" onclick="searchBrands()">搜索</button>
+                        <input class="input admin-search" id="txtSearch" placeholder="搜索品牌名称" onkeyup="filterBrands()">
+                        <button class="btn" onclick="filterBrands()">搜索</button>
                         <button class="btn primary" onclick="showAddModal()">添加品牌</button>
                     </div>
                 </div>
                 <div class="admin-table-wrap">
-                    <table class="table admin-table">
+                    <table class="table admin-table" id="brandsTable">
                         <thead>
                             <tr>
                                 <th>序号</th>
@@ -85,8 +85,8 @@
                                 <th>操作</th>
                             </tr>
                         </thead>
-                        <tbody id="brandsBody">
-                            <tr><td colspan="6" style="text-align:center;padding:40px;">加载中...</td></tr>
+                        <tbody>
+                            <%= BrandsHtml %>
                         </tbody>
                     </table>
                 </div>
@@ -95,73 +95,15 @@
     </div>
     <script src="/assets/js/toast.js"></script>
     <script>
-    var allBrands = [];
-    
-    // 加载品牌列表
-    function loadBrands() {
-        fetch('api/brands.aspx?action=list')
-        .then(r => r.json())
-        .then(data => {
-            allBrands = data.brands || [];
-            document.getElementById('brandCount').textContent = allBrands.length;
-            renderBrands(allBrands);
-        })
-        .catch(err => {
-            document.getElementById('brandsBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;padding:40px;">加载失败: ' + err + '</td></tr>';
+    function filterBrands() {
+        var keyword = document.getElementById('txtSearch').value.toLowerCase().trim();
+        var rows = document.querySelectorAll('#brandsTable tbody tr');
+        rows.forEach(function(row) {
+            var name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            row.style.display = keyword && name.indexOf(keyword) < 0 ? 'none' : '';
         });
     }
     
-    // 渲染品牌列表
-    function renderBrands(brands) {
-        var tbody = document.getElementById('brandsBody');
-        if (brands.length > 0) {
-            tbody.innerHTML = brands.map(function(b, index) {
-                var editName = b.BrandName.replace(/'/g, "\\'").replace(/"/g, '\\"');
-                var editDesc = (b.BrandDesc || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
-                return '<tr>' +
-                    '<td>' + (index + 1) + '</td>' +
-                    '<td><strong>' + escapeHtml(b.BrandName) + '</strong></td>' +
-                    '<td>' + escapeHtml(b.BrandDesc || '-') + '</td>' +
-                    '<td>' + b.SortOrder + '</td>' +
-                    '<td><span class="tag green">启用</span></td>' +
-                    '<td>' +
-                    '<button class="btn mini" onclick="editBrand(' + b.BrandId + ',\'' + editName + '\',\'' + editDesc + '\',' + b.SortOrder + ')">编辑</button> ' +
-                    '<button class="btn mini danger" onclick="deleteBrand(' + b.BrandId + ')">删除</button>' +
-                    '</td>' +
-                    '</tr>';
-            }).join('');
-        } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;">暂无品牌数据</td></tr>';
-        }
-    }
-    
-    // HTML转义
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    
-    // 搜索品牌
-    function searchBrands() {
-        var keyword = document.getElementById('txtSearch').value.toLowerCase().trim();
-        if (keyword) {
-            var filtered = allBrands.filter(function(b) {
-                return b.BrandName.toLowerCase().indexOf(keyword) >= 0;
-            });
-            renderBrands(filtered);
-        } else {
-            renderBrands(allBrands);
-        }
-    }
-    
-    // 回车搜索
-    document.getElementById('txtSearch').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchBrands();
-        }
-    });
-    
-    // 显示添加弹窗
     function showAddModal() {
         document.getElementById('modalTitle').textContent = '添加品牌';
         document.getElementById('brandId').value = '0';
@@ -171,7 +113,6 @@
         document.getElementById('brandModal').hidden = false;
     }
     
-    // 编辑品牌
     function editBrand(id, name, desc, order) {
         document.getElementById('modalTitle').textContent = '编辑品牌';
         document.getElementById('brandId').value = id;
@@ -181,12 +122,10 @@
         document.getElementById('brandModal').hidden = false;
     }
     
-    // 关闭弹窗
     function closeModal() {
         document.getElementById('brandModal').hidden = true;
     }
     
-    // 保存品牌
     document.getElementById('brandForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -214,7 +153,7 @@
             if (data.success) {
                 Toast.success(data.message);
                 closeModal();
-                loadBrands();
+                location.reload();
             } else {
                 Toast.error(data.message);
             }
@@ -222,7 +161,6 @@
         .catch(err => Toast.error('保存失败: ' + err));
     });
     
-    // 删除品牌
     function deleteBrand(id) {
         if (!confirm('确定要删除这个品牌吗？')) return;
         
@@ -235,19 +173,15 @@
         .then(data => {
             if (data.success) {
                 Toast.success('删除成功');
-                loadBrands();
+                location.reload();
             } else {
                 Toast.error(data.message);
             }
         })
         .catch(err => Toast.error('删除失败: ' + err));
     }
-    
-    // 页面加载
-    loadBrands();
     </script>
     
-    <!-- 添加/编辑弹窗 -->
     <div class="modal-backdrop" id="brandModal" hidden>
         <div class="modal" role="dialog" aria-modal="true" aria-label="品牌编辑">
             <div class="modal-head">

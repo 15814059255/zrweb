@@ -75,6 +75,7 @@
                                 <th><input type="checkbox" onchange="toggleSelectAll(this)"></th>
                                 <th>会员ID</th>
                                 <th>用户名</th>
+                                <th>用户类型</th>
                                 <th>联系人</th>
                                 <th>手机号</th>
                                 <th>注册时间</th>
@@ -89,8 +90,9 @@
                                 <ItemTemplate>
                                     <tr>
                                         <td><input type="checkbox" name="userIds" value="<%# Eval("UserID") %>"></td>
-                                        <td>U<%# Eval("UserID") %></td>
+                                        <td><a href="admin-user-detail.aspx?id=<%# Eval("UserID") %>" class="admin-link">U<%# Eval("UserID") %></a></td>
                                         <td><%# Eval("UserName") %></td>
+                                        <td><span class="tag <%# GetRoleTagClass(Eval("RoseID")) %>"><%# GetRoleName(Eval("RoseID")) %></span></td>
                                         <td><%# Eval("LinkMan") %></td>
                                         <td><%# Eval("MobilePhone") %></td>
                                         <td><%# Convert.ToDateTime(Eval("CreateTime")).ToString("yyyy-MM-dd HH:mm") %></td>
@@ -108,7 +110,7 @@
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } else { %>
-                            <tr><td colspan="9" style="text-align:center;padding:40px;">暂无数据</td></tr>
+                            <tr><td colspan="10" style="text-align:center;padding:40px;">暂无数据</td></tr>
                             <% } %>
                         </tbody>
                     </table>

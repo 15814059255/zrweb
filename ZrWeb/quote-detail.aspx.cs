@@ -100,7 +100,43 @@ public partial class quote_detail : System.Web.UI.Page
                     Remarks = "无";
                 }
                 
-                service.UpdateReadStatus(eqId, 1);
+                int currentUserId = UserHelper.GetUserId();
+                int toUserId = GetIntValue(row["toUserId"], 0);
+                int toShopId = GetIntValue(row["toShopId"], 0);
+                
+                bool isBuyerViewing = false;
+                if (currentUserId > 0 && toUserId > 0 && currentUserId == toUserId)
+                {
+                    isBuyerViewing = true;
+                }
+                else if (toShopId > 0)
+                {
+                    int currentShopId = 0;
+                    if (Session["ShopId"] != null)
+                    {
+                        int.TryParse(Session["ShopId"].ToString(), out currentShopId);
+                    }
+                    if (currentShopId == 0 && currentUserId > 0)
+                    {
+                        string shopSql = "SELECT shopId FROM shops WHERE userId = @userId";
+                        DataTable shopDt = DbHelper.ExecuteQuery(shopSql, DbHelper.CreateParameter("@userId", currentUserId));
+                        if (shopDt != null && shopDt.Rows.Count > 0)
+                        {
+                            currentShopId = GetIntValue(shopDt.Rows[0]["shopId"], 0);
+                            Session["ShopId"] = currentShopId;
+                        }
+                    }
+                    if (currentShopId > 0 && currentShopId == toShopId)
+                    {
+                        isBuyerViewing = true;
+                    }
+                }
+                
+                if (isBuyerViewing)
+                {
+                    service.UpdateReadStatus(eqId, 1);
+                }
+                
                 return;
             }
         }

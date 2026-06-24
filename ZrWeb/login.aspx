@@ -10,6 +10,33 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .login-form-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .login-form-row label {
+            flex: 0 0 60px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            padding: 0;
+            margin: 0;
+        }
+        .login-form-row .input {
+            flex: 1;
+            min-width: 0;
+        }
+        .login-form-row + .privacy-check {
+            margin-top: 16px;
+        }
+        .privacy-check + .login-submit {
+            margin-top: 16px;
+        }
+    </style>
     <script>
     window.ZrToast = function(message, type, duration) {
         type = type || 'info';
@@ -45,22 +72,22 @@
             </header>
             <section class="login-shell">
                 <div class="login-panel-card">
+                    <form id="loginForm" runat="server">
+                        <asp:Panel ID="pnlAccountLogin" runat="server" DefaultButton="btnLogin">
+                            <div class="form-row login-form-row"><label>手机号</label><asp:TextBox ID="txtUserName" runat="server" CssClass="input" placeholder="请输入手机号"></asp:TextBox></div>
+                            <div class="form-row login-form-row"><label>密码</label><asp:TextBox ID="txtPassword" runat="server" CssClass="input" TextMode="Password" placeholder="请输入密码"></asp:TextBox></div>
+                            <asp:Label ID="lblError" runat="server" CssClass="error-msg"></asp:Label>
+                            <label class="privacy-check"><input type="checkbox" id="chkPrivacy" runat="server"> <span>已阅读并同意 <a href="/about-us.aspx">《隐私政策》</a></span></label>
+                            <asp:Button ID="btnLogin" runat="server" CssClass="btn primary login-submit" Text="登录" OnClick="btnLogin_Click" OnClientClick="return validateLoginForm();" />
+                        </asp:Panel>
+                    </form>
+                    <p class="login-tip">使用手机号和密码登录，登录后可管理供需信息。</p>
+                    <p class="register-link">没有账号？<a href="/register.aspx">立即注册</a></p>
+                    
+                    <!-- 手机验证码登录（暂隐藏，保留代码以便后续使用）
                     <div class="login-tabs" role="tablist">
                         <button class="active" type="button" data-login-method="account">账号登录</button>
                         <button type="button" data-login-method="sms">手机验证码</button>
-                    </div>
-                    <div class="login-method-panel active" data-login-panel="account">
-                        <form id="loginForm" runat="server">
-                            <asp:Panel ID="pnlAccountLogin" runat="server" DefaultButton="btnLogin">
-                                <div class="form-row"><label>手机号</label><asp:TextBox ID="txtUserName" runat="server" CssClass="input" placeholder="请输入手机号"></asp:TextBox></div>
-                                <div class="form-row"><label>密码</label><asp:TextBox ID="txtPassword" runat="server" CssClass="input" TextMode="Password" placeholder="请输入密码"></asp:TextBox></div>
-                                <asp:Label ID="lblError" runat="server" CssClass="error-msg"></asp:Label>
-                                <label class="privacy-check"><input type="checkbox" id="chkPrivacy" runat="server"> <span>已阅读并同意 <a href="/about-us.aspx">《隐私政策》</a></span></label>
-                                <asp:Button ID="btnLogin" runat="server" CssClass="btn primary login-submit" Text="登录" OnClick="btnLogin_Click" OnClientClick="return validateLoginForm();" />
-                            </asp:Panel>
-                        </form>
-                        <p class="login-tip">使用手机号和密码登录，登录后可管理供需信息。</p>
-                        <p class="register-link">没有账号？<a href="/register.aspx">立即注册</a></p>
                     </div>
                     <div class="login-method-panel" data-login-panel="sms" hidden>
                         <div class="sms-login-form sms-code-row">
@@ -72,6 +99,7 @@
                         <button class="btn primary login-submit" type="button" data-login-submit>登录并继续</button>
                         <p class="login-tip">使用手机验证码登录，无需记住密码。</p>
                     </div>
+                    -->
                 </div>
             </section>
         </main>

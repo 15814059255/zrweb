@@ -58,13 +58,13 @@
                     <% } %>
                     <asp:Repeater ID="rptSupplyList" runat="server" EnableViewState="false">
                         <ItemTemplate>
-                            <div class="item" data-type="<%# Eval("ItemType") %>">
+                            <div class="item" data-type="<%# Eval("ItemType") %>" data-shop-id="<%# Eval("ShopId") %>">
                                 <div>
                                     <h3><span class="tag <%# Eval("TagClass") %>"><%# Eval("TypeLabel") %></span><a href="<%# Eval("DetailUrl") %>"><%# Eval("Model") %></a></h3>
                                     <div class="price"><%# Eval("PriceDisplay") %></div>
                                     <div class="meta"><span><%# Eval("BrandParams") %></span><span><%# Eval("QuantityDisplay") %></span><span class="validity-line">有效期 <%# Eval("Validity") %></span></div>
                                 </div>
-                                <div class="item-footer"><div class="company"><%# Eval("CompanyName") %></div><a class="btn soft mini" data-action="<%# Eval("ActionText") %>" data-goods-id="<%# Eval("GoodsId") %>" data-goods-sn="<%# Eval("GoodsSn") %>" data-shop-id="<%# Eval("ShopId") %>" href="#tradeInteractionModal"><%# Eval("ActionText") %></a></div>
+                                <div class="item-footer"><div class="company"><%# Eval("CompanyName") %></div><a class="btn soft mini" data-action="<%# Eval("ActionText") %>" data-goods-id="<%# Eval("GoodsId") %>" data-goods-sn="<%# Eval("GoodsSn") %>" href="#tradeInteractionModal"><%# Eval("ActionText") %></a></div>
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>

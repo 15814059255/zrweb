@@ -2,129 +2,270 @@ using System;
 using System.Data;
 
 public partial class received_quotes : System.Web.UI.Page
-{
-    public string PageTitle = "收到报价 - 电子元器件 B2B 平台";
-    public string PageKeywords = "阻容网,收到报价,报价管理,采购商";
-    public string PageDescription = "查看供应商发来的报价信息，选择合适的供应商进行采购。";
-    
-    public int CurrentPage = 1;
-    public int TotalPages = 3;
-
-    protected void Page_Load(object sender, EventArgs e)
     {
-        BindQuotes();
-    }
+        public string PageTitle = "收到报价 - 电子元器件 B2B 平台";
+        public string PageKeywords = "阻容网,收到报价,报价管理,采购商";
+        public string PageDescription = "查看供应商发来的报价信息，选择合适的供应商进行采购。";
+        
+        public int CurrentPage = 1;
+        public int TotalPages = 1;
+        public int TotalCount = 0;
+        public bool HasQuoteData = false;
 
-    private void BindQuotes()
-    {
-        try
+        protected void Page_Load(object sender, EventArgs e)
         {
-            int shopId = 0;
-            if (Session["ShopId"] != null)
+            if (!IsPostBack)
             {
-                int.TryParse(Session["ShopId"].ToString(), out shopId);
+                BindQuotes();
             }
+        }
 
-            DataTable dt = new DataTable();
-            dt.Columns.Add("EqId", typeof(int));
-            dt.Columns.Add("GoodsId", typeof(int));
-            dt.Columns.Add("Status");
-            dt.Columns.Add("StatusClass");
-            dt.Columns.Add("Model");
-            dt.Columns.Add("BrandParams");
-            dt.Columns.Add("Quantity");
-            dt.Columns.Add("Unit");
-            dt.Columns.Add("Price");
-            dt.Columns.Add("SellerName");
-            dt.Columns.Add("SellerContact");
-            dt.Columns.Add("QuoteTime");
-            dt.Columns.Add("Validity");
-            dt.Columns.Add("Remarks");
-
-            string sql = @"SELECT TOP 50 
-                e.eqId, e.goodsId, e.goodsSn, e.fromQuantity, e.toQuantity, e.fromPrice,
-                e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus,
-                e.fromCompany, e.fromContact, e.fromTel, e.brandName
-                FROM enquiryquoteprice e
-                WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1
-                ORDER BY e.createTime DESC";
-
-            DataTable sourceDt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@shopId", shopId));
-
-            if (sourceDt != null && sourceDt.Rows.Count > 0)
+        private void BindQuotes()
+        {
+            try
             {
-                foreach (DataRow row in sourceDt.Rows)
+                int page = 1;
+                if (!string.IsNullOrEmpty(Request.QueryString["page"]))
                 {
-                    DataRow newRow = dt.NewRow();
-                    
-                    newRow["EqId"] = GetIntValue(row["eqId"], 0);
-                    newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
-                    newRow["Model"] = GetStringValue(row["goodsSn"]);
-                    newRow["SellerName"] = GetStringValue(row["fromCompany"]);
-                    newRow["SellerContact"] = GetStringValue(row["fromContact"]);
-                    newRow["QuoteTime"] = Convert.ToDateTime(row["createTime"]).ToString("yyyy-MM-dd HH:mm");
-                    newRow["Remarks"] = GetStringValue(row["fromRemarks"]);
-
-                    string brand = GetStringValue(row["brandName"]);
-                    newRow["BrandParams"] = string.IsNullOrEmpty(brand) ? "品牌不限" : brand;
-
-                    int fromQty = GetIntValue(row["fromQuantity"], 0);
-                    int toQty = GetIntValue(row["toQuantity"], 0);
-                    int qty = toQty > 0 ? toQty : fromQty;
-                    newRow["Quantity"] = qty > 0 ? qty.ToString() : "0";
-                    newRow["Unit"] = "Kpcs";
-
-                    decimal price = GetDecimalValue(row["fromPrice"], 0);
-                    string taxText = GetIntValue(row["isIncludingTax"], 0) == 1 ? "(含税)" : "(未税)";
-                    newRow["Price"] = price > 0 ? price.ToString("0.0000") + " " + taxText : "面议";
-
-                    int readStatus = GetIntValue(row["readStatus"], 0);
-                    if (readStatus == 0)
+                    int.TryParse(Request.QueryString["page"], out page);
+                }
+                if (page < 1) page = 1;
+                CurrentPage = page;
+                
+                int pageSize = 30;
+                
+                int userId = UserHelper.GetUserId();
+                
+                int shopId = 0;
+                if (Session["ShopId"] != null)
+                {
+                    int.TryParse(Session["ShopId"].ToString(), out shopId);
+                }
+                
+                if (shopId == 0 && userId > 0)
+                {
+                    string shopSql = "SELECT shopId FROM shops WHERE userId = @userId AND dataFlag = 1";
+                    DataTable shopDt = DbHelper.ExecuteQuery(shopSql, DbHelper.CreateParameter("@userId", userId));
+                    if (shopDt != null && shopDt.Rows.Count > 0)
                     {
-                        newRow["Status"] = "新报价";
-                        newRow["StatusClass"] = "green";
+                        shopId = GetIntValue(shopDt.Rows[0]["shopId"], 0);
+                        Session["ShopId"] = shopId;
                     }
-                    else
-                    {
-                        newRow["Status"] = "已查看";
-                        newRow["StatusClass"] = "gray";
-                    }
-
-                    TimeSpan diff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
-                    if (diff.TotalHours < 24)
-                    {
-                        newRow["Validity"] = "<24 小时";
-                    }
-                    else if (diff.TotalDays < 3)
-                    {
-                        newRow["Validity"] = "72 小时";
-                    }
-                    else if (diff.TotalDays < 7)
-                    {
-                        newRow["Validity"] = "7 天";
-                    }
-                    else
-                    {
-                        newRow["Validity"] = "长期";
-                    }
-
-                    dt.Rows.Add(newRow);
                 }
 
-                TotalPages = (int)Math.Ceiling((double)dt.Rows.Count / 50);
-                if (TotalPages < 1) TotalPages = 1;
-            }
+                DataTable dt = new DataTable();
+                dt.Columns.Add("EqId", typeof(int));
+                dt.Columns.Add("GoodsId", typeof(int));
+                dt.Columns.Add("Model", typeof(string));
+                dt.Columns.Add("Brand", typeof(string));
+                dt.Columns.Add("ParamsHtml", typeof(string));
+                dt.Columns.Add("Quantity", typeof(string));
+                dt.Columns.Add("Unit", typeof(string));
+                dt.Columns.Add("PriceDisplay", typeof(string));
+                dt.Columns.Add("PriceNum", typeof(decimal));
+                dt.Columns.Add("IsTax", typeof(bool));
+                dt.Columns.Add("SellerName", typeof(string));
+                dt.Columns.Add("SellerContact", typeof(string));
+                dt.Columns.Add("QuoteTime", typeof(string));
+                dt.Columns.Add("Validity", typeof(string));
+                dt.Columns.Add("Remarks", typeof(string));
+                dt.Columns.Add("RemarksHtml", typeof(string));
+                dt.Columns.Add("PriceAreaHtml", typeof(string));
+                dt.Columns.Add("SellerQQ", typeof(string));
+                dt.Columns.Add("IsNew", typeof(bool));
 
-            rptQuotes.DataSource = dt;
-            rptQuotes.DataBind();
+                if (shopId > 0)
+                {
+                    // 先查总数
+                    string countSql = @"SELECT COUNT(*) 
+                        FROM enquiryquoteprice e
+                        WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)";
+                    
+                    object countObj = DbHelper.ExecuteScalar(countSql, DbHelper.CreateParameter("@shopId", shopId));
+                    if (countObj != null && countObj != DBNull.Value)
+                    {
+                        int.TryParse(countObj.ToString(), out TotalCount);
+                    }
+                    
+                    TotalPages = (int)Math.Ceiling((double)TotalCount / pageSize);
+                    if (TotalPages < 1) TotalPages = 1;
+                    if (CurrentPage > TotalPages) CurrentPage = TotalPages;
+                    
+                    if (TotalCount > 0)
+                    {
+                        int offset = (CurrentPage - 1) * pageSize;
+                        
+                        string sql = @"SELECT 
+                            e.eqId, e.goodsId, e.goodsSn, e.fromQuantity, e.toQuantity, e.fromPrice,
+                            e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus,
+                            e.fromCompany, e.fromContact, e.fromTel, e.brandName,
+                            (SELECT TOP 1 Manufacturers FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Manufacturers,
+                            (SELECT TOP 1 Packaging FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Packaging,
+                            (SELECT TOP 1 Lot FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Lot,
+                            (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ
+                            FROM enquiryquoteprice e
+                            WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
+                            ORDER BY e.createTime DESC
+                            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+
+                        DataTable sourceDt = DbHelper.ExecuteQuery(sql, 
+                            DbHelper.CreateParameter("@shopId", shopId),
+                            DbHelper.CreateParameter("@offset", offset),
+                            DbHelper.CreateParameter("@pageSize", pageSize));
+
+                        if (sourceDt != null && sourceDt.Rows.Count > 0)
+                        {
+                            foreach (DataRow row in sourceDt.Rows)
+                            {
+                                DataRow newRow = dt.NewRow();
+                                
+                                int eqId = GetIntValue(row["eqId"], 0);
+                                newRow["EqId"] = eqId;
+                                newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
+                                newRow["Model"] = GetStringValue(row["goodsSn"]);
+                                newRow["SellerName"] = GetStringValue(row["fromCompany"]);
+                                newRow["SellerContact"] = GetStringValue(row["fromContact"]);
+                                newRow["SellerQQ"] = GetStringValue(row["SellerQQ"]);
+                                newRow["QuoteTime"] = Convert.ToDateTime(row["createTime"]).ToString("yyyy-MM-dd HH:mm");
+                                newRow["Remarks"] = GetStringValue(row["fromRemarks"]);
+
+                                // 查看状态
+                                int readStatus = GetIntValue(row["readStatus"], 0);
+                                bool isViewed = readStatus == 1;
+                                
+                                // 是否新报价（24小时内且未查看）
+                                TimeSpan timeDiff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
+                                newRow["IsNew"] = !isViewed && timeDiff.TotalHours < 24;
+                                
+                                // 备注显示HTML
+                                string remarks = GetStringValue(row["fromRemarks"]);
+                                if (!string.IsNullOrEmpty(remarks))
+                                {
+                                    newRow["RemarksHtml"] = "<div class=\"quote-remarks\"><b>备注</b>：" + System.Web.HttpUtility.HtmlEncode(remarks) + "</div>";
+                                }
+                                else
+                                {
+                                    newRow["RemarksHtml"] = "";
+                                }
+
+                                // 品牌和参数
+                                string brand = GetStringValue(row["brandName"]);
+                                string manufacturers = GetStringValue(row["Manufacturers"]);
+                                string packaging = GetStringValue(row["Packaging"]);
+                                string lot = GetStringValue(row["Lot"]);
+                                
+                                string finalBrand = "";
+                                System.Text.StringBuilder paramsBuilder = new System.Text.StringBuilder();
+                                
+                                if (!string.IsNullOrEmpty(manufacturers))
+                                {
+                                    string[] parts = manufacturers.Split(new string[] { " · ", "·", " / ", "/" }, StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length > 0)
+                                    {
+                                        finalBrand = parts[0].Trim();
+                                        for (int i = 1; i < parts.Length; i++)
+                                        {
+                                            paramsBuilder.Append("<span class=\"param-chip\">");
+                                            paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(parts[i].Trim()));
+                                            paramsBuilder.Append("</span>");
+                                        }
+                                    }
+                                }
+                                
+                                if (string.IsNullOrEmpty(finalBrand))
+                                {
+                                    finalBrand = !string.IsNullOrEmpty(brand) ? brand : "品牌不限";
+                                }
+                                
+                                if (paramsBuilder.Length == 0)
+                                {
+                                    if (!string.IsNullOrEmpty(packaging))
+                                    {
+                                        paramsBuilder.Append("<span class=\"param-chip\">封装: ");
+                                        paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(packaging));
+                                        paramsBuilder.Append("</span>");
+                                    }
+                                    if (!string.IsNullOrEmpty(lot))
+                                    {
+                                        paramsBuilder.Append("<span class=\"param-chip\">批号: ");
+                                        paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(lot));
+                                        paramsBuilder.Append("</span>");
+                                    }
+                                }
+                                
+                                newRow["Brand"] = finalBrand;
+                                newRow["ParamsHtml"] = paramsBuilder.ToString();
+
+                                // 数量
+                                int fromQty = GetIntValue(row["fromQuantity"], 0);
+                                int toQty = GetIntValue(row["toQuantity"], 0);
+                                int qty = toQty > 0 ? toQty : fromQty;
+                                newRow["Quantity"] = qty > 0 ? qty.ToString() : "0";
+                                newRow["Unit"] = "Kpcs";
+
+                                // 价格显示
+                                decimal price = GetDecimalValue(row["fromPrice"], 0);
+                                bool isTax = GetIntValue(row["isIncludingTax"], 0) == 1;
+                                newRow["PriceNum"] = price;
+                                newRow["IsTax"] = isTax;
+                                
+                                string taxClass = isTax ? "tax" : "notax";
+                                string taxText = isTax ? "含税" : "未税";
+                                string priceText = price > 0 
+                                    ? "¥" + price.ToString("0.0000") + "<span class=\"tax-label " + taxClass + "\">" + taxText + "</span>"
+                                    : "面议";
+                                newRow["PriceDisplay"] = priceText;
+
+                                // 价格区域HTML（根据是否已查看）
+                                if (isViewed)
+                                {
+                                    newRow["PriceAreaHtml"] = "<div class=\"quote-price\">" + priceText + "</div>";
+                                }
+                                else
+                                {
+                                    string encodedPrice = System.Web.HttpUtility.HtmlEncode(priceText);
+                                    newRow["PriceAreaHtml"] = "<div class=\"price-hidden\">价格待查看</div>" +
+                                        "<button class=\"view-price-btn\" data-view-price data-eq-id=\"" + eqId + "\" data-price=\"" + encodedPrice + "\">" +
+                                        "<span>👁</span> 查看报价</button>";
+                                }
+
+                                // 有效期
+                                TimeSpan diff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
+                                if (diff.TotalHours < 24)
+                                {
+                                    newRow["Validity"] = "<24 小时";
+                                }
+                                else if (diff.TotalDays < 3)
+                                {
+                                    newRow["Validity"] = "72 小时";
+                                }
+                                else if (diff.TotalDays < 7)
+                                {
+                                    newRow["Validity"] = "7 天";
+                                }
+                                else
+                                {
+                                    newRow["Validity"] = "长期";
+                                }
+
+                                dt.Rows.Add(newRow);
+                            }
+                        }
+                    }
+                }
+
+                HasQuoteData = dt != null && dt.Rows.Count > 0;
+                rptQuotes.DataSource = dt;
+                rptQuotes.DataBind();
+            }
+            catch (Exception ex)
+            {
+                HasQuoteData = false;
+                System.Diagnostics.Debug.WriteLine("BindQuotes 错误: " + ex.Message);
+                rptQuotes.DataSource = null;
+                rptQuotes.DataBind();
+            }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine("BindQuotes 错误: " + ex.Message);
-            rptQuotes.DataSource = null;
-            rptQuotes.DataBind();
-        }
-    }
 
     private int GetIntValue(object value, int defaultValue)
     {

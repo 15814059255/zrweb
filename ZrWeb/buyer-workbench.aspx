@@ -44,7 +44,7 @@
                             <% } else { %>
                             <asp:Repeater ID="rptDemand" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini take-off" data-toggle-stock data-goods-id="<%# Eval("goodsId") %>">下架</button><button class="btn mini restock" data-toggle-stock data-goods-id="<%# Eval("goodsId") %>">重新上架</button></td></tr>
+                                    <tr class="inventory-item" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } %>
@@ -88,7 +88,7 @@
                         <div class="attr-grid" data-attr-grid></div>
                     </div>
                     <div class="form-row trade-grid"><label>期望单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" name="price" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button><input type="hidden" name="isIncludingTax" value="0"></span></label><label><span data-qty-label>采购数量</span><span class="qty-unit-inline"><input class="input" name="quantity" data-required="数量" placeholder="填写数量" value=""><select class="input unit-inline-input" name="unit" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
-                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
+                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-page-publish-confirm>确定</button></div>
                 </form>
             </div>
         </div>
@@ -158,8 +158,9 @@
             }
 
             // 发布确认
-            if (publishConfirmBtn) {
-                publishConfirmBtn.addEventListener('click', function() {
+            var pagePublishBtn = document.querySelector('[data-page-publish-confirm]');
+            if (pagePublishBtn) {
+                pagePublishBtn.addEventListener('click', function() {
                     var formData = new FormData(publishForm);
                     var goodsSn = formData.get('goodsSn');
                     var quantity = formData.get('quantity');
@@ -173,8 +174,8 @@
                         return;
                     }
 
-                    publishConfirmBtn.disabled = true;
-                    publishConfirmBtn.textContent = '发布中...';
+                    pagePublishBtn.disabled = true;
+                    pagePublishBtn.textContent = '发布中...';
 
                     fetch('buyer-workbench.aspx', {
                         method: 'POST',
@@ -194,8 +195,8 @@
                         Toast.error('发布异常：' + error);
                     })
                     .finally(() => {
-                        publishConfirmBtn.disabled = false;
-                        publishConfirmBtn.textContent = '确定';
+                        pagePublishBtn.disabled = false;
+                        pagePublishBtn.textContent = '确定';
                     });
                 });
             }

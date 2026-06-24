@@ -29,7 +29,7 @@
                         <tbody>
                             <asp:Repeater ID="rptInquiries" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr data-eq-id="<%# Eval("EqId") %>" data-goods-id="<%# Eval("GoodsId") %>" data-buyer-name="<%# Eval("BuyerName") %>" data-model="<%# Eval("Model") %>">
+                                    <tr data-eq-id="<%# Eval("EqId") %>" data-goods-id="<%# Eval("GoodsId") %>" data-buyer-name="<%# Eval("BuyerName") %>" data-model="<%# Eval("Model") %>" data-to-shop-id="<%# Eval("FromShopId") %>" data-brand-params="<%# Eval("BrandParams") %>" data-quantity="<%# Eval("Quantity") %>" data-unit="<%# Eval("Unit") %>" data-expected-price="<%# Eval("ExpectedPrice") %>">
                                         <td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td>
                                         <td><strong><%# Eval("Model") %></strong></td>
                                         <td><%# Eval("BrandParams") %></td>

@@ -379,6 +379,7 @@ public partial class buyer_workbench : System.Web.UI.Page
         {
             HasDemandData = false;
             dt = new DataTable();
+            dt.Columns.Add("goodsId", typeof(int));
             dt.Columns.Add("Status", typeof(string));
             dt.Columns.Add("StatusClass", typeof(string));
             dt.Columns.Add("Model", typeof(string));

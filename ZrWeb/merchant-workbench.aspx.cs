@@ -357,6 +357,7 @@ public partial class merchant_workbench : System.Web.UI.Page
         {
             HasInventoryData = false;
             dt = new DataTable();
+            dt.Columns.Add("GoodsId", typeof(int));
             dt.Columns.Add("Status", typeof(string));
             dt.Columns.Add("StatusClass", typeof(string));
             dt.Columns.Add("Model", typeof(string));
@@ -414,6 +415,7 @@ public partial class merchant_workbench : System.Web.UI.Page
         if (dt == null || dt.Rows.Count == 0)
         {
             dt = new DataTable();
+            dt.Columns.Add("GoodsId", typeof(int));
             dt.Columns.Add("Model", typeof(string));
             dt.Columns.Add("BrandParams", typeof(string));
             dt.Columns.Add("Quantity", typeof(string));
@@ -425,5 +427,26 @@ public partial class merchant_workbench : System.Web.UI.Page
 
         rptExpiredInventory.DataSource = dt;
         rptExpiredInventory.DataBind();
+    }
+
+    private int GetIntValue(object value, int defaultValue)
+    {
+        if (value == DBNull.Value || value == null)
+            return defaultValue;
+        return Convert.ToInt32(value);
+    }
+
+    private decimal GetDecimalValue(object value, decimal defaultValue)
+    {
+        if (value == DBNull.Value || value == null)
+            return defaultValue;
+        return Convert.ToDecimal(value);
+    }
+
+    private string GetStringValue(object value)
+    {
+        if (value == DBNull.Value || value == null)
+            return "";
+        return value.ToString();
     }
 }

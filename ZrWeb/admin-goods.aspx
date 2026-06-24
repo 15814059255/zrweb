@@ -78,8 +78,8 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleSelectAll(this)"></th>
-                                <th>商品ID</th>
                                 <th>型号</th>
+                                <th>发布者</th>
                                 <th>类型</th>
                                 <th>价格</th>
                                 <th>库存</th>
@@ -95,8 +95,8 @@
                                 <ItemTemplate>
                                     <tr>
                                         <td><input type="checkbox" name="goodsIds" value="<%# Eval("goodsId") %>"></td>
-                                        <td>G<%# Eval("goodsId") %></td>
-                                        <td><%# Eval("goodsSn") %></td>
+                                        <td><a href="javascript:void(0)" class="goods-link" onclick="showGoodsDetail(<%# Eval("goodsId") %>, '<%# Eval("goodsSn") %>', <%# Eval("pubType") %>)"><%# Eval("goodsSn") %></a></td>
+                                        <td><%# Eval("PublisherName") %></td>
                                         <td><span class="tag <%# Convert.ToInt32(Eval("pubType")) == 1 ? "blue" : "orange" %>"><%# Convert.ToInt32(Eval("pubType")) == 1 ? "供应" : "需求" %></span></td>
                                         <td>¥<%# Eval("shopPrice") %></td>
                                         <td><%# Eval("goodsStock") %></td>
@@ -126,12 +126,48 @@
             </section>
         </main>
     </div>
+    <div class="modal-backdrop" id="goodsDetailModal" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-label="商品详情">
+            <div class="modal-head">
+                <h2 id="goodsDetailTitle">商品详情</h2>
+                <button class="modal-close" type="button" onclick="closeGoodsDetail()" aria-label="关闭">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="goodsDetailContent">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         function toggleSelectAll(checkbox) {
             var checkboxes = document.querySelectorAll('input[name="goodsIds"]');
             checkboxes.forEach(function(cb) {
                 cb.checked = checkbox.checked;
             });
+        }
+        
+        function showGoodsDetail(goodsId, goodsSn, pubType) {
+            var modal = document.getElementById('goodsDetailModal');
+            var title = document.getElementById('goodsDetailTitle');
+            var content = document.getElementById('goodsDetailContent');
+            
+            title.textContent = goodsSn + ' - ' + (pubType == 1 ? '供应' : '需求') + '详情';
+            content.innerHTML = '<div class="loading">加载中...</div>';
+            modal.hidden = false;
+            
+            fetch('/api/goods-detail.aspx?id=' + goodsId + '&pubType=' + pubType)
+                .then(response => response.text())
+                .then(html => {
+                    content.innerHTML = html;
+                })
+                .catch(error => {
+                    content.innerHTML = '<div style="text-align:center;color:#999;">加载失败，请重试</div>';
+                });
+        }
+        
+        function closeGoodsDetail() {
+            document.getElementById('goodsDetailModal').hidden = true;
         }
         
         function searchGoods() {

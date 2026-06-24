@@ -121,7 +121,7 @@ public partial class login : System.Web.UI.Page
             string returnUrl = Request.QueryString["returnUrl"];
             if (string.IsNullOrEmpty(returnUrl))
             {
-                returnUrl = "/index.aspx";
+                returnUrl = roseId == 2 ? "/buyer-workbench.aspx" : "/merchant-workbench.aspx";
             }
             Response.Redirect(returnUrl);
         }

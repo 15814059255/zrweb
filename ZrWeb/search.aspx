@@ -83,7 +83,7 @@
                     <!-- 搜索结果列表 - 后端绑定 -->
                     <asp:Repeater ID="rptSearchResults" runat="server" EnableViewState="false">
                         <ItemTemplate>
-                            <div class="item">
+                            <div class="item" data-shop-id="<%# Eval("ShopId") %>">
                                 <div>
                                     <h3><a href="<%# Eval("DetailUrl") %>"><%# Eval("Model") %></a></h3>
                                     <div class="meta">

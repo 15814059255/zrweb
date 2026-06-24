@@ -69,7 +69,7 @@ public partial class admin_users : System.Web.UI.Page
             }
 
             string countSql = "SELECT COUNT(*) FROM userinfo WHERE SysStatus = 0";
-            string listSql = "SELECT UserID, UserName, LinkMan, MobilePhone, IsCheck, SysStatus, CreateTime FROM userinfo WHERE SysStatus = 0";
+            string listSql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, SysStatus, CreateTime FROM userinfo WHERE SysStatus = 0";
             
             SqlParameter[] countParams = null;
             
@@ -133,5 +133,36 @@ public partial class admin_users : System.Web.UI.Page
             url += "&keyword=" + Server.UrlEncode(keyword);
         }
         return url;
+    }
+
+    public string GetRoleName(object roseIdObj)
+    {
+        int roseId = 0;
+        if (roseIdObj != null && roseIdObj != DBNull.Value)
+        {
+            int.TryParse(roseIdObj.ToString(), out roseId);
+        }
+        switch (roseId)
+        {
+            case 1: return "普通用户";
+            case 2: return "采购商";
+            case 3: return "供应商";
+            default: return "普通用户";
+        }
+    }
+
+    public string GetRoleTagClass(object roseIdObj)
+    {
+        int roseId = 0;
+        if (roseIdObj != null && roseIdObj != DBNull.Value)
+        {
+            int.TryParse(roseIdObj.ToString(), out roseId);
+        }
+        switch (roseId)
+        {
+            case 2: return "blue";
+            case 3: return "purple";
+            default: return "gray";
+        }
     }
 }

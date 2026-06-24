@@ -39,14 +39,15 @@ public partial class search : Page
         dt.Columns.Add("PriceDisplay", typeof(string));
         dt.Columns.Add("ActionClass", typeof(string));
         dt.Columns.Add("ActionText", typeof(string));
+        dt.Columns.Add("ShopId", typeof(int));
 
         // 添加模拟搜索结果
-        AddResultRow(dt, "supply", "GRM188R71H104KA93D", "深圳市华南电子有限公司", "村田 Murata · 0603 · 100nF · X7R · 50V", "现货 850/Kpcs", "72 小时", "¥12.8 /Kpcs", "立即询价");
-        AddResultRow(dt, "supply", "RC0603FR-0710KL", "深圳国巨现货供应链有限公司", "Yageo · 0603 · 10KΩ · ±1% · 1/10W", "现货 1200/Pcs", "72 小时", "¥6.5 /Pcs", "立即询价");
-        AddResultRow(dt, "supply", "GRM21BR71H105KA12L", "华强北被动件仓储中心", "村田 Murata · 0805 · 1uF · X7R · 50V", "现货 120/卷", "72 小时", "¥18.0 /卷", "立即询价");
-        AddResultRow(dt, "demand", "CL10B104KB8NNNC", "东莞某 EMS 工厂", "三星 · 0603 · 100nF · X7R · 50V", "需求 500/Kpcs", "72 小时", "期望 ¥11 /Kpcs", "我要报价");
-        AddResultRow(dt, "demand", "0603 4.7K ±1%", "苏州精密制造有限公司", "不限品牌 · 电阻 · 交期 3 天", "需求 1000/Kpcs", "72 小时", "面议", "我要报价");
-        AddResultRow(dt, "demand", "GRM188R71H104KA93D", "宁波工业控制设备有限公司", "村田 Murata · 0603 · 100nF · X7R · 50V", "需求 850/Kpcs", "72 小时", "期望 ¥12 /Kpcs", "我要报价");
+        AddResultRow(dt, "supply", "GRM188R71H104KA93D", "深圳市华南电子有限公司", "村田 Murata · 0603 · 100nF · X7R · 50V", "现货 850/Kpcs", "72 小时", "¥12.8 /Kpcs", "立即询价", 1);
+        AddResultRow(dt, "supply", "RC0603FR-0710KL", "深圳国巨现货供应链有限公司", "Yageo · 0603 · 10KΩ · ±1% · 1/10W", "现货 1200/Pcs", "72 小时", "¥6.5 /Pcs", "立即询价", 2);
+        AddResultRow(dt, "supply", "GRM21BR71H105KA12L", "华强北被动件仓储中心", "村田 Murata · 0805 · 1uF · X7R · 50V", "现货 120/卷", "72 小时", "¥18.0 /卷", "立即询价", 3);
+        AddResultRow(dt, "demand", "CL10B104KB8NNNC", "东莞某 EMS 工厂", "三星 · 0603 · 100nF · X7R · 50V", "需求 500/Kpcs", "72 小时", "期望 ¥11 /Kpcs", "我要报价", 4);
+        AddResultRow(dt, "demand", "0603 4.7K ±1%", "苏州精密制造有限公司", "不限品牌 · 电阻 · 交期 3 天", "需求 1000/Kpcs", "72 小时", "面议", "我要报价", 5);
+        AddResultRow(dt, "demand", "GRM188R71H104KA93D", "宁波工业控制设备有限公司", "村田 Murata · 0603 · 100nF · X7R · 50V", "需求 850/Kpcs", "72 小时", "期望 ¥12 /Kpcs", "我要报价", 6);
 
         ResultCount = dt.Rows.Count;
         rptSearchResults.DataSource = dt;
@@ -56,11 +57,11 @@ public partial class search : Page
         PaginationHtml = GeneratePagination(1, 10, ResultCount);
     }
 
-    private void AddResultRow(DataTable dt, string type, string model, string company, string brandParams, string quantity, string validity, string price, string action)
+    private void AddResultRow(DataTable dt, string type, string model, string company, string brandParams, string quantity, string validity, string price, string action, int shopId)
     {
         DataRow row = dt.NewRow();
         row["Model"] = model;
-        row["DetailUrl"] = type == "supply" ? "/supply-detail.aspx?model=" + model : "/demand-detail.aspx?title=" + model;
+        row["DetailUrl"] = type == "supply" ? "/supply-detail.aspx?id=" + shopId : "/demand-detail.aspx?id=" + shopId;
         row["TagClass"] = type == "supply" ? "blue" : "green";
         row["TypeLabel"] = type == "supply" ? "供应" : "需求";
         row["CompanyName"] = company;
@@ -71,6 +72,7 @@ public partial class search : Page
         row["PriceDisplay"] = price;
         row["ActionClass"] = type == "demand" ? "is-demand-action" : "";
         row["ActionText"] = action;
+        row["ShopId"] = shopId;
         dt.Rows.Add(row);
     }
 

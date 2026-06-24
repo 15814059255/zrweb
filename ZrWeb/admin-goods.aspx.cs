@@ -68,8 +68,8 @@ public partial class admin_goods : System.Web.UI.Page
                 CurrentPage = Math.Max(1, page);
             }
 
-            string countSql = "SELECT COUNT(*) FROM goods WHERE dataFlag = 1";
-            string listSql = "SELECT goodsId, goodsSn, shopPrice, goodsStock, goodsUnit, pubType, isSale, createTime FROM goods WHERE dataFlag = 1";
+            string countSql = "SELECT COUNT(*) FROM goods g LEFT JOIN shops s ON g.shopId = s.shopId LEFT JOIN userinfo u ON s.userId = u.UserID WHERE g.dataFlag = 1";
+            string listSql = "SELECT g.goodsId, g.goodsSn, g.shopPrice, g.goodsStock, g.goodsUnit, g.pubType, g.isSale, g.createTime, ISNULL(u.CompanyName, s.shopCompany) AS PublisherName FROM goods g LEFT JOIN shops s ON g.shopId = s.shopId LEFT JOIN userinfo u ON s.userId = u.UserID WHERE g.dataFlag = 1";
             
             if (!string.IsNullOrEmpty(keyword))
             {

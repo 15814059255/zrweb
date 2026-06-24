@@ -251,6 +251,28 @@ public partial class index : Page
         return 0;
     }
 
+    private int GetRoseId()
+    {
+        try
+        {
+            int userId = UserHelper.GetUserId();
+            if (userId > 0)
+            {
+                string sql = "SELECT RoseID FROM userinfo WHERE UserID = @userId";
+                object result = DbHelper.ExecuteScalar(sql, DbHelper.CreateParameter("@userId", userId));
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToInt32(result);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("GetRoseId 错误: " + ex.Message);
+        }
+        return 1;
+    }
+
     private void BindSupplyList()
     {
         DataTable dt = null;
@@ -313,6 +335,15 @@ public partial class index : Page
             if (shopId == 0)
             {
                 result = "{\"success\":false,\"message\":\"无法获取您的店铺ID，请先登录并完善店铺信息\"}";
+                Response.Write(result);
+                Response.End();
+                return;
+            }
+
+            int roseId = GetRoseId();
+            if (roseId == 2)
+            {
+                result = "{\"success\":false,\"message\":\"采购商只能发布采购需求，无法发布供应信息\"}";
                 Response.Write(result);
                 Response.End();
                 return;

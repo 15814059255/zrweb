@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Web;
 
 public partial class received_inquiries : System.Web.UI.Page
 {
@@ -19,7 +20,8 @@ public partial class received_inquiries : System.Web.UI.Page
     {
         try
         {
-            // 获取当前用户的 shopId
+            UserHelper.GetUserId();
+            
             int shopId = 0;
             if (Session["ShopId"] != null)
             {
@@ -40,19 +42,22 @@ public partial class received_inquiries : System.Web.UI.Page
             dt.Columns.Add("BuyerContact");
             dt.Columns.Add("InquiryTime");
             dt.Columns.Add("Remarks");
+            dt.Columns.Add("FromShopId", typeof(int));
 
             string sql = @"SELECT TOP 50 
                 e.eqId, e.goodsId, e.goodsSn, e.fromQuantity, e.toQuantity, e.toPrice, e.fromPrice,
                 e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus,
-                e.fromCompany, e.fromContact, e.fromTel, e.brandName
+                e.fromCompany, e.fromContact, e.fromTel, e.brandName, e.fromShopId
                 FROM enquiryquoteprice e
-                WHERE e.toShopId = @shopId AND e.eqType = 1 AND e.dataFlag = 1
+                WHERE e.toShopId = @shopId AND e.eqType = 1 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
                 ORDER BY e.createTime DESC";
 
             DataTable sourceDt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@shopId", shopId));
 
             if (sourceDt != null && sourceDt.Rows.Count > 0)
             {
+                string updateSql = "UPDATE enquiryquoteprice SET readStatus = 1 WHERE toShopId = @shopId AND eqType = 1 AND dataFlag = 1 AND readStatus = 0";
+                DbHelper.ExecuteNonQuery(updateSql, DbHelper.CreateParameter("@shopId", shopId));
                 foreach (DataRow row in sourceDt.Rows)
                 {
                     DataRow newRow = dt.NewRow();
@@ -64,6 +69,7 @@ public partial class received_inquiries : System.Web.UI.Page
                     newRow["BuyerContact"] = GetStringValue(row["fromContact"]);
                     newRow["InquiryTime"] = Convert.ToDateTime(row["createTime"]).ToString("yyyy-MM-dd HH:mm");
                     newRow["Remarks"] = GetStringValue(row["fromRemarks"]);
+                    newRow["FromShopId"] = GetIntValue(row["fromShopId"], 0);
 
                     // 获取品牌参数
                     string brand = GetStringValue(row["brandName"]);

@@ -79,6 +79,9 @@ public class EnquiryQuoteService
         dt.Columns.Add("Quantity", typeof(string));
         dt.Columns.Add("Unit", typeof(string));
         dt.Columns.Add("Price", typeof(string));
+        dt.Columns.Add("Batch", typeof(string));
+        dt.Columns.Add("Remarks", typeof(string));
+        dt.Columns.Add("SellerQQ", typeof(string));
         dt.Columns.Add("BuyerName", typeof(string));
         dt.Columns.Add("QuoteTime", typeof(string));
         dt.Columns.Add("Validity", typeof(string));
@@ -154,6 +157,17 @@ public class EnquiryQuoteService
             {
                 newRow["Price"] = "面议";
             }
+
+            // 设置批次
+            string batch = GetStringValue(row["Lot"]);
+            newRow["Batch"] = !string.IsNullOrEmpty(batch) ? batch : "-";
+
+            // 设置备注
+            newRow["Remarks"] = !string.IsNullOrEmpty(fromRemarks) ? fromRemarks : "-";
+
+            // 设置供应商QQ
+            string sellerQQ = GetStringValue(row["SellerQQ"]);
+            newRow["SellerQQ"] = sellerQQ;
 
             // 设置采购商
             newRow["BuyerName"] = !string.IsNullOrEmpty(toCompany) ? toCompany : "匿名采购商";
@@ -358,11 +372,11 @@ public class EnquiryQuoteService
             string sql = @"INSERT INTO enquiryquoteprice (goodsId, goodsSn, eqType, fromQuantity, fromPrice, 
                           isIncludingTax, fromCompany, fromContact, fromTel, fromRemarks, 
                           toCompany, toUserId, fromUserId, brandName, dataFlag, createTime,
-                          fromShopID, toShopId, fromDataFlag, toDataFlag)
+                          fromShopID, toShopId, fromDataFlag, toDataFlag, readStatus)
                           VALUES (@goodsId, @goodsSn, @eqType, @fromQuantity, @fromPrice, @isIncludingTax, 
                           @fromCompany, @fromContact, @fromTel, @fromRemarks, @toCompany, 
                           @toUserId, @fromUserId, @brandName, 1, GETDATE(),
-                          @fromShopID, @toShopId, 1, 1)";
+                          @fromShopID, @toShopId, 1, 1, 0)";
 
             int result = DbHelper.ExecuteNonQuery(sql,
                 DbHelper.CreateParameter("@goodsId", goodsId),
@@ -405,7 +419,7 @@ public class EnquiryQuoteService
                 createTime, fromCompany, brandName, toCompany, readStatus, fromRemarks,
                 toDataFlag
                 FROM enquiryquoteprice 
-                WHERE dataFlag = 1 AND eqType = 2 AND toUserId = @toUserId AND toDataFlag = 1
+                WHERE dataFlag = 1 AND eqType = 2 AND toUserId = @toUserId AND (toDataFlag IS NULL OR toDataFlag = 1)
                 ORDER BY createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@toUserId", toUserId));
@@ -436,9 +450,11 @@ public class EnquiryQuoteService
             string sql = @"SELECT TOP 50 
                 eqId, goodsSn, eqType, fromQuantity, fromPrice, isIncludingTax, 
                 createTime, fromCompany, brandName, toCompany, readStatus, fromRemarks,
-                fromDataFlag
-                FROM enquiryquoteprice 
-                WHERE dataFlag = 1 AND eqType = 2 AND fromUserId = @fromUserId AND fromDataFlag = 1
+                fromDataFlag,
+                (SELECT TOP 1 Lot FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1) as Lot,
+                (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ
+                FROM enquiryquoteprice e
+                WHERE dataFlag = 1 AND eqType = 2 AND fromUserId = @fromUserId AND (fromDataFlag IS NULL OR fromDataFlag = 1)
                 ORDER BY createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@fromUserId", fromUserId));
@@ -469,9 +485,11 @@ public class EnquiryQuoteService
             string sql = @"SELECT TOP 50 
                 eqId, goodsSn, eqType, fromQuantity, fromPrice, isIncludingTax, 
                 createTime, fromCompany, brandName, toCompany, readStatus, fromRemarks,
-                fromDataFlag
-                FROM enquiryquoteprice 
-                WHERE dataFlag = 1 AND eqType = 2 AND fromShopId = @fromShopId AND fromDataFlag = 1
+                fromDataFlag,
+                (SELECT TOP 1 Lot FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1) as Lot,
+                (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ
+                FROM enquiryquoteprice e
+                WHERE dataFlag = 1 AND eqType = 2 AND fromShopId = @fromShopId AND (fromDataFlag IS NULL OR fromDataFlag = 1)
                 ORDER BY createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@fromShopId", fromShopId));

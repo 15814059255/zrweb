@@ -2,10 +2,11 @@
 
 using System;
 using System.Web;
+using System.Web.SessionState;
 using System.Data;
 using System.Data.SqlClient;
 
-public class PublishHandler : IHttpHandler {
+public class PublishHandler : IHttpHandler, IRequiresSessionState {
     
     public void ProcessRequest (HttpContext context) {
         context.Response.ContentType = "application/json";
@@ -122,6 +123,16 @@ public class PublishHandler : IHttpHandler {
             return;
         }
 
+        int roseId = GetRoseId(userId);
+        if (pubType == 1 && roseId == 2) {
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.Charset = "utf-8";
+            context.Response.Write("{\"success\":false,\"message\":\"采购商只能发布采购需求，无法发布供应信息\"}");
+            context.Response.End();
+            return;
+        }
+
         int shopId = 0;
         // 优先使用前端传递的 shopId
         int.TryParse(context.Request["shopId"], out shopId);
@@ -186,6 +197,20 @@ public class PublishHandler : IHttpHandler {
         return 0;
     }
     
+    private int GetRoseId(int userId) {
+        try {
+            string sql = "SELECT RoseID FROM userinfo WHERE UserID = @userId";
+            object result = DbHelper.ExecuteScalar(sql, DbHelper.CreateParameter("@userId", userId));
+            if (result != null && result != DBNull.Value) {
+                return Convert.ToInt32(result);
+            }
+        }
+        catch {
+            // 忽略错误
+        }
+        return 1;
+    }
+    
     private void HandleSubmitQuote(HttpContext context) {
         if (context.Session == null) {
             context.Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
@@ -207,6 +232,10 @@ public class PublishHandler : IHttpHandler {
         
         string brandName = context.Request["brandName"];
         string fromRemarks = context.Request["remarks"];
+        
+        int eqType = 2;
+        int.TryParse(context.Request["eqType"], out eqType);
+        if (eqType != 1 && eqType != 2) eqType = 2;
 
         int fromUserId = UserHelper.GetUserId();
         if (fromUserId == 0) {
@@ -237,28 +266,54 @@ public class PublishHandler : IHttpHandler {
         }
 
         string fromCompany = "";
-        if (context.Session["LinkMan"] != null) {
-            fromCompany = context.Session["LinkMan"].ToString();
+        string fromContact = "";
+        string fromTel = "";
+        
+        if (context.Session["ShopCompany"] != null) {
+            fromCompany = context.Session["ShopCompany"].ToString();
+        }
+        if (string.IsNullOrEmpty(fromCompany) && context.Session["ShopName"] != null) {
+            fromCompany = context.Session["ShopName"].ToString();
         }
         if (string.IsNullOrEmpty(fromCompany)) {
-            if (context.Session["UserName"] != null) {
-                fromCompany = context.Session["UserName"].ToString();
-            } else {
-                fromCompany = "匿名供应商";
+            fromCompany = "匿名用户";
+        }
+        
+        if (context.Session["LinkMan"] != null) {
+            fromContact = context.Session["LinkMan"].ToString();
+        }
+        if (context.Session["MobilePhone"] != null) {
+            fromTel = context.Session["MobilePhone"].ToString();
+        }
+
+        string toCompany = "";
+        int toUserId = 0;
+        try {
+            string shopSql = "SELECT s.shopCompany, s.shopName, s.userId FROM shops s WHERE s.shopId = @shopId";
+            DataTable shopDt = DbHelper.ExecuteQuery(shopSql, DbHelper.CreateParameter("@shopId", toShopId));
+            if (shopDt != null && shopDt.Rows.Count > 0) {
+                toCompany = shopDt.Rows[0]["shopCompany"] != DBNull.Value ? shopDt.Rows[0]["shopCompany"].ToString() : "";
+                if (string.IsNullOrEmpty(toCompany) && shopDt.Rows[0]["shopName"] != DBNull.Value) {
+                    toCompany = shopDt.Rows[0]["shopName"].ToString();
+                }
+                if (shopDt.Rows[0]["userId"] != DBNull.Value) {
+                    int.TryParse(shopDt.Rows[0]["userId"].ToString(), out toUserId);
+                }
             }
+        } catch {
         }
 
         EnquiryQuoteService service = new EnquiryQuoteService();
         bool success = service.SubmitQuote(
             goodsId, goodsSn, fromQuantity, fromPrice,
-            isIncludingTax, fromCompany, "", "",
-            fromRemarks, "", 0, fromUserId, brandName,
-            fromShopId, toShopId);
+            isIncludingTax, fromCompany, fromContact, fromTel,
+            fromRemarks, toCompany, toUserId, fromUserId, brandName,
+            fromShopId, toShopId, eqType);
 
         if (success) {
-            context.Response.Write("{\"success\":true,\"message\":\"报价提交成功\"}");
+            context.Response.Write("{\"success\":true,\"message\":\"提交成功\"}");
         } else {
-            context.Response.Write("{\"success\":false,\"message\":\"报价提交失败\"}");
+            context.Response.Write("{\"success\":false,\"message\":\"提交失败\"}");
         }
     }
     
