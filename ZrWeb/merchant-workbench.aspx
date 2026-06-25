@@ -10,6 +10,9 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .confirm-btn.is-hidden { display: none !important; }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -32,9 +35,7 @@
             <section class="panel">
                 <div class="searchbar inventory-searchbar"><input class="input" data-inventory-search placeholder="搜索型号、品牌、参数"><button class="btn primary" data-inventory-search-btn>搜索</button></div>
             </section>
-            <section class="panel site-ad-panel workbench-ad-panel" hidden>
-                <a class="search-ad-card" href="profile.aspx" data-ad-slot="MW-S01"><b>白银广告 MW-S01</b><span>商家工作台轻提示位，适合会员权益、上架工具和服务提醒。</span></a>
-            </section>
+            
             <section class="panel" style="margin-top:18px"><div class="section-title"><div><h2>库存管理</h2></div><div class="actions"><button class="btn primary merchant-publish-fab" type="button" data-publish-open data-publish-default="supply" data-publish-part-default="capacitor">发布供采</button></div></div>
                 <div class="table-wrap">
                     <table class="table inventory-table">
@@ -51,7 +52,7 @@
                             <% } else { %>
                             <asp:Repeater ID="rptInventory" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
+                                    <tr class="inventory-item" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini primary confirm-btn is-hidden" onclick="saveSupplyChange(<%# Eval("GoodsId") %>, this)">确定</button><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } %>
@@ -124,12 +125,85 @@
     </div>
     <uc1:bottom runat="server" ID="bottom" />
     <script>
+        // 全局函数：保存供应修改（数量/单位/单价/税赋），不影响历史交互记录
+        function saveSupplyChange(goodsId, btn) {
+            if (!goodsId) return;
+            var row = btn.closest('tr');
+            if (!row) return;
+
+            var quantity = row.querySelector('.qty-input')?.value || '';
+            var unit = row.querySelector('.unit-select')?.value || 'Kpcs';
+            var price = row.querySelector('.price-input')?.value || '';
+            var taxSwitch = row.querySelector('[data-tax-toggle]');
+            var isIncludingTax = taxSwitch?.classList.contains('is-on') ? 1 : 0;
+
+            if (!quantity || quantity.trim() === '') {
+                Toast.warning('请输入数量');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('action', 'update_supply');
+            formData.append('goodsId', goodsId);
+            formData.append('quantity', quantity);
+            formData.append('unit', unit);
+            formData.append('price', price);
+            formData.append('isIncludingTax', isIncludingTax);
+
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+
+            fetch('merchant-workbench.aspx', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    Toast.success('修改成功！');
+                    btn.classList.add('is-hidden');
+                } else {
+                    Toast.error('修改失败：' + data.message);
+                }
+            })
+            .catch(function(error) {
+                Toast.error('提交异常：' + error);
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = '确定';
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // 监听库存列表输入变化，触发时显示确定按钮
+                var inventoryPanel = document.querySelector('.inventory-table');
+                if (inventoryPanel) {
+                    inventoryPanel.querySelectorAll('tbody tr.inventory-item').forEach(function(row) {
+                        var qtyInput = row.querySelector('.qty-input');
+                        var unitSelect = row.querySelector('.unit-select');
+                        var priceInput = row.querySelector('.price-input');
+                        var taxSwitch = row.querySelector('[data-tax-toggle]');
+                        var confirmBtn = row.querySelector('.confirm-btn');
+
+                        function showConfirm() {
+                            if (confirmBtn) confirmBtn.classList.remove('is-hidden');
+                        }
+
+                        if (qtyInput) qtyInput.addEventListener('input', showConfirm);
+                        if (unitSelect) unitSelect.addEventListener('change', showConfirm);
+                        if (priceInput) priceInput.addEventListener('input', showConfirm);
+                        if (taxSwitch) taxSwitch.addEventListener('click', showConfirm);
+                    });
+                }
+            } catch(e) {
+                console.error('merchant-workbench init error:', e);
+            }
+
             var publishModal = document.getElementById('publishModal');
             var publishForm = document.getElementById('merchantPublishForm');
             var publishConfirmBtn = publishModal.querySelector('[data-publish-confirm]');
-            var taxSwitch = publishModal.querySelector('[data-tax-toggle]');
-            var isIncludingTaxInput = publishModal.querySelector('input[name="isIncludingTax"]');
             var pubTypeInput = document.getElementById('pubTypeInput');
 
             // 初始渲染参数输入框
@@ -157,25 +231,6 @@
                     }
                 });
             });
-
-            if (taxSwitch) {
-                taxSwitch.addEventListener('click', function() {
-                    var isOn = taxSwitch.classList.toggle('is-on');
-                    taxSwitch.setAttribute('aria-pressed', isOn);
-                    var priceField = taxSwitch.closest('.price-field');
-                    if (isOn) {
-                        priceField.classList.remove('is-untaxed');
-                        priceField.classList.add('is-taxed');
-                        priceField.querySelector('span').textContent = '含税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '1';
-                    } else {
-                        priceField.classList.remove('is-taxed');
-                        priceField.classList.add('is-untaxed');
-                        priceField.querySelector('span').textContent = '未税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '0';
-                    }
-                });
-            }
 
             if (publishConfirmBtn) {
                 publishConfirmBtn.addEventListener('click', function() {
@@ -219,81 +274,6 @@
                 });
             }
 
-            document.querySelectorAll('.take-off').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var tr = this.closest('tr');
-                    var goodsId = tr ? tr.querySelector('[data-goods-id]')?.getAttribute('data-goods-id') : null;
-                    if (!goodsId) return;
-
-                    ConfirmDialog.show('确定要下架此商品吗？', function() {
-                        var formData = new FormData();
-                        formData.append('action', 'take_off');
-                        formData.append('goodsId', goodsId);
-
-                        btn.disabled = true;
-                        btn.textContent = '下架中...';
-
-                        fetch('merchant-workbench.aspx', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Toast.success('下架成功！');
-                                setTimeout(function() { location.reload(); }, 1500);
-                            } else {
-                                Toast.error('下架失败：' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            Toast.error('下架异常：' + error);
-                        })
-                        .finally(() => {
-                            btn.disabled = false;
-                            btn.textContent = '下架';
-                        });
-                    });
-                });
-            });
-
-            document.querySelectorAll('.restock').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var tr = this.closest('tr');
-                    var goodsId = tr ? tr.querySelector('[data-goods-id]')?.getAttribute('data-goods-id') : null;
-                    if (!goodsId) return;
-
-                    ConfirmDialog.show('确定要重新上架此商品吗？', function() {
-                        var formData = new FormData();
-                        formData.append('action', 'restock');
-                        formData.append('goodsId', goodsId);
-
-                        btn.disabled = true;
-                        btn.textContent = '上架中...';
-
-                        fetch('merchant-workbench.aspx', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Toast.success('重新上架成功！');
-                                setTimeout(function() { location.reload(); }, 1500);
-                            } else {
-                                Toast.error('重新上架失败：' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            Toast.error('重新上架异常：' + error);
-                        })
-                        .finally(() => {
-                            btn.disabled = false;
-                            btn.textContent = '重新上架';
-                        });
-                    });
-                });
-            });
         });
     </script>
 </body>

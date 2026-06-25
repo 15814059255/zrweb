@@ -39,7 +39,7 @@ public partial class api_goods_detail : System.Web.UI.Page
                           FROM goods g 
                           LEFT JOIN shops s ON g.shopId = s.shopId 
                           LEFT JOIN userinfo u ON s.userId = u.UserID 
-                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1";
+                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.isSale = 1";
             
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@goodsId", GoodsId));
             

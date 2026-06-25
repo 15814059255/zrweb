@@ -16,8 +16,8 @@
     </a>
     <nav class="nav">
         <a class="<%= GetNavClass("index") %>" href="/index.aspx"><span>广场</span><small>›</small></a>
-        <a class="<%= GetNavClass("merchant") %>" href="/merchant-workbench.aspx"><span>商家</span><small>›</small></a>
-        <a class="<%= GetNavClass("buyer") %>" href="/buyer-workbench.aspx"><span>采购</span><small>›</small></a>
+        <a class="<%= GetNavClass("merchant") %>" href="<%= IsLoggedIn ? "/merchant-workbench.aspx" : "javascript:void(0)" %>" <%= !IsLoggedIn ? "onclick=\"window.location.href='/login.aspx'\"" : "" %>><span>商家</span><small>›</small></a>
+        <a class="<%= GetNavClass("buyer") %>" href="<%= IsLoggedIn ? "/buyer-workbench.aspx" : "javascript:void(0)" %>" <%= !IsLoggedIn ? "onclick=\"window.location.href='/login.aspx'\"" : "" %>><span>采购</span><small>›</small></a>
         <% if (IsLoggedIn) { %>
         <a class="<%= GetNavClass("profile") %>" href="/profile.aspx"><span>我的</span><small>›</small></a>
         <% } else { %>

@@ -564,7 +564,7 @@ public partial class profile : System.Web.UI.Page
         }
     }
 
-    private string SaveCertFile(HttpPostedFile file, int userId)
+    private string SaveCertFile(System.Web.HttpPostedFile file, int userId)
     {
         if (file == null || file.ContentLength == 0)
         {

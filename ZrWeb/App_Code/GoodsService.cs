@@ -9,12 +9,13 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.goodsStock, g.goodsUnit, 
+                g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.Packaging, g.goodsStock, g.goodsUnit, 
                 g.shopPrice, g.isIncludingTax, g.createTime, g.validityDate, g.isSale, g.goodsStatus, g.dataFlag, g.pubType, g.shopId,
+                g.Brand, g.Capacitance, g.Resistance, g.Tolerance, g.Voltage, g.Dielectric, g.Power, g.TempCoefficient,
                 ISNULL(s.shopCompany, s.shopName) AS companyName
                 FROM goods g
                 LEFT JOIN shops s ON g.shopId = s.shopId
-                WHERE g.dataFlag = 1 AND g.goodsStatus = 1
+                WHERE g.dataFlag = 1 AND g.goodsStatus = 1 AND g.isSale = 1
                 ORDER BY g.createTime DESC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql);
@@ -40,8 +41,9 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId
                 ORDER BY createTime DESC";
@@ -71,8 +73,9 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0 AND shopId = @shopId
                 ORDER BY updateTime DESC";
@@ -99,8 +102,9 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0
                 ORDER BY updateTime DESC";
@@ -154,17 +158,23 @@ public class GoodsService
 
     public bool InsertGoods(string goodsSn, string name, string manufacturers, string packaging,
         int goodsStock, string goodsUnit, decimal shopPrice, int isIncludingTax,
-        int pubType, string remarks, int shopId, int userId, string validity = "1个月")
+        int pubType, string remarks, int shopId, int userId, string validity = "1个月",
+        string brand = "", string capacitance = "", string resistance = "", 
+        string tolerance = "", string voltage = "", string dielectric = "", 
+        string power = "", string tempCoefficient = "")
     {
         try
         {
-            // 根据有效期计算过期时间
             DateTime validityDate = CalculateExpireTime(validity);
             
             string sql = @"INSERT INTO goods (goodsSn, [Name], Manufacturers, Packaging, goodsStock, goodsUnit, 
-                          shopPrice, isIncludingTax, pubType, remarks, shopId, dataFlag, goodsStatus, isSale, createTime, updateTime, validityDate)
+                          shopPrice, isIncludingTax, pubType, remarks, shopId, dataFlag, goodsStatus, isSale, 
+                          createTime, updateTime, validityDate, Brand, Capacitance, Resistance, Tolerance, 
+                          Voltage, Dielectric, Power, TempCoefficient)
                           VALUES (@goodsSn, @Name, @Manufacturers, @Packaging, @goodsStock, @goodsUnit, 
-                          @shopPrice, @isIncludingTax, @pubType, @remarks, @shopId, 1, 1, 1, GETDATE(), GETDATE(), @validityDate)";
+                          @shopPrice, @isIncludingTax, @pubType, @remarks, @shopId, 1, 1, 1, 
+                          GETDATE(), GETDATE(), @validityDate, @Brand, @Capacitance, @Resistance, 
+                          @Tolerance, @Voltage, @Dielectric, @Power, @TempCoefficient)";
 
             SqlParameter[] parameters = new SqlParameter[]
             {
@@ -179,7 +189,15 @@ public class GoodsService
                 new SqlParameter("@pubType", pubType),
                 new SqlParameter("@remarks", remarks ?? (object)DBNull.Value),
                 new SqlParameter("@shopId", shopId),
-                new SqlParameter("@validityDate", validityDate)
+                new SqlParameter("@validityDate", validityDate),
+                new SqlParameter("@Brand", string.IsNullOrEmpty(brand) ? (object)DBNull.Value : brand),
+                new SqlParameter("@Capacitance", string.IsNullOrEmpty(capacitance) ? (object)DBNull.Value : capacitance),
+                new SqlParameter("@Resistance", string.IsNullOrEmpty(resistance) ? (object)DBNull.Value : resistance),
+                new SqlParameter("@Tolerance", string.IsNullOrEmpty(tolerance) ? (object)DBNull.Value : tolerance),
+                new SqlParameter("@Voltage", string.IsNullOrEmpty(voltage) ? (object)DBNull.Value : voltage),
+                new SqlParameter("@Dielectric", string.IsNullOrEmpty(dielectric) ? (object)DBNull.Value : dielectric),
+                new SqlParameter("@Power", string.IsNullOrEmpty(power) ? (object)DBNull.Value : power),
+                new SqlParameter("@TempCoefficient", string.IsNullOrEmpty(tempCoefficient) ? (object)DBNull.Value : tempCoefficient)
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
@@ -218,8 +236,9 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId
                 ORDER BY createTime DESC";
@@ -246,8 +265,9 @@ public class GoodsService
         try
         {
             string sql = @"SELECT TOP 50 
-                goodsId, goodsSn, Name, Manufacturers, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0 AND shopId = @shopId
                 ORDER BY updateTime DESC";
@@ -349,14 +369,9 @@ public class GoodsService
                 newRow["Model"] = "未知型号";
             }
 
-            if (!string.IsNullOrEmpty(manufacturers))
-            {
-                newRow["BrandParams"] = manufacturers;
-            }
-            else
-            {
-                newRow["BrandParams"] = "品牌不限";
-            }
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
 
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
@@ -395,6 +410,8 @@ public class GoodsService
             int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
             DateTime updateTime = GetDateTimeValue(row["updateTime"], DateTime.Now);
 
+            newRow["goodsId"] = goodsId;
+
             if (!string.IsNullOrEmpty(goodsSn))
             {
                 newRow["Model"] = goodsSn;
@@ -408,14 +425,9 @@ public class GoodsService
                 newRow["Model"] = "未知型号";
             }
 
-            if (!string.IsNullOrEmpty(manufacturers))
-            {
-                newRow["BrandParams"] = manufacturers;
-            }
-            else
-            {
-                newRow["BrandParams"] = "品牌不限";
-            }
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
 
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
@@ -443,6 +455,8 @@ public class GoodsService
         dt.Columns.Add("Validity", typeof(string));
         dt.Columns.Add("CompanyName", typeof(string));
         dt.Columns.Add("ActionText", typeof(string));
+        dt.Columns.Add("PriceClass", typeof(string));
+        dt.Columns.Add("ActionClass", typeof(string));
         dt.Columns.Add("GoodsId", typeof(int));
         dt.Columns.Add("GoodsSn", typeof(string));
         dt.Columns.Add("ShopId", typeof(int));
@@ -515,14 +529,9 @@ public class GoodsService
                 newRow["PriceDisplay"] = "面议";
             }
 
-            if (!string.IsNullOrEmpty(manufacturers))
-            {
-                newRow["BrandParams"] = manufacturers;
-            }
-            else
-            {
-                newRow["BrandParams"] = "品牌不限";
-            }
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
 
             if (pubType == 2)
             {
@@ -585,11 +594,25 @@ public class GoodsService
             if (pubType == 2)
             {
                 newRow["ActionText"] = "我要报价";
+                newRow["ActionClass"] = "is-demand-action";
             }
             else
             {
                 newRow["ActionText"] = "立即询价";
+                newRow["ActionClass"] = "";
             }
+
+            // PriceClass：需求且有价格显示"期望"，价格为0显示"面议"
+            string priceClass = "";
+            if (pubType == 2 && shopPrice > 0)
+            {
+                priceClass = "is-expected";
+            }
+            else if (shopPrice <= 0)
+            {
+                priceClass = "is-negotiable";
+            }
+            newRow["PriceClass"] = priceClass;
 
             dt.Rows.Add(newRow);
         }
@@ -676,14 +699,9 @@ public class GoodsService
                 newRow["Model"] = "未知型号";
             }
 
-            if (!string.IsNullOrEmpty(manufacturers))
-            {
-                newRow["BrandParams"] = manufacturers;
-            }
-            else
-            {
-                newRow["BrandParams"] = "品牌不限";
-            }
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
 
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
@@ -736,14 +754,9 @@ public class GoodsService
                 newRow["Model"] = "未知型号";
             }
 
-            if (!string.IsNullOrEmpty(manufacturers))
-            {
-                newRow["BrandParams"] = manufacturers;
-            }
-            else
-            {
-                newRow["BrandParams"] = "品牌不限";
-            }
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
 
             newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
@@ -785,18 +798,47 @@ public class GoodsService
         return value.ToString();
     }
 
+    private string BuildBrandParams(DataRow row)
+    {
+        System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
+        
+        string brand = GetStringValue(row["Brand"]);
+        string capacitance = GetStringValue(row["Capacitance"]);
+        string resistance = GetStringValue(row["Resistance"]);
+        string tolerance = GetStringValue(row["Tolerance"]);
+        string voltage = GetStringValue(row["Voltage"]);
+        string dielectric = GetStringValue(row["Dielectric"]);
+        string power = GetStringValue(row["Power"]);
+        string tempCoefficient = GetStringValue(row["TempCoefficient"]);
+        
+        if (!string.IsNullOrEmpty(brand)) paramsList.Add(brand);
+        if (!string.IsNullOrEmpty(capacitance)) paramsList.Add(capacitance);
+        if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
+        if (!string.IsNullOrEmpty(tolerance)) paramsList.Add(tolerance);
+        if (!string.IsNullOrEmpty(voltage)) paramsList.Add(voltage);
+        if (!string.IsNullOrEmpty(dielectric)) paramsList.Add(dielectric);
+        if (!string.IsNullOrEmpty(power)) paramsList.Add(power);
+        if (!string.IsNullOrEmpty(tempCoefficient)) paramsList.Add(tempCoefficient);
+        
+        return paramsList.Count > 0 ? string.Join(" · ", paramsList) : "";
+    }
+
     /// <summary>
     /// 发布采购需求
     /// </summary>
-    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "1个月")
+    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "1个月",
+        string brand = "", string capacitance = "", string resistance = "", 
+        string tolerance = "", string voltage = "", string dielectric = "", 
+        string power = "", string tempCoefficient = "")
     {
         try
         {
-            // 根据有效期计算过期时间
             DateTime validityDate = CalculateExpireTime(validity);
             
-            string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId)
-                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId)";
+            string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId,
+                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient)
+                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId,
+                @Brand, @Capacitance, @Resistance, @Tolerance, @Voltage, @Dielectric, @Power, @TempCoefficient)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@goodsSn", goodsSn ?? ""),
@@ -808,9 +850,73 @@ public class GoodsService
                 new SqlParameter("@isIncludingTax", isIncludingTax),
                 new SqlParameter("@shopId", shopId),
                 new SqlParameter("@validityDate", validityDate),
+                new SqlParameter("@Brand", string.IsNullOrEmpty(brand) ? (object)DBNull.Value : brand),
+                new SqlParameter("@Capacitance", string.IsNullOrEmpty(capacitance) ? (object)DBNull.Value : capacitance),
+                new SqlParameter("@Resistance", string.IsNullOrEmpty(resistance) ? (object)DBNull.Value : resistance),
+                new SqlParameter("@Tolerance", string.IsNullOrEmpty(tolerance) ? (object)DBNull.Value : tolerance),
+                new SqlParameter("@Voltage", string.IsNullOrEmpty(voltage) ? (object)DBNull.Value : voltage),
+                new SqlParameter("@Dielectric", string.IsNullOrEmpty(dielectric) ? (object)DBNull.Value : dielectric),
+                new SqlParameter("@Power", string.IsNullOrEmpty(power) ? (object)DBNull.Value : power),
+                new SqlParameter("@TempCoefficient", string.IsNullOrEmpty(tempCoefficient) ? (object)DBNull.Value : tempCoefficient)
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
+            return result > 0;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("PublishDemand failed: " + ex.Message, ex);
+        }
+    }
+
+    /// <summary>
+    /// 更新需求信息（数量、单位、价格、税赋），不影响历史交互记录
+    /// </summary>
+    public bool UpdateDemand(int goodsId, int quantity, string unit, decimal price, int isIncludingTax)
+    {
+        try
+        {
+            string sql = @"UPDATE goods 
+                SET goodsStock = @quantity, 
+                    goodsUnit = @unit, 
+                    shopPrice = @price, 
+                    isIncludingTax = @isIncludingTax, 
+                    updateTime = GETDATE() 
+                WHERE goodsId = @goodsId";
+            int result = DbHelper.ExecuteNonQuery(sql, 
+                DbHelper.CreateParameter("@goodsId", goodsId),
+                DbHelper.CreateParameter("@quantity", quantity),
+                DbHelper.CreateParameter("@unit", unit),
+                DbHelper.CreateParameter("@price", price),
+                DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
+            return result > 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 更新供应信息（数量、单位、价格、税赋），不影响历史交互记录
+    /// </summary>
+    public bool UpdateSupply(int goodsId, int quantity, string unit, decimal price, int isIncludingTax)
+    {
+        try
+        {
+            string sql = @"UPDATE goods 
+                SET goodsStock = @quantity, 
+                    goodsUnit = @unit, 
+                    shopPrice = @price, 
+                    isIncludingTax = @isIncludingTax, 
+                    updateTime = GETDATE() 
+                WHERE goodsId = @goodsId";
+            int result = DbHelper.ExecuteNonQuery(sql, 
+                DbHelper.CreateParameter("@goodsId", goodsId),
+                DbHelper.CreateParameter("@quantity", quantity),
+                DbHelper.CreateParameter("@unit", unit),
+                DbHelper.CreateParameter("@price", price),
+                DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
             return result > 0;
         }
         catch (Exception)
@@ -834,6 +940,492 @@ public class GoodsService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 搜索商品（只返回上架中的有效信息）
+    /// </summary>
+    public DataTable SearchGoods(string keyword, int pageIndex, int pageSize, out int totalCount)
+    {
+        totalCount = 0;
+        try
+        {
+            string whereSql = @"WHERE g.dataFlag = 1 AND g.goodsStatus = 1 AND g.isSale = 1";
+            bool hasKeyword = !string.IsNullOrEmpty(keyword) && keyword.Trim().Length > 0;
+
+            // 按空格拆分关键词，每个子关键词单独匹配
+            var keywordGroups = new System.Collections.Generic.List<System.Collections.Generic.List<SearchVariant>>();
+            if (hasKeyword)
+            {
+                string kw = keyword.Trim();
+                // 按空格拆分多个关键词
+                string[] parts = kw.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+                foreach (string part in parts)
+                {
+                    var group = new System.Collections.Generic.List<SearchVariant>();
+                    // 解析参数变体（先解析，确定类型）
+                    var paramVariants = ExpandParamVariants(part);
+                    if (paramVariants.Count > 0)
+                    {
+                        // 如果能识别为参数类型，原始关键词也使用对应类型
+                        // 取第一个变体的类型作为原始关键词的类型
+                        VariantType detectedType = paramVariants[0].Type;
+                        group.Add(new SearchVariant(part, detectedType));
+                        foreach (var v in paramVariants)
+                        {
+                            if (!group.Exists(x => x.Value.Equals(v.Value, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                group.Add(v);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 无法识别为参数，使用通用匹配
+                        group.Add(new SearchVariant(part, VariantType.All));
+                    }
+                    if (group.Count > 0)
+                    {
+                        keywordGroups.Add(group);
+                    }
+                }
+            }
+
+            int paramIndex = 0;
+            if (hasKeyword && keywordGroups.Count > 0)
+            {
+                // 构建 AND 条件：每个子关键词必须至少匹配一个变体
+                System.Text.StringBuilder groupBuilder = new System.Text.StringBuilder();
+                for (int g = 0; g < keywordGroups.Count; g++)
+                {
+                    var group = keywordGroups[g];
+                    if (group.Count == 0) continue;
+                    
+                    if (groupBuilder.Length > 0) groupBuilder.Append(" AND ");
+                    groupBuilder.Append("(");
+                    
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        var variant = group[i];
+                        string fieldList = GetSearchFieldsForType(variant.Type);
+                        if (string.IsNullOrEmpty(fieldList)) continue;
+                        
+                        if (i > 0) groupBuilder.Append(" OR ");
+                        groupBuilder.Append("(");
+                        var fields = fieldList.Split(',');
+                        for (int j = 0; j < fields.Length; j++)
+                        {
+                            if (j > 0) groupBuilder.Append(" OR ");
+                            groupBuilder.Append(fields[j].Trim()).Append(" LIKE @kw").Append(paramIndex);
+                        }
+                        groupBuilder.Append(")");
+                        paramIndex++;
+                    }
+                    groupBuilder.Append(")");
+                }
+                if (groupBuilder.Length > 0)
+                {
+                    whereSql += " AND (" + groupBuilder.ToString() + ")";
+                }
+            }
+
+            var countParams = new System.Collections.Generic.List<System.Data.SqlClient.SqlParameter>();
+            if (hasKeyword)
+            {
+                paramIndex = 0;
+                for (int g = 0; g < keywordGroups.Count; g++)
+                {
+                    var group = keywordGroups[g];
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        countParams.Add(DbHelper.CreateParameter("@kw" + paramIndex, "%" + group[i].Value + "%"));
+                        paramIndex++;
+                    }
+                }
+            }
+
+            string countSql = "SELECT COUNT(*) FROM goods g " + whereSql;
+            object countObj = DbHelper.ExecuteScalar(countSql, countParams.ToArray());
+            if (countObj != null && countObj != DBNull.Value)
+            {
+                totalCount = Convert.ToInt32(countObj);
+            }
+
+            if (totalCount == 0) return null;
+
+            int startRow = (pageIndex - 1) * pageSize + 1;
+            int endRow = pageIndex * pageSize;
+
+            string sql = @"SELECT * FROM (
+                SELECT ROW_NUMBER() OVER (ORDER BY g.createTime DESC) AS rowNum,
+                    g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.Packaging, g.goodsStock, g.goodsUnit, 
+                    g.shopPrice, g.isIncludingTax, g.createTime, g.validityDate, g.isSale, 
+                    g.goodsStatus, g.dataFlag, g.pubType, g.shopId,
+                    g.Brand, g.Capacitance, g.Resistance, g.Tolerance, g.Voltage, g.Dielectric, g.Power, g.TempCoefficient,
+                    ISNULL(s.shopCompany, s.shopName) AS companyName
+                FROM goods g
+                LEFT JOIN shops s ON g.shopId = s.shopId
+                " + whereSql + @"
+            ) AS t WHERE rowNum BETWEEN @startRow AND @endRow ORDER BY createTime DESC";
+
+            var queryParams = new System.Collections.Generic.List<System.Data.SqlClient.SqlParameter>();
+            if (hasKeyword)
+            {
+                paramIndex = 0;
+                for (int g = 0; g < keywordGroups.Count; g++)
+                {
+                    var group = keywordGroups[g];
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        queryParams.Add(DbHelper.CreateParameter("@kw" + paramIndex, "%" + group[i].Value + "%"));
+                        paramIndex++;
+                    }
+                }
+            }
+            queryParams.Add(DbHelper.CreateParameter("@startRow", startRow));
+            queryParams.Add(DbHelper.CreateParameter("@endRow", endRow));
+
+            DataTable dt = DbHelper.ExecuteQuery(sql, queryParams.ToArray());
+            
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                return ConvertToSupplyData(dt);
+            }
+            
+            return null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 根据变体类型获取适用的搜索字段
+    /// </summary>
+    private string GetSearchFieldsForType(VariantType type)
+    {
+        switch (type)
+        {
+            case VariantType.All:
+                return "g.goodsSn, g.Name, g.Manufacturers, g.goodsDesc, g.Brand, g.Packaging";
+            case VariantType.Capacitance:
+                // 电容值可能在Capacitance字段，也可能在型号(goodsSn)中如104=100nF
+                return "g.Capacitance, g.goodsSn, g.goodsDesc";
+            case VariantType.Resistance:
+                // 电阻值可能在Resistance字段，也可能在型号(goodsSn)中如104=100K
+                return "g.Resistance, g.goodsSn, g.goodsDesc";
+            case VariantType.Tolerance:
+                // 精度可能在Tolerance字段，也可能在型号(goodsSn)中如K=±10%
+                return "g.Tolerance, g.goodsSn, g.goodsDesc";
+            case VariantType.Voltage:
+                // 电压可能在Voltage字段，也可能在型号(goodsSn)中如1H=50V
+                return "g.Voltage, g.goodsSn, g.goodsDesc";
+            case VariantType.Dielectric:
+                // 介质可能在Dielectric字段，也可能在型号(goodsSn)中如X7R/NPO
+                return "g.Dielectric, g.TempCoefficient, g.goodsSn, g.goodsDesc";
+            case VariantType.Packaging:
+                return "g.Packaging, g.goodsSn, g.goodsDesc";
+            case VariantType.Brand:
+                return "g.Brand, g.Manufacturers";
+            default:
+                return "g.goodsSn, g.Name, g.Manufacturers, g.goodsDesc";
+        }
+    }
+
+    /// <summary>
+    /// 搜索变体类型
+    /// </summary>
+    private enum VariantType
+    {
+        All,        // 通用（匹配 goodsSn, Name, Manufacturers, goodsDesc）
+        Capacitance,// 容值（匹配 Capacitance）
+        Resistance, // 电阻值（匹配 Resistance）
+        Tolerance,  // 精度（匹配 Tolerance）
+        Voltage,    // 电压（匹配 Voltage）
+        Dielectric, // 介质（匹配 Dielectric, TempCoefficient）
+        Packaging,  // 封装（匹配 Packaging, goodsSn）
+        Brand       // 品牌（匹配 Brand, Manufacturers）
+    }
+
+    /// <summary>
+    /// 搜索变体
+    /// </summary>
+    private class SearchVariant
+    {
+        public string Value;
+        public VariantType Type;
+        public SearchVariant(string value, VariantType type) { Value = value; Type = type; }
+    }
+
+    /// <summary>
+    /// 将元器件参数表示方式扩展为多种等价形式
+    /// </summary>
+    private System.Collections.Generic.List<SearchVariant> ExpandParamVariants(string input)
+    {
+        var result = new System.Collections.Generic.List<SearchVariant>();
+        if (string.IsNullOrEmpty(input)) return result;
+
+        string lower = input.ToLower().Trim();
+
+        // 三位数字编码（电容）104 -> 0.1uF
+        // 104 = 10 * 10^4 pF = 100000 pF = 100 nF = 0.1 uF
+        var threeDigitMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d{3})$");
+        if (threeDigitMatch.Success)
+        {
+            string num = threeDigitMatch.Groups[1].Value;
+            int firstTwo = int.Parse(num.Substring(0, 2));
+            int multiplier = int.Parse(num.Substring(2, 1));
+            double pfValue = firstTwo * Math.Pow(10, multiplier);
+            result.Add(new SearchVariant(num, VariantType.Capacitance));
+            if (pfValue >= 1000000)
+            {
+                double ufValue = pfValue / 1000000;
+                result.Add(new SearchVariant(TrimZero(ufValue) + "uf", VariantType.Capacitance));
+                result.Add(new SearchVariant(TrimZero(ufValue) + "F", VariantType.Capacitance));
+            }
+            else if (pfValue >= 1000)
+            {
+                double nfValue = pfValue / 1000;
+                result.Add(new SearchVariant(TrimZero(nfValue) + "nf", VariantType.Capacitance));
+                result.Add(new SearchVariant(TrimZero(nfValue) + "nF", VariantType.Capacitance));
+                result.Add(new SearchVariant(TrimZero(nfValue) + "n", VariantType.Capacitance));
+            }
+            else
+            {
+                result.Add(new SearchVariant(TrimZero(pfValue) + "pf", VariantType.Capacitance));
+                result.Add(new SearchVariant(TrimZero(pfValue) + "pF", VariantType.Capacitance));
+                result.Add(new SearchVariant(TrimZero(pfValue) + "p", VariantType.Capacitance));
+            }
+        }
+
+        // 容值 100nf / 0.1uf / 100n / 0.1u / 100pf / 100p
+        var capMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(pf|nf|uf|p|n|u)$");
+        if (capMatch.Success)
+        {
+            string numStr = capMatch.Groups[1].Value;
+            string unit = capMatch.Groups[2].Value;
+            double numVal = double.Parse(numStr);
+            // 添加原始写法（小写和大写）
+            result.Add(new SearchVariant(numStr + unit, VariantType.Capacitance));
+            string unitUpper = unit == "p" ? "pF" : (unit == "n" ? "nF" : (unit == "u" ? "uF" : unit));
+            result.Add(new SearchVariant(numStr + unitUpper, VariantType.Capacitance));
+
+            double pfValue = 0;
+            if (unit == "pf" || unit == "p") pfValue = numVal;
+            else if (unit == "nf" || unit == "n") pfValue = numVal * 1000;
+            else if (unit == "uf" || unit == "u") pfValue = numVal * 1000000;
+
+            if (pfValue > 0)
+            {
+                string threeDigit = ToThreeDigitCode(pfValue);
+                if (!string.IsNullOrEmpty(threeDigit))
+                {
+                    result.Add(new SearchVariant(threeDigit, VariantType.Capacitance));
+                }
+                if (pfValue >= 1000000 && unit != "uf" && unit != "u")
+                {
+                    result.Add(new SearchVariant(TrimZero(pfValue / 1000000) + "uf", VariantType.Capacitance));
+                    result.Add(new SearchVariant(TrimZero(pfValue / 1000000) + "uF", VariantType.Capacitance));
+                }
+                else if (pfValue >= 1000 && unit != "nf" && unit != "n")
+                {
+                    result.Add(new SearchVariant(TrimZero(pfValue / 1000) + "nf", VariantType.Capacitance));
+                    result.Add(new SearchVariant(TrimZero(pfValue / 1000) + "nF", VariantType.Capacitance));
+                }
+                else if (pfValue < 1000 && unit != "pf" && unit != "p")
+                {
+                    result.Add(new SearchVariant(TrimZero(pfValue) + "pf", VariantType.Capacitance));
+                    result.Add(new SearchVariant(TrimZero(pfValue) + "pF", VariantType.Capacitance));
+                }
+            }
+        }
+
+        // 电压: 50v / 50 v / 16V
+        var voltageMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(v|kv|mv)$");
+        if (voltageMatch.Success)
+        {
+            string numStr = voltageMatch.Groups[1].Value;
+            string unit = voltageMatch.Groups[2].Value;
+            result.Add(new SearchVariant(numStr + unit, VariantType.Voltage));
+            result.Add(new SearchVariant(numStr + " " + unit, VariantType.Voltage));
+            result.Add(new SearchVariant(numStr + unit.ToUpper(), VariantType.Voltage));
+        }
+
+        // 精度百分比: 5% / 10% / ±5% / ±10% / 1%
+        var percentMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^[±]?(\d+\.?\d*)%$");
+        if (percentMatch.Success)
+        {
+            string numStr = percentMatch.Groups[1].Value;
+            // 添加各种精度写法
+            result.Add(new SearchVariant("±" + numStr + "%", VariantType.Tolerance));
+            result.Add(new SearchVariant(numStr + "%", VariantType.Tolerance));
+            // 精度代号
+            string code = TolerancePercentToCode(numStr);
+            if (!string.IsNullOrEmpty(code))
+            {
+                result.Add(new SearchVariant(code, VariantType.Tolerance));
+            }
+        }
+
+        // 精度代号: J(±5%), K(±10%), M(±20%), F(±1%), G(±2%)
+        if (lower.Length == 1 && "fjgkdmc".IndexOf(lower[0]) >= 0)
+        {
+            string code = lower.ToUpper();
+            string percent = ToleranceCodeToPercent(code);
+            if (!string.IsNullOrEmpty(percent))
+            {
+                result.Add(new SearchVariant("±" + percent, VariantType.Tolerance));
+                result.Add(new SearchVariant(percent + "%", VariantType.Tolerance));
+            }
+            result.Add(new SearchVariant(code, VariantType.Tolerance));
+        }
+
+        // 电阻: 104k / 100k / 4k7 / 4.7k
+        var resistorCodeMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d{2,3})k$");
+        if (resistorCodeMatch.Success)
+        {
+            string num = resistorCodeMatch.Groups[1].Value;
+            if (num.Length == 3)
+            {
+                int firstTwo = int.Parse(num.Substring(0, 2));
+                int multiplier = int.Parse(num.Substring(2, 1));
+                double ohmValue = firstTwo * Math.Pow(10, multiplier);
+                result.Add(new SearchVariant(num + "k", VariantType.Resistance));
+                if (ohmValue >= 1000)
+                {
+                    result.Add(new SearchVariant(TrimZero(ohmValue / 1000) + "k", VariantType.Resistance));
+                    result.Add(new SearchVariant(TrimZero(ohmValue / 1000) + "K", VariantType.Resistance));
+                }
+                result.Add(new SearchVariant(TrimZero(ohmValue) + "ohm", VariantType.Resistance));
+                result.Add(new SearchVariant(TrimZero(ohmValue) + "Ω", VariantType.Resistance));
+            }
+        }
+
+        // 4k7 表示法
+        var resistorAltMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+)k(\d+)$");
+        if (resistorAltMatch.Success)
+        {
+            string intPart = resistorAltMatch.Groups[1].Value;
+            string decPart = resistorAltMatch.Groups[2].Value;
+            result.Add(new SearchVariant(intPart + "." + decPart + "k", VariantType.Resistance));
+            result.Add(new SearchVariant(intPart + "." + decPart + "K", VariantType.Resistance));
+        }
+
+        // 电阻值 100k / 1M / 4.7k / 10K
+        var resistorValMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(k|m|ohm)$");
+        if (resistorValMatch.Success)
+        {
+            string numStr = resistorValMatch.Groups[1].Value;
+            string unit = resistorValMatch.Groups[2].Value;
+            result.Add(new SearchVariant(numStr + unit, VariantType.Resistance));
+            result.Add(new SearchVariant(numStr + " " + unit, VariantType.Resistance));
+        }
+
+        // 封装: 0603 / 0805 / 1206
+        var packageMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(01005|0201|0402|0603|0805|1206|1210|1812|2010|2512)$");
+        if (packageMatch.Success)
+        {
+            result.Add(new SearchVariant(lower, VariantType.Packaging));
+        }
+
+        // 介质: x7r / y5v / npo / c0g
+        var dielectricMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(x7r|y5v|z5u|npo|c0g|np0|x5r|x6s|x7s|cog)$");
+        if (dielectricMatch.Success)
+        {
+            result.Add(new SearchVariant(lower.ToUpper(), VariantType.Dielectric));
+            // NPO 和 NP0 是同一个
+            if (lower == "npo" || lower == "np0")
+            {
+                result.Add(new SearchVariant("C0G", VariantType.Dielectric));
+                result.Add(new SearchVariant("COG", VariantType.Dielectric));
+            }
+            if (lower == "c0g" || lower == "cog")
+            {
+                result.Add(new SearchVariant("NPO", VariantType.Dielectric));
+                result.Add(new SearchVariant("NP0", VariantType.Dielectric));
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 精度百分比转代号
+    /// </summary>
+    private string TolerancePercentToCode(string percent)
+    {
+        switch (percent)
+        {
+            case "0.1": return "B";
+            case "0.25": return "C";
+            case "0.5": return "D";
+            case "1": return "F";
+            case "2": return "G";
+            case "5": return "J";
+            case "10": return "K";
+            case "20": return "M";
+            default: return "";
+        }
+    }
+
+    /// <summary>
+    /// 精度代号转百分比
+    /// </summary>
+    private string ToleranceCodeToPercent(string code)
+    {
+        switch (code)
+        {
+            case "B": return "0.1";
+            case "C": return "0.25";
+            case "D": return "0.5";
+            case "F": return "1";
+            case "G": return "2";
+            case "J": return "5";
+            case "K": return "10";
+            case "M": return "20";
+            default: return "";
+        }
+    }
+
+    private string TrimZero(double value)
+    {
+        if (value == Math.Floor(value))
+        {
+            return ((long)value).ToString();
+        }
+        return value.ToString("0.##");
+    }
+
+    private string ToThreeDigitCode(double pfValue)
+    {
+        if (pfValue <= 0) return "";
+        // 将 pF 值转换为三位数编码
+        // 例如 100000 pF = 10 * 10^4 -> 104
+        // 例如 10000 pF = 10 * 10^3 -> 103
+        // 例如 1000000 pF = 10 * 10^5 -> 105
+
+        // 找到合适的 power，使得 mantissa 在 [1, 100) 之间
+        int power = 0;
+        double mantissa = pfValue;
+
+        while (mantissa >= 100)
+        {
+            mantissa /= 10;
+            power++;
+        }
+        while (mantissa < 1)
+        {
+            mantissa *= 10;
+            power--;
+        }
+
+        // 现在 mantissa 在 [1, 100) 之间
+        // 取前两位作为编码的前两位
+        int firstTwo = (int)mantissa;
+        string prefix = firstTwo.ToString("D2");
+
+        return prefix + power.ToString();
     }
 
     /// <summary>

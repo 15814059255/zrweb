@@ -38,6 +38,12 @@ public partial class merchant_workbench : System.Web.UI.Page
             return;
         }
 
+        if (Request["action"] == "update_supply")
+        {
+            HandleUpdateSupply();
+            return;
+        }
+
         LoadStats();
         BindInventory();
         BindExpiredInventory();
@@ -76,6 +82,8 @@ public partial class merchant_workbench : System.Web.UI.Page
             
             int pubType = 1;
             int.TryParse(Request["pubType"], out pubType);
+            
+            string validity = Request["validity"] ?? "1个月";
 
             // 收集参数字段
             string brand = Request["attr_品牌"] ?? "";
@@ -173,9 +181,10 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             GoodsService service = new GoodsService();
             bool success = service.InsertGoods(
-                goodsSn, name, brandParams, "",
+                goodsSn, name, brandParams, packaging,
                 goodsStock, goodsUnit, shopPrice, isIncludingTax,
-                pubType, "", shopId, userId);
+                pubType, "", shopId, userId, validity,
+                brand, capacity, resistance, precision, voltage, medium, power, tcr);
 
             if (success)
             {
@@ -224,8 +233,11 @@ public partial class merchant_workbench : System.Web.UI.Page
             }
             else
             {
-                Response.Write("{\"success\":false,\"message\":\"下架失败\"}");
+                Response.Write("{\"success\":false,\"message\":\"下架失败，请重试\"}");
             }
+        }
+        catch (System.Threading.ThreadAbortException)
+        {
         }
         catch (Exception ex)
         {
@@ -258,6 +270,46 @@ public partial class merchant_workbench : System.Web.UI.Page
             else
             {
                 Response.Write("{\"success\":false,\"message\":\"重新上架失败\"}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+        }
+        Response.End();
+    }
+
+    private void HandleUpdateSupply()
+    {
+        Response.ContentType = "application/json";
+        try
+        {
+            int goodsId = 0;
+            int.TryParse(Request["goodsId"], out goodsId);
+            int quantity = 0;
+            int.TryParse(Request["quantity"], out quantity);
+            string unit = Request["unit"] ?? "Kpcs";
+            decimal price = 0;
+            decimal.TryParse(Request["price"], out price);
+            int isIncludingTax = 0;
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+
+            if (goodsId == 0)
+            {
+                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            bool success = service.UpdateSupply(goodsId, quantity, unit, price, isIncludingTax);
+
+            if (success)
+            {
+                Response.Write("{\"success\":true,\"message\":\"修改成功\"}");
+            }
+            else
+            {
+                Response.Write("{\"success\":false,\"message\":\"修改失败\"}");
             }
         }
         catch (Exception ex)

@@ -114,7 +114,8 @@ public partial class my_inquiries : System.Web.UI.Page
                         (SELECT TOP 1 Manufacturers FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Manufacturers,
                         (SELECT TOP 1 Packaging FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Packaging,
                         (SELECT TOP 1 Lot FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Lot,
-                        (SELECT TOP 1 Name FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Name
+                        (SELECT TOP 1 Name FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Name,
+                        CASE WHEN EXISTS (SELECT 1 FROM enquiryquoteprice eq2 WHERE eq2.sourceEqId = e.eqId AND eq2.eqType = 2 AND eq2.dataFlag = 1) THEN 1 ELSE 0 END as HasQuoteReply
                         FROM enquiryquoteprice e
                         LEFT JOIN shops s ON e.toShopId = s.shopId
                         WHERE e.fromShopID = @shopId AND e.eqType = 1 AND e.dataFlag = 1 AND (e.fromDataFlag IS NULL OR e.fromDataFlag = 1)
@@ -229,16 +230,16 @@ public partial class my_inquiries : System.Web.UI.Page
                                 newRow["RemarksDisplay"] = "";
                             }
 
-                            // 状态
-                            int readStatus = GetIntValue(row["readStatus"], 0);
-                            if (readStatus == 0)
+                            // 状态：根据是否有报价回复来判断
+                            int hasQuoteReply = GetIntValue(row["HasQuoteReply"], 0);
+                            if (hasQuoteReply == 0)
                             {
                                 newRow["Status"] = "待回复";
                                 newRow["StatusClass"] = "orange";
                             }
                             else
                             {
-                                newRow["Status"] = "已回复";
+                                newRow["Status"] = "已查看";
                                 newRow["StatusClass"] = "blue";
                             }
 

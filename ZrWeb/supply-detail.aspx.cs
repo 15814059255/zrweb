@@ -58,7 +58,7 @@ public partial class supply_detail : Page
             string sql = @"SELECT g.*, s.shopName, s.shopCompany, s.shopAddress, s.userId 
                           FROM goods g 
                           LEFT JOIN shops s ON g.shopId = s.shopId 
-                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.pubType = 1";
+                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.pubType = 1 AND g.isSale = 1";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
 
@@ -86,6 +86,15 @@ public partial class supply_detail : Page
                 string shopAddress = GetStringValue(row["shopAddress"]);
                 int userId = GetIntValue(row["userId"], 0);
 
+                string brand = GetStringValue(row["Brand"]);
+                string capacitance = GetStringValue(row["Capacitance"]);
+                string resistance = GetStringValue(row["Resistance"]);
+                string tolerance = GetStringValue(row["Tolerance"]);
+                string voltage = GetStringValue(row["Voltage"]);
+                string dielectric = GetStringValue(row["Dielectric"]);
+                string power = GetStringValue(row["Power"]);
+                string tempCoefficient = GetStringValue(row["TempCoefficient"]);
+
                 Model = !string.IsNullOrEmpty(goodsSn) ? goodsSn : (!string.IsNullOrEmpty(name) ? name : "电子元器件");
 
                 if (shopPrice > 0)
@@ -99,15 +108,24 @@ public partial class supply_detail : Page
                     PriceDisplay = "面议";
                 }
 
-                Brand = !string.IsNullOrEmpty(manufacturers) ? manufacturers : "";
+                Brand = !string.IsNullOrEmpty(brand) ? brand : (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "");
                 Package = !string.IsNullOrEmpty(packaging) ? packaging : "";
                 Remarks = !string.IsNullOrEmpty(remarks) ? remarks : "";
 
                 System.Collections.Generic.List<string> paramList = new System.Collections.Generic.List<string>();
                 System.Collections.Generic.Dictionary<string, string> paramDict = new System.Collections.Generic.Dictionary<string, string>();
                 
-                if (!string.IsNullOrEmpty(manufacturers)) { paramList.Add(manufacturers); paramDict["品牌"] = manufacturers; }
+                if (!string.IsNullOrEmpty(brand)) { paramList.Add(brand); paramDict["品牌"] = brand; }
+                else if (!string.IsNullOrEmpty(manufacturers)) { paramList.Add(manufacturers); paramDict["品牌"] = manufacturers; }
                 if (!string.IsNullOrEmpty(packaging)) { paramList.Add(packaging); paramDict["封装"] = packaging; }
+                
+                if (!string.IsNullOrEmpty(capacitance)) { paramList.Add(capacitance); paramDict["容值"] = capacitance; }
+                if (!string.IsNullOrEmpty(resistance)) { paramList.Add(resistance); paramDict["阻值"] = resistance; }
+                if (!string.IsNullOrEmpty(tolerance)) { paramList.Add(tolerance); paramDict["精度"] = tolerance; }
+                if (!string.IsNullOrEmpty(voltage)) { paramList.Add(voltage); paramDict["耐压"] = voltage; }
+                if (!string.IsNullOrEmpty(dielectric)) { paramList.Add(dielectric); paramDict["介质"] = dielectric; }
+                if (!string.IsNullOrEmpty(power)) { paramList.Add(power); paramDict["功率"] = power; }
+                if (!string.IsNullOrEmpty(tempCoefficient)) { paramList.Add(tempCoefficient); paramDict["温漂"] = tempCoefficient; }
                 
                 if (!string.IsNullOrEmpty(goodsDesc)) 
                 {
@@ -127,15 +145,15 @@ public partial class supply_detail : Page
                     }
                 }
                 
-                Capacitance = paramDict.ContainsKey("容值") ? paramDict["容值"] : "";
-                Resistance = paramDict.ContainsKey("阻值") ? paramDict["阻值"] : "";
-                Tolerance = paramDict.ContainsKey("精度") ? paramDict["精度"] : "";
-                Voltage = paramDict.ContainsKey("耐压") ? paramDict["耐压"] : "";
-                Dielectric = paramDict.ContainsKey("介质") ? paramDict["介质"] : "";
-                Power = paramDict.ContainsKey("功率") ? paramDict["功率"] : "";
-                TempCoefficient = paramDict.ContainsKey("温漂") ? paramDict["温漂"] : "";
+                Capacitance = !string.IsNullOrEmpty(capacitance) ? capacitance : (paramDict.ContainsKey("容值") ? paramDict["容值"] : "");
+                Resistance = !string.IsNullOrEmpty(resistance) ? resistance : (paramDict.ContainsKey("阻值") ? paramDict["阻值"] : "");
+                Tolerance = !string.IsNullOrEmpty(tolerance) ? tolerance : (paramDict.ContainsKey("精度") ? paramDict["精度"] : "");
+                Voltage = !string.IsNullOrEmpty(voltage) ? voltage : (paramDict.ContainsKey("耐压") ? paramDict["耐压"] : "");
+                Dielectric = !string.IsNullOrEmpty(dielectric) ? dielectric : (paramDict.ContainsKey("介质") ? paramDict["介质"] : "");
+                Power = !string.IsNullOrEmpty(power) ? power : (paramDict.ContainsKey("功率") ? paramDict["功率"] : "");
+                TempCoefficient = !string.IsNullOrEmpty(tempCoefficient) ? tempCoefficient : (paramDict.ContainsKey("温漂") ? paramDict["温漂"] : "");
                 
-                ParametersSummary = string.Join(" · ", paramList);
+                ParametersSummary = paramList.Count > 0 ? string.Join(" · ", paramList) : (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "");
                 
                 System.Collections.Generic.List<string> paramPairs = new System.Collections.Generic.List<string>();
                 string[] attrOrder = new string[] { "品牌", "封装", "容值", "阻值", "精度", "耐压", "介质", "功率", "温漂" };

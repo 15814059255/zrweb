@@ -22,23 +22,105 @@
             <section class="panel">
                 <div class="searchbar inventory-searchbar"><input class="input" data-quote-search placeholder="搜索型号、采购商"><button class="btn primary" data-quote-search-btn>搜索</button></div>
             </section>
-            <section class="panel quote-record-panel">
-                <div class="table-wrap">
-                    <table class="table quote-record-table">
-                        <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>报价数量</th><th>报价单价</th><th>批次</th><th>备注</th><th>采购商</th><th>报价时间</th><th>有效期</th></tr></thead>
-                        <tbody>
-                            <asp:Repeater ID="rptQuoteRecords" runat="server" EnableViewState="false">
-                                <ItemTemplate>
-                                    <tr><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><%# Eval("Quantity") %>&nbsp;<%# Eval("Unit") %></td><td><%# Eval("Price") %></td><td><%# Eval("Batch") %></td><td><%# Eval("Remarks") %></td><td><%# Eval("BuyerName") %></td><td><%# Eval("QuoteTime") %></td><td><%# Eval("Validity") %></td></tr>
-                                </ItemTemplate>
-                            </asp:Repeater>
-                        </tbody>
-                    </table>
+            <section class="panel inquiry-panel">
+                <div class="inquiry-list" id="quoteList">
+                    <asp:Repeater ID="rptQuoteRecords" runat="server" EnableViewState="false">
+                        <ItemTemplate>
+                            <div class="inquiry-card">
+                                <div class="inquiry-card-header">
+                                    <div class="inquiry-status">
+                                        <span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span>
+                                        <span class="inquiry-time"><%# Eval("QuoteTime") %></span>
+                                    </div>
+                                    <div class="quote-validity-tag">有效期: <span><%# Eval("Validity") %></span></div>
+                                </div>
+                                <div class="inquiry-card-body">
+                                    <div class="inquiry-model">
+                                        <strong><%# Eval("Model") %></strong>
+                                    </div>
+                                    <div class="inquiry-brand-params">
+                                        <span class="params-label">品牌参数</span>
+                                        <span class="params-value"><%# Eval("BrandParams") %></span>
+                                    </div>
+                                    <div class="quote-compare-grid">
+                                        <div class="quote-side inquiry-side">
+                                            <div class="side-header">
+                                                <span class="side-icon">👤</span>
+                                                <span class="side-title">询价方</span>
+                                            </div>
+                                            <div class="inquiry-specs">
+                                                <div class="spec-item">
+                                                    <span class="spec-label">采购数量</span>
+                                                    <span class="spec-value"><%# Eval("InquiryQuantity") %> <span class="spec-unit"><%# Eval("InquiryUnit") %></span></span>
+                                                </div>
+                                                <div class="spec-item">
+                                                    <span class="spec-label">期望单价</span>
+                                                    <span class="spec-value"><%# Eval("InquiryPrice") %></span>
+                                                </div>
+                                                <div class="spec-item">
+                                                    <span class="spec-label">备注</span>
+                                                    <span class="spec-value remark-value"><%# Eval("InquiryRemarks") %></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="quote-side my-side">
+                                            <div class="side-header">
+                                                <span class="side-icon">🏢</span>
+                                                <span class="side-title">我的报价</span>
+                                            </div>
+                                            <div class="inquiry-specs">
+                                                <div class="spec-item">
+                                                    <span class="spec-label">报价数量</span>
+                                                    <span class="spec-value"><%# Eval("MyQuantity") %> <span class="spec-unit"><%# Eval("MyUnit") %></span></span>
+                                                </div>
+                                                <div class="spec-item">
+                                                    <span class="spec-label">报价单价</span>
+                                                    <span class="spec-value"><%# Eval("MyPrice") %></span>
+                                                </div>
+                                                <div class="spec-item">
+                                                    <span class="spec-label">批次</span>
+                                                    <span class="spec-value"><%# Eval("MyBatch") %></span>
+                                                </div>
+                                                <div class="spec-item">
+                                                    <span class="spec-label">备注</span>
+                                                    <span class="spec-value remark-value"><%# Eval("MyRemarks") %></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="inquiry-card-footer">
+                                    <div class="inquiry-buyer">
+                                        <span class="buyer-icon">🏢</span>
+                                        <span class="buyer-name"><%# Eval("BuyerName") %></span>
+                                    </div>
+                                    <a class="btn soft mini" href="tencent://message/?uin=<%# Eval("BuyerQQ") %>" target="_blank" data-qq-btn="<%# Eval("BuyerQQ") %>">联系采购商</a>
+                                </div>
+                            </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </div>
                 <div class="pagination"><button class="btn" disabled>上一页</button><span>第 <%= CurrentPage %> / <%= TotalPages %> 页</span><span class="page-size">每页 50 条</span><button class="btn">下一页</button></div>
             </section>
         </main>
     </div>
     <uc1:bottom runat="server" ID="bottom" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[data-qq-btn]').forEach(function(btn) {
+                var qq = btn.getAttribute('data-qq-btn');
+                if (!qq || qq === '') {
+                    btn.classList.add('disabled');
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        alert('该采购商未设置QQ号');
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

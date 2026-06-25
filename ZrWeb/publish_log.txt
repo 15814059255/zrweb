@@ -1,0 +1,89 @@
+2026-06-25 16:15:33 - PublishHandler.ProcessRequest called
+2026-06-25 16:15:33 - Action: test_publish
+2026-06-25 16:15:33 - TestPublish called
+2026-06-25 16:15:33 - Test userId: 0
+2026-06-25 16:15:33 - Test shopId: 0
+2026-06-25 16:15:33 - TestPublish exception: PublishDemand failed: Invalid column name 'Brand'.
+Invalid column name 'Capacitance'.
+Invalid column name 'Resistance'.
+Invalid column name 'Tolerance'.
+Invalid column name 'Voltage'.
+Invalid column name 'Dielectric'.
+Invalid column name 'Power'.
+Invalid column name 'TempCoefficient'.
+2026-06-25 16:16:21 - PublishHandler.ProcessRequest called
+2026-06-25 16:16:21 - Action: test_publish
+2026-06-25 16:16:21 - TestPublish called
+2026-06-25 16:16:21 - Test userId: 0
+2026-06-25 16:16:21 - Test shopId: 0
+2026-06-25 16:16:21 - Test publish result: True
+2026-06-25 16:18:03 - PublishHandler.ProcessRequest called
+2026-06-25 16:18:03 - Action: submit_quote
+2026-06-25 16:29:01 - PublishHandler.ProcessRequest called
+2026-06-25 16:29:01 - Action: submit_quote
+2026-06-25 17:12:51 - PublishHandler.ProcessRequest called
+2026-06-25 17:12:51 - Action: submit_quote
+2026-06-25 17:14:57 - PublishHandler.ProcessRequest called
+2026-06-25 17:14:57 - Action: submit_quote
+2026-06-25 17:23:52 - PublishHandler.ProcessRequest called
+2026-06-25 17:23:52 - Action: submit_quote
+2026-06-25 17:28:57 - PublishHandler.ProcessRequest called
+2026-06-25 17:28:57 - Action: submit_quote
+2026-06-25 17:56:55 - PublishHandler.ProcessRequest called
+2026-06-25 17:56:55 - Action: submit_quote
+2026-06-25 18:16:30 - PublishHandler.ProcessRequest called
+2026-06-25 18:16:30 - Action: submit_quote
+2026-06-25 18:17:07 - PublishHandler.ProcessRequest called
+2026-06-25 18:17:07 - Action: submit_quote
+2026-06-25 18:24:40 - PublishHandler.ProcessRequest called
+2026-06-25 18:24:40 - Action: submit_quote
+2026-06-25 18:25:29 - PublishHandler.ProcessRequest called
+2026-06-25 18:25:29 - Action: submit_quote
+2026-06-25 18:29:35 - PublishHandler.ProcessRequest called
+2026-06-25 18:29:35 - Action: submit_quote
+2026-06-25 18:29:58 - PublishHandler.ProcessRequest called
+2026-06-25 18:29:58 - Action: submit_quote
+2026-06-25 18:34:21 - PublishHandler.ProcessRequest called
+2026-06-25 18:34:21 - Action: submit_quote
+2026-06-25 18:35:03 - PublishHandler.ProcessRequest called
+2026-06-25 18:35:03 - Action: submit_quote
+2026-06-25 18:37:43 - PublishHandler.ProcessRequest called
+2026-06-25 18:37:43 - Action: submit_quote
+2026-06-25 18:37:54 - PublishHandler.ProcessRequest called
+2026-06-25 18:37:54 - Action: submit_quote
+2026-06-25 18:38:47 - PublishHandler.ProcessRequest called
+2026-06-25 18:38:47 - Action: submit_quote
+2026-06-25 18:39:40 - PublishHandler.ProcessRequest called
+2026-06-25 18:39:40 - Action: submit_quote
+2026-06-25 18:41:04 - PublishHandler.ProcessRequest called
+2026-06-25 18:41:04 - Action: submit_quote
+2026-06-25 18:43:59 - PublishHandler.ProcessRequest called
+2026-06-25 18:43:59 - Action: submit_quote
+2026-06-25 18:45:15 - PublishHandler.ProcessRequest called
+2026-06-25 18:45:15 - Action: submit_quote
+2026-06-25 18:45:50 - PublishHandler.ProcessRequest called
+2026-06-25 18:45:50 - Action: submit_quote
+2026-06-25 18:46:03 - PublishHandler.ProcessRequest called
+2026-06-25 18:46:03 - Action: submit_quote
+2026-06-25 18:58:43 - PublishHandler.ProcessRequest called
+2026-06-25 18:58:43 - Action: submit_quote
+2026-06-25 18:59:22 - PublishHandler.ProcessRequest called
+2026-06-25 18:59:22 - Action: submit_quote
+2026-06-25 18:59:55 - PublishHandler.ProcessRequest called
+2026-06-25 18:59:55 - Action: submit_quote
+2026-06-25 19:00:42 - PublishHandler.ProcessRequest called
+2026-06-25 19:00:42 - Action: submit_quote
+2026-06-25 19:01:25 - PublishHandler.ProcessRequest called
+2026-06-25 19:01:25 - Action: submit_quote
+2026-06-25 19:11:39 - PublishHandler.ProcessRequest called
+2026-06-25 19:11:39 - Action: submit_quote
+2026-06-25 19:12:31 - PublishHandler.ProcessRequest called
+2026-06-25 19:12:31 - Action: submit_quote
+2026-06-25 19:18:28 - PublishHandler.ProcessRequest called
+2026-06-25 19:18:28 - Action: submit_quote
+2026-06-25 19:24:51 - PublishHandler.ProcessRequest called
+2026-06-25 19:24:51 - Action: submit_quote
+2026-06-25 19:27:11 - PublishHandler.ProcessRequest called
+2026-06-25 19:27:11 - Action: submit_quote
+2026-06-25 19:32:49 - PublishHandler.ProcessRequest called
+2026-06-25 19:32:49 - Action: submit_quote

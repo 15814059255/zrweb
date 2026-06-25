@@ -357,16 +357,37 @@ function runPageSearch() {
   if (empty) empty.hidden = renderedCount !== 0;
   document.querySelector('.search-results-panel .pagination')?._updateBasicPagination?.(1);
 }
-document.querySelector('[data-page-search-submit]')?.addEventListener('click', runPageSearch);
+document.querySelector('[data-page-search-submit]')?.addEventListener('click', (event) => {
+  const input = document.querySelector('[data-page-search-input]');
+  const query = (input?.value || '').trim();
+  const isSearchPage = window.location.pathname.includes('search.aspx');
+  if (isSearchPage) {
+    const target = query ? `search.aspx?q=${encodeURIComponent(query)}` : 'search.aspx';
+    window.location.href = target;
+  } else {
+    runPageSearch();
+  }
+});
 document.querySelector('[data-page-search-input]')?.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') runPageSearch();
+  if (event.key === 'Enter') {
+    const input = event.target;
+    const query = (input?.value || '').trim();
+    const isSearchPage = window.location.pathname.includes('search.aspx');
+    if (isSearchPage) {
+      event.preventDefault();
+      const target = query ? `search.aspx?q=${encodeURIComponent(query)}` : 'search.aspx';
+      window.location.href = target;
+    } else {
+      runPageSearch();
+    }
+  }
 });
 function navigateToSearchFrom(input) {
   const query = (input?.value || '').trim();
-  const target = query ? `search.html?q=${encodeURIComponent(query)}` : 'search.html';
+  const target = query ? `search.aspx?q=${encodeURIComponent(query)}` : 'search.aspx';
   window.location.href = target;
 }
-document.querySelectorAll('.market-toolbar a[href="search.html"]').forEach((link) => {
+document.querySelectorAll('.market-toolbar a[href="search.html"], .market-toolbar a[href="search.aspx"], .market-toolbar a[href="/search.aspx"]').forEach((link) => {
   link.addEventListener('click', (event) => {
     const input = link.closest('.searchbar')?.querySelector('input');
     if (!input) return;
@@ -387,6 +408,9 @@ if (pageSearchInput) {
   const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
   if (initialQuery) {
     pageSearchInput.value = initialQuery;
+  }
+  const isSearchPage = window.location.pathname.includes('search.aspx');
+  if (!isSearchPage && initialQuery) {
     runPageSearch();
   }
 }
@@ -1492,7 +1516,26 @@ document.addEventListener('click', (event) => {
   const quoteBtn = event.target.closest('[data-quote-open]');
   if (quoteBtn) {
     event.preventDefault();
-    const row = quoteBtn.closest('tr');
+    const row = quoteBtn.closest('tr, .inquiry-card');
+    
+    const eqId = row?.dataset.eqId;
+    if (eqId) {
+      fetch('/api/mark-inquiry-read.aspx?eqId=' + eqId, { method: 'GET' })
+        .then(() => {
+          const statusTag = row.querySelector('.tag');
+          if (statusTag) {
+            statusTag.textContent = '已读';
+            statusTag.classList.remove('green');
+            statusTag.classList.add('blue');
+          }
+          const buyerDiv = row.querySelector('.inquiry-buyer');
+          if (buyerDiv) {
+            buyerDiv.classList.remove('buyer-hidden');
+          }
+        })
+        .catch(() => {});
+    }
+    
     const modal = ensureTradeModal();
     resetTradeInteractionModal(modal);
     
@@ -1505,6 +1548,7 @@ document.addEventListener('click', (event) => {
     modal.dataset.toShopId = row?.dataset.toShopId || '';
     modal.dataset.goodsSn = row?.dataset.model || '';
     modal.dataset.brandName = brandParams;
+    modal.dataset.sourceEqId = row?.dataset.eqId || '';
     
     modal.dataset.tradeMode = 'quote';
     modal.querySelector('[data-trade-title]').textContent = '向采购商报价';
@@ -1683,6 +1727,10 @@ document.addEventListener('click', (event) => {
   formData.append('remarks', modal?.querySelector('.interaction-note input')?.value || '');
   formData.append('toShopId', modal?.dataset.toShopId || '0');
   formData.append('eqType', eqType.toString());
+  formData.append('sourceEqId', modal?.dataset.sourceEqId || '0');
+  formData.append('fromLot', modal?.querySelector('[data-interaction-batch]')?.value || '');
+  const validityBtn = modal?.querySelector('[data-interaction-validity].active');
+  formData.append('validity', validityBtn?.dataset.interactionValidity || '3天');
   
   submit.disabled = true;
   submit.textContent = '提交中...';
@@ -1702,11 +1750,11 @@ document.addEventListener('click', (event) => {
       modal?.setAttribute('hidden', '');
       resetTradeInteractionModal(modal);
     } else {
-      Toast.error(data.message || '提交失败，请重试');
+      ZrToast.error(data.message || '提交失败，请重试');
     }
   })
   .catch(error => {
-    Toast.error('提交异常：' + error);
+    ZrToast.error('提交异常：' + error);
   })
   .finally(() => {
     submit.disabled = false;
@@ -2652,7 +2700,9 @@ document.querySelectorAll('[data-feed-list]').forEach((list) => {
 });
 
 document.querySelectorAll('[data-toggle-stock]').forEach((btn) => {
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const item = btn.closest('.inventory-item');
     if (!item) return;
     const goodsId = item.dataset.goodsId;
@@ -2660,37 +2710,58 @@ document.querySelectorAll('[data-toggle-stock]').forEach((btn) => {
     
     const offline = btn.textContent.trim() === '下架';
     const isBuyerPage = window.location.pathname.includes('buyer-workbench');
-    const action = offline ? (isBuyerPage ? 'take_off' : 'takeoff') : 'restock';
+    const action = offline ? 'take_off' : 'restock';
     const url = isBuyerPage ? '/buyer-workbench.aspx' : '/merchant-workbench.aspx';
+    const confirmMsg = offline ? '确定要下架此商品吗？' : '确定要重新上架此商品吗？';
     
-    try {
-      const formData = new FormData();
-      formData.append('action', action);
-      formData.append('goodsId', goodsId);
+    const doAction = async () => {
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = offline ? '下架中...' : '上架中...';
       
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        item.classList.toggle('is-offline', offline);
-        const tag = item.querySelector('.tag');
-        if (tag) {
-          tag.classList.toggle('blue', !offline);
-          tag.classList.toggle('orange', offline);
-          tag.textContent = offline ? '已下架' : '供应';
+      try {
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('goodsId', goodsId);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          item.classList.toggle('is-offline', offline);
+          const tag = item.querySelector('.tag');
+          if (tag) {
+            tag.classList.toggle('blue', !offline);
+            tag.classList.toggle('orange', offline);
+            tag.textContent = offline ? '已下架' : '供应';
+          }
+          btn.textContent = offline ? '重新上架' : '下架';
+          btn.classList.toggle('take-off', !offline);
+          btn.classList.toggle('restock', offline);
+          Toast.success(offline ? '下架成功！' : '重新上架成功！');
+        } else {
+          Toast.error(result.message || '操作失败');
         }
-        btn.textContent = offline ? '重新上架' : '下架';
-        btn.classList.toggle('take-off', !offline);
-        btn.classList.toggle('restock', offline);
-      } else {
-        Toast.error(result.message || '操作失败');
+      } catch (error) {
+        console.error('操作失败:', error);
+        Toast.error('操作失败，请重试');
+      } finally {
+        btn.disabled = false;
+        if (btn.disabled === false) {
+          // 如果按钮文本已经在成功时更新了，这里不需要再改回
+        }
       }
-    } catch (error) {
-      console.error('操作失败:', error);
-      Toast.error('操作失败，请重试');
+    };
+    
+    if (typeof ConfirmDialog !== 'undefined' && ConfirmDialog.show) {
+      ConfirmDialog.show(confirmMsg, () => doAction());
+    } else {
+      if (confirm(confirmMsg)) {
+        doAction();
+      }
     }
   });
 });
@@ -2742,16 +2813,26 @@ document.querySelectorAll('[data-expired-stat]').forEach((btn) => {
 document.addEventListener('click', (event) => {
   const toggle = event.target.closest('[data-tax-toggle]');
   if (!toggle) return;
-  const scope = toggle.closest('tr') || toggle.closest('.tax-inline') || toggle.parentElement;
+  event.preventDefault();
+  event.stopPropagation();
+  const scope = toggle.closest('tr') || toggle.closest('.tax-inline') || toggle.closest('form') || toggle.parentElement;
   const priceField = scope?.querySelector('.price-field');
-  const label = priceField?.querySelector('span');
-  if (!priceField || !label) return;
+  const label = priceField ? priceField.querySelector('span:not(.price-input)') : null;
   const checked = toggle.getAttribute('aria-pressed') !== 'true';
   toggle.setAttribute('aria-pressed', checked ? 'true' : 'false');
   toggle.classList.toggle('is-on', checked);
-  priceField.classList.toggle('is-taxed', checked);
-  priceField.classList.toggle('is-untaxed', !checked);
-  label.textContent = checked ? '含税' : '未税';
+  if (priceField) {
+    priceField.classList.toggle('is-taxed', checked);
+    priceField.classList.toggle('is-untaxed', !checked);
+  }
+  if (label) {
+    label.textContent = checked ? '含税' : '未税';
+  }
+  // 更新同作用域内的 isIncludingTax hidden input
+  const taxInput = scope.querySelector('input[name="isIncludingTax"]');
+  if (taxInput) {
+    taxInput.value = checked ? '1' : '0';
+  }
 });
 
 function searchInventory(input) {

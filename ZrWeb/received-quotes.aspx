@@ -251,6 +251,9 @@
             color: #d97706;
             font-weight: 600;
         }
+        .seller-info-hidden {
+            display: none !important;
+        }
         .tab-bar {
             display: flex;
             gap: 4px;
@@ -325,14 +328,14 @@
                                 </div>
                                 <div class="quote-item-footer">
                                     <div class="quote-seller-info">
-                                        <span class="company-name"><%# Eval("SellerName") %></span>
-                                        <span class="dot">·</span>
+                                        <span class="company-name <%# Eval("SellerInfoHiddenClass") %>" data-seller-info><%# Eval("SellerName") %></span>
+                                        <span class="dot <%# Eval("SellerInfoHiddenClass") %>" data-seller-info>·</span>
                                         <span><%# Eval("QuoteTime") %></span>
                                         <span class="dot">·</span>
                                         <span class="validity">有效期 <%# Eval("Validity") %></span>
                                     </div>
                                     <div class="quote-item-actions">
-                                        <a class="btn soft mini" href="tencent://message/?uin=<%# Eval("SellerQQ") %>" target="_blank" data-qq-btn="<%# Eval("SellerQQ") %>">联系供应商</a>
+                                        <a class="btn soft mini <%# Eval("SellerInfoHiddenClass") %>" href="tencent://message/?uin=<%# Eval("SellerQQ") %>" target="_blank" data-qq-btn="<%# Eval("SellerQQ") %>" data-seller-info>联系供应商</a>
                                     </div>
                                 </div>
                             </div>
@@ -389,6 +392,11 @@
                         priceDiv.innerHTML = priceDisplay;
                         priceArea.appendChild(priceDiv);
 
+                        // 显示公司名称和联系按钮
+                        card.querySelectorAll('[data-seller-info]').forEach(function(el) {
+                            el.classList.remove('seller-info-hidden');
+                        });
+
                         // 移除 NEW 标签
                         if (card.classList.contains('is-new')) {
                             card.classList.remove('is-new');
@@ -403,6 +411,12 @@
                         priceDiv.className = 'quote-price';
                         priceDiv.innerHTML = priceDisplay;
                         priceArea.appendChild(priceDiv);
+                        
+                        // 显示公司名称和联系按钮
+                        card.querySelectorAll('[data-seller-info]').forEach(function(el) {
+                            el.classList.remove('seller-info-hidden');
+                        });
+                        
                         if (card.classList.contains('is-new')) {
                             card.classList.remove('is-new');
                         }

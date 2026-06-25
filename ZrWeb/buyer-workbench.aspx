@@ -10,6 +10,9 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .confirm-btn.is-hidden { display: none !important; }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -23,7 +26,7 @@
                 <button class="stat stat-action" type="button" data-demand-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status=在线"><strong><%= OnlineDemandCount %></strong><span>在线需求</span><small>查看当前发布 ›</small></button>
                 <a class="stat stat-link quote-stat-link" href="received-quotes.aspx" data-db-source="quotes" data-db-metric="COUNT(*) WHERE buyer_id=:current_member"><div><strong><%= QuoteCount %></strong><span>收到报价</span></div><em>新报价 <%= NewQuoteCount %></em><small>查看报价 ›</small></a>
                 <a class="stat stat-link inquiry-stat-link" href="my-inquiries.aspx" data-db-source="inquiry_items" data-db-metric="COUNT(*) WHERE fromShopId=:current_member"><div><strong><%= InquiryCount %></strong><span>我的询价</span></div><em>新询价 <%= NewInquiryCount %></em><small>查看询价记录 ›</small></a>
-                <button class="stat stat-action" type="button" data-expired-stat data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status IN (已下架,已过期)"><strong><%= ExpiredCount %></strong><span>到期数据</span><small>查看已下架 ›</small></button>
+                <button class="stat stat-action" type="button" data-expired-stat onclick="toggleExpiredPanel()" data-db-source="demand_items" data-db-metric="COUNT(*) WHERE member_id=:current_member AND status IN (已下架,已过期)"><strong><%= ExpiredCount %></strong><span>到期数据</span><small>查看已下架 ›</small></button>
             </div>
             <section class="panel site-ad-panel workbench-ad-panel" hidden>
                 <a class="search-ad-card" href="received-quotes.html" data-ad-slot="BW-S01"><b>白银广告 BW-S01</b><span>采购工作台轻提示位，适合报价服务、会员权益和工具提醒。</span></a>
@@ -44,7 +47,7 @@
                             <% } else { %>
                             <asp:Repeater ID="rptDemand" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
+                                    <tr class="inventory-item" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini primary confirm-btn is-hidden" onclick="saveDemandChange(<%# Eval("goodsId") %>, this)">确定</button><button class="btn mini take-off" data-toggle-stock data-goods-id="<%# Eval("goodsId") %>">下架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } %>
@@ -53,14 +56,14 @@
                 </div>
                 <div class="pagination"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all></label><button class="btn mini" data-ui-toast="已批量下架选中库存">批量下架</button></div><button class="btn" disabled>上一页</button><span>第 <%= CurrentPage %> / <%= TotalPages %> 页</span><span class="page-size">每页 50 条</span><button class="btn">下一页</button></div></section>
             <section class="panel expired-panel" id="expiredPanel" hidden style="margin-top:18px">
-                <div class="section-title"><div><h2>到期信息 · 已下架</h2></div><div class="actions"><button class="btn" data-toggle-expired>收起</button><button class="btn" data-ui-toast="已批量重新上架选中库存">批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
+                <div class="section-title"><div><h2>到期信息 · 已下架</h2></div><div class="actions"><button class="btn" onclick="toggleExpiredPanelWithBtn(this)" data-toggle-expired>收起</button><button class="btn" onclick="batchRestockDemand(this)" data-ui-toast="已批量重新上架选中库存">批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
                 <div class="table-wrap">
                     <table class="table inventory-table">
                         <thead><tr><th></th><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th>单价</th><th>税赋</th><th>下架时间</th><th>操作</th></tr></thead>
                         <tbody>
                             <asp:Repeater ID="rptExpiredDemand" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item is-offline" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("OfflineTime") %></td><td><button class="btn mini restock" data-toggle-stock data-goods-id="<%# Eval("goodsId") %>">重新上架</button></td></tr>
+                                    <tr class="inventory-item is-offline" data-goods-id="<%# Eval("goodsId") %>"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("OfflineTime") %></td><td><button class="btn mini restock" onclick="restockDemand(<%# Eval("goodsId") %>, this)" data-goods-id="<%# Eval("goodsId") %>">重新上架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </tbody>
@@ -116,166 +119,356 @@
     </div>
     <uc1:bottom runat="server" ID="bottom" />
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var publishModal = document.getElementById('publishModal');
-            var publishForm = document.getElementById('publishDemandForm');
-            var publishConfirmBtn = publishModal.querySelector('[data-publish-confirm]');
-            var taxSwitch = publishModal.querySelector('[data-tax-toggle]');
-            var isIncludingTaxInput = publishModal.querySelector('input[name="isIncludingTax"]');
+        // 全局函数：切换到期面板显示
+        function toggleExpiredPanel() {
+            var expiredPanel = document.getElementById('expiredPanel');
+            if (!expiredPanel) return;
+            if (expiredPanel.hasAttribute('hidden')) {
+                expiredPanel.removeAttribute('hidden');
+                expiredPanel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                expiredPanel.setAttribute('hidden', '');
+            }
+        }
 
-            // 初始渲染参数输入框
-            if (publishForm && typeof renderQuickPublishAttrs === 'function') {
-                renderQuickPublishAttrs(publishForm);
+        // 全局函数：切换到期面板（带按钮文字变化）
+        function toggleExpiredPanelWithBtn(btn) {
+            var expiredPanel = document.getElementById('expiredPanel');
+            if (!expiredPanel) return;
+            if (expiredPanel.hasAttribute('hidden')) {
+                expiredPanel.removeAttribute('hidden');
+                btn.textContent = '收起';
+            } else {
+                expiredPanel.setAttribute('hidden', '');
+                btn.textContent = '展开';
+            }
+        }
+
+        // 全局函数：保存需求修改（数量/单位/期望价/税赋），不影响历史交互记录
+        function saveDemandChange(goodsId, btn) {
+            if (!goodsId) return;
+            var row = btn.closest('tr');
+            if (!row) return;
+
+            var quantity = row.querySelector('.qty-input')?.value || '';
+            var unit = row.querySelector('.unit-select')?.value || 'Kpcs';
+            var price = row.querySelector('.price-input')?.value || '';
+            var taxSwitch = row.querySelector('[data-tax-toggle]');
+            var isIncludingTax = taxSwitch?.classList.contains('is-on') ? 1 : 0;
+
+            if (!quantity || quantity.trim() === '') {
+                Toast.warning('请输入数量');
+                return;
             }
 
-            // 类型切换时重新渲染参数输入框
-            publishModal.querySelectorAll('[data-part-type]').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (publishForm && typeof renderQuickPublishAttrs === 'function') {
-                        renderQuickPublishAttrs(publishForm);
-                    }
-                });
-            });
+            var formData = new FormData();
+            formData.append('action', 'update_demand');
+            formData.append('goodsId', goodsId);
+            formData.append('quantity', quantity);
+            formData.append('unit', unit);
+            formData.append('price', price);
+            formData.append('isIncludingTax', isIncludingTax);
 
-            // 税赋切换
-            if (taxSwitch) {
-                taxSwitch.addEventListener('click', function() {
-                    var isOn = taxSwitch.classList.toggle('is-on');
-                    taxSwitch.setAttribute('aria-pressed', isOn);
-                    var priceField = taxSwitch.closest('.price-field');
-                    if (isOn) {
-                        priceField.classList.remove('is-untaxed');
-                        priceField.classList.add('is-taxed');
-                        priceField.querySelector('span').textContent = '含税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '1';
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+
+            fetch('buyer-workbench.aspx', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    Toast.success('修改成功！');
+                    btn.classList.add('is-hidden');
+                } else {
+                    Toast.error('修改失败：' + data.message);
+                }
+            })
+            .catch(function(error) {
+                Toast.error('提交异常：' + error);
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = '确定';
+            });
+        }
+
+        // 全局函数：单个重新上架
+        function restockDemand(goodsId, btn) {
+            if (!goodsId) return;
+            ConfirmDialog.show('确定要重新上架此需求吗？', function() {
+                var formData = new FormData();
+                formData.append('action', 'restock');
+                formData.append('goodsId', goodsId);
+
+                btn.disabled = true;
+                btn.textContent = '上架中...';
+
+                fetch('buyer-workbench.aspx', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        Toast.success('重新上架成功！');
+                        setTimeout(function() { location.reload(); }, 1500);
                     } else {
-                        priceField.classList.remove('is-taxed');
-                        priceField.classList.add('is-untaxed');
-                        priceField.querySelector('span').textContent = '未税';
-                        if (isIncludingTaxInput) isIncludingTaxInput.value = '0';
+                        Toast.error('重新上架失败：' + data.message);
                     }
+                })
+                .catch(function(error) {
+                    Toast.error('重新上架异常：' + error);
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = '重新上架';
                 });
+            });
+        }
+
+        // 全局函数：批量重新上架
+        function batchRestockDemand(btn) {
+            var expiredPanel = document.getElementById('expiredPanel');
+            if (!expiredPanel) return;
+
+            var checkedBoxes = expiredPanel.querySelectorAll('tbody input[type="checkbox"]:checked');
+            if (checkedBoxes.length === 0) {
+                Toast.warning('请先选择要上架的需求');
+                return;
             }
 
-            // 发布确认
-            var pagePublishBtn = document.querySelector('[data-page-publish-confirm]');
-            if (pagePublishBtn) {
-                pagePublishBtn.addEventListener('click', function() {
-                    var formData = new FormData(publishForm);
-                    var goodsSn = formData.get('goodsSn');
-                    var quantity = formData.get('quantity');
+            var goodsIds = [];
+            checkedBoxes.forEach(function(checkbox) {
+                var row = checkbox.closest('tr');
+                if (row && row.dataset.goodsId) {
+                    goodsIds.push(row.dataset.goodsId);
+                }
+            });
 
-                    if (!goodsSn || goodsSn.trim() === '') {
-                        Toast.warning('请输入型号');
-                        return;
+            if (goodsIds.length === 0) {
+                Toast.warning('未找到有效的商品ID');
+                return;
+            }
+
+            ConfirmDialog.show('确定要批量重新上架选中的 ' + goodsIds.length + ' 条需求吗？', function() {
+                btn.disabled = true;
+                btn.textContent = '批量上架中...';
+
+                var formData = new FormData();
+                formData.append('action', 'batch_restock');
+                formData.append('goodsIds', goodsIds.join(','));
+
+                fetch('buyer-workbench.aspx', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        Toast.success('批量重新上架成功！');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        Toast.error('批量重新上架失败：' + data.message);
                     }
-                    if (!quantity || quantity.trim() === '') {
-                        Toast.warning('请输入采购数量');
-                        return;
-                    }
+                })
+                .catch(function(error) {
+                    Toast.error('批量重新上架异常：' + error);
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = '批量重新上架';
+                });
+            });
+        }
 
-                    pagePublishBtn.disabled = true;
-                    pagePublishBtn.textContent = '发布中...';
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // 监听需求列表输入变化，触发时显示确定按钮
+                var demandPanel = document.getElementById('demandPanel');
+                if (demandPanel) {
+                    demandPanel.querySelectorAll('tbody tr.inventory-item').forEach(function(row) {
+                        var qtyInput = row.querySelector('.qty-input');
+                        var unitSelect = row.querySelector('.unit-select');
+                        var priceInput = row.querySelector('.price-input');
+                        var taxSwitch = row.querySelector('[data-tax-toggle]');
+                        var confirmBtn = row.querySelector('.confirm-btn');
 
-                    fetch('buyer-workbench.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Toast.success('发布成功！');
-                            publishModal.hidden = true;
-                            setTimeout(function() { location.reload(); }, 1500);
-                        } else {
-                            Toast.error('发布失败：' + data.message);
+                        function showConfirm() {
+                            if (confirmBtn) confirmBtn.classList.remove('is-hidden');
                         }
-                    })
-                    .catch(error => {
-                        Toast.error('发布异常：' + error);
-                    })
-                    .finally(() => {
-                        pagePublishBtn.disabled = false;
-                        pagePublishBtn.textContent = '确定';
+
+                        if (qtyInput) qtyInput.addEventListener('input', showConfirm);
+                        if (unitSelect) unitSelect.addEventListener('change', showConfirm);
+                        if (priceInput) priceInput.addEventListener('input', showConfirm);
+                        if (taxSwitch) taxSwitch.addEventListener('click', showConfirm);
+                    });
+                }
+
+                var publishModal = document.getElementById('publishModal');
+                var publishForm = document.getElementById('publishDemandForm');
+                var taxSwitch = publishModal ? publishModal.querySelector('[data-tax-toggle]') : null;
+                var isIncludingTaxInput = publishModal ? publishModal.querySelector('input[name="isIncludingTax"]') : null;
+
+                // 初始渲染参数输入框
+                if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                    renderQuickPublishAttrs(publishForm);
+                }
+
+                // 类型切换时重新渲染参数输入框
+                if (publishModal) {
+                    publishModal.querySelectorAll('[data-part-type]').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            if (publishForm && typeof renderQuickPublishAttrs === 'function') {
+                                renderQuickPublishAttrs(publishForm);
+                            }
+                        });
+                    });
+                }
+
+                // 税赋切换
+                if (taxSwitch) {
+                    taxSwitch.addEventListener('click', function() {
+                        var isOn = taxSwitch.classList.toggle('is-on');
+                        taxSwitch.setAttribute('aria-pressed', isOn);
+                        var priceField = taxSwitch.closest('.price-field');
+                        if (isOn) {
+                            priceField.classList.remove('is-untaxed');
+                            priceField.classList.add('is-taxed');
+                            priceField.querySelector('span').textContent = '含税';
+                            if (isIncludingTaxInput) isIncludingTaxInput.value = '1';
+                        } else {
+                            priceField.classList.remove('is-taxed');
+                            priceField.classList.add('is-untaxed');
+                            priceField.querySelector('span').textContent = '未税';
+                            if (isIncludingTaxInput) isIncludingTaxInput.value = '0';
+                        }
+                    });
+                }
+
+                // 发布确认
+                var pagePublishBtn = document.querySelector('[data-page-publish-confirm]');
+                if (pagePublishBtn) {
+                    pagePublishBtn.addEventListener('click', function() {
+                        var formData = new FormData(publishForm);
+                        var goodsSn = formData.get('goodsSn');
+                        var quantity = formData.get('quantity');
+
+                        if (!goodsSn || goodsSn.trim() === '') {
+                            Toast.warning('请输入型号');
+                            return;
+                        }
+                        if (!quantity || quantity.trim() === '') {
+                            Toast.warning('请输入采购数量');
+                            return;
+                        }
+
+                        pagePublishBtn.disabled = true;
+                        pagePublishBtn.textContent = '发布中...';
+
+                        fetch('buyer-workbench.aspx', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Toast.success('发布成功！');
+                                publishModal.hidden = true;
+                                setTimeout(function() { location.reload(); }, 1500);
+                            } else {
+                                Toast.error('发布失败：' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            Toast.error('发布异常：' + error);
+                        })
+                        .finally(() => {
+                            pagePublishBtn.disabled = false;
+                            pagePublishBtn.textContent = '确定';
+                        });
+                    });
+                }
+
+                // 下架按钮点击
+                document.querySelectorAll('.take-off[data-goods-id]').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var goodsId = this.getAttribute('data-goods-id');
+                        if (!goodsId) return;
+
+                        ConfirmDialog.show('确定要下架此需求吗？', function() {
+                            var formData = new FormData();
+                            formData.append('action', 'take_off');
+                            formData.append('goodsId', goodsId);
+
+                            btn.disabled = true;
+                            btn.textContent = '下架中...';
+
+                            fetch('buyer-workbench.aspx', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Toast.success('下架成功！');
+                                    setTimeout(function() { location.reload(); }, 1500);
+                                } else {
+                                    Toast.error('下架失败：' + data.message);
+                                }
+                            })
+                            .catch(error => {
+                                Toast.error('下架异常：' + error);
+                            })
+                            .finally(() => {
+                                btn.disabled = false;
+                                btn.textContent = '下架';
+                            });
+                        });
                     });
                 });
+
+                // 重新上架按钮点击
+                document.querySelectorAll('.restock[data-goods-id]').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var goodsId = this.getAttribute('data-goods-id');
+                        if (!goodsId) return;
+
+                        ConfirmDialog.show('确定要重新上架此需求吗？', function() {
+                            var formData = new FormData();
+                            formData.append('action', 'restock');
+                            formData.append('goodsId', goodsId);
+
+                            btn.disabled = true;
+                            btn.textContent = '上架中...';
+
+                            fetch('buyer-workbench.aspx', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Toast.success('重新上架成功！');
+                                    setTimeout(function() { location.reload(); }, 1500);
+                                } else {
+                                    Toast.error('重新上架失败：' + data.message);
+                                }
+                            })
+                            .catch(error => {
+                                Toast.error('重新上架异常：' + error);
+                            })
+                            .finally(() => {
+                                btn.disabled = false;
+                                btn.textContent = '重新上架';
+                            });
+                        });
+                    });
+                });
+            } catch(e) {
+                console.error('buyer-workbench script error:', e);
             }
-
-            // 下架按钮点击
-            document.querySelectorAll('.take-off[data-goods-id]').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var goodsId = this.getAttribute('data-goods-id');
-                    if (!goodsId) return;
-
-                    ConfirmDialog.show('确定要下架此需求吗？', function() {
-                        var formData = new FormData();
-                        formData.append('action', 'take_off');
-                        formData.append('goodsId', goodsId);
-
-                        btn.disabled = true;
-                        btn.textContent = '下架中...';
-
-                        fetch('buyer-workbench.aspx', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Toast.success('下架成功！');
-                                setTimeout(function() { location.reload(); }, 1500);
-                            } else {
-                                Toast.error('下架失败：' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            Toast.error('下架异常：' + error);
-                        })
-                        .finally(() => {
-                            btn.disabled = false;
-                            btn.textContent = '下架';
-                        });
-                    });
-                });
-            });
-
-            // 重新上架按钮点击
-            document.querySelectorAll('.restock[data-goods-id]').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var goodsId = this.getAttribute('data-goods-id');
-                    if (!goodsId) return;
-
-                    ConfirmDialog.show('确定要重新上架此需求吗？', function() {
-                        var formData = new FormData();
-                        formData.append('action', 'restock');
-                        formData.append('goodsId', goodsId);
-
-                        btn.disabled = true;
-                        btn.textContent = '上架中...';
-
-                        fetch('buyer-workbench.aspx', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Toast.success('重新上架成功！');
-                                setTimeout(function() { location.reload(); }, 1500);
-                            } else {
-                                Toast.error('重新上架失败：' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            Toast.error('重新上架异常：' + error);
-                        })
-                        .finally(() => {
-                            btn.disabled = false;
-                            btn.textContent = '重新上架';
-                        });
-                    });
-                });
-            });
         });
     </script>
 </body>

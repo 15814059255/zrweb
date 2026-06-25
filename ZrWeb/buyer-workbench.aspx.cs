@@ -40,6 +40,16 @@ public partial class buyer_workbench : System.Web.UI.Page
                 HandleRestock();
                 return;
             }
+            else if (action == "batch_restock")
+            {
+                HandleBatchRestock();
+                return;
+            }
+            else if (action == "update_demand")
+            {
+                HandleUpdateDemand();
+                return;
+            }
         }
 
         if (!IsPostBack)
@@ -156,7 +166,8 @@ public partial class buyer_workbench : System.Web.UI.Page
             }
 
             GoodsService service = new GoodsService();
-            bool success = service.PublishDemand(goodsSn, name, brandParams, quantity, unit, price, isIncludingTax, userId, shopId, validity);
+            bool success = service.PublishDemand(goodsSn, name, brandParams, quantity, unit, price, isIncludingTax, userId, shopId, validity,
+                brand, capacity, resistance, precision, voltage, medium, power, tcr);
 
             Response.Clear();
             Response.ContentType = "application/json";
@@ -278,6 +289,119 @@ public partial class buyer_workbench : System.Web.UI.Page
             Response.ContentType = "application/json";
             Response.Charset = "utf-8";
             Response.Write("{\"success\":false,\"message\":\"重新上架异常:" + ex.Message.Replace("\"", "'") + "\"}");
+            Response.End();
+        }
+    }
+
+    private void HandleBatchRestock()
+    {
+        try
+        {
+            string goodsIdsStr = Request["goodsIds"] ?? "";
+            if (string.IsNullOrEmpty(goodsIdsStr))
+            {
+                Response.Clear();
+                Response.ContentType = "application/json";
+                Response.Charset = "utf-8";
+                Response.Write("{\"success\":false,\"message\":\"请选择要上架的商品\"}");
+                Response.End();
+                return;
+            }
+
+            string[] goodsIdArr = goodsIdsStr.Split(',');
+            int successCount = 0;
+            int failCount = 0;
+            GoodsService service = new GoodsService();
+
+            foreach (string idStr in goodsIdArr)
+            {
+                int goodsId = 0;
+                if (int.TryParse(idStr, out goodsId) && goodsId > 0)
+                {
+                    if (service.Restock(goodsId))
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+                else
+                {
+                    failCount++;
+                }
+            }
+
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+            Response.Write("{\"success\":true,\"message\":\"批量重新上架完成，成功" + successCount + "条，失败" + failCount + "条\"}");
+            Response.End();
+        }
+        catch (ThreadAbortException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+            Response.Write("{\"success\":false,\"message\":\"批量重新上架异常:" + ex.Message.Replace("\"", "'") + "\"}");
+            Response.End();
+        }
+    }
+
+    private void HandleUpdateDemand()
+    {
+        try
+        {
+            int goodsId = 0;
+            int.TryParse(Request["goodsId"], out goodsId);
+            int quantity = 0;
+            int.TryParse(Request["quantity"], out quantity);
+            string unit = Request["unit"] ?? "Kpcs";
+            decimal price = 0;
+            decimal.TryParse(Request["price"], out price);
+            int isIncludingTax = 0;
+            int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+
+            if (goodsId <= 0)
+            {
+                Response.Clear();
+                Response.ContentType = "application/json";
+                Response.Charset = "utf-8";
+                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                Response.End();
+                return;
+            }
+
+            GoodsService service = new GoodsService();
+            bool success = service.UpdateDemand(goodsId, quantity, unit, price, isIncludingTax);
+
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+
+            if (success)
+            {
+                Response.Write("{\"success\":true,\"message\":\"修改成功\"}");
+            }
+            else
+            {
+                Response.Write("{\"success\":false,\"message\":\"修改失败\"}");
+            }
+            Response.End();
+        }
+        catch (ThreadAbortException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Charset = "utf-8";
+            Response.Write("{\"success\":false,\"message\":\"修改异常:" + ex.Message.Replace("\"", "'") + "\"}");
             Response.End();
         }
     }
@@ -437,6 +561,7 @@ public partial class buyer_workbench : System.Web.UI.Page
         if (dt == null || dt.Rows.Count == 0)
         {
             dt = new DataTable();
+            dt.Columns.Add("goodsId", typeof(int));
             dt.Columns.Add("Model", typeof(string));
             dt.Columns.Add("BrandParams", typeof(string));
             dt.Columns.Add("Quantity", typeof(string));

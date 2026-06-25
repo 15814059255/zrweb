@@ -17,13 +17,15 @@
     <div class="app">
         <uc1:head runat="server" ID="head" />
         <main class="main">
-            <section class="panel">
-                <div class="searchbar market-toolbar">
-                    <input class="input" placeholder="搜索型号、品牌、参数，如 0603 100nF X7R" id="searchInput">
-                    <div class="actions toolbar-actions">
-                        <a class="btn primary" href="/search.aspx">搜索</a>
-                        <button class="btn soft" type="button" data-publish-open data-publish-default="supply">发布供采</button>
+            <section class="panel search-filter-panel">
+                <div class="form-grid search-filter-grid">
+                    <div class="search-keyword-field">
+                        <label>搜索</label>
+                        <input class="input" id="indexSearchInput" placeholder="输入型号、品牌、参数，如 GRM188 / 0603 / 100nF">
                     </div>
+                </div>
+                <div class="actions search-filter-actions" style="margin-top:16px">
+                    <button class="btn primary" type="button" onclick="doIndexSearch()">查询</button>
                 </div>
             </section>
             <section class="panel site-ad-panel diamond-ad-panel" hidden>
@@ -111,6 +113,16 @@
     <uc1:bottom runat="server" ID="bottom" />
     
     <script>
+        function doIndexSearch() {
+            var input = document.getElementById('indexSearchInput');
+            var query = input ? input.value.trim() : '';
+            var target = query ? 'search.aspx?q=' + encodeURIComponent(query) : 'search.aspx';
+            window.location.href = target;
+        }
+        document.getElementById('indexSearchInput')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') doIndexSearch();
+        });
+
         // 发布弹窗初始化
         document.addEventListener('DOMContentLoaded', function() {
             var publishModal = document.getElementById('publishModal');

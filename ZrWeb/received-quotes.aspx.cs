@@ -73,6 +73,7 @@ public partial class received_quotes : System.Web.UI.Page
                 dt.Columns.Add("PriceAreaHtml", typeof(string));
                 dt.Columns.Add("SellerQQ", typeof(string));
                 dt.Columns.Add("IsNew", typeof(bool));
+                dt.Columns.Add("SellerInfoHiddenClass", typeof(string));
 
                 if (shopId > 0)
                 {
@@ -98,10 +99,10 @@ public partial class received_quotes : System.Web.UI.Page
                         string sql = @"SELECT 
                             e.eqId, e.goodsId, e.goodsSn, e.fromQuantity, e.toQuantity, e.fromPrice,
                             e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus,
-                            e.fromCompany, e.fromContact, e.fromTel, e.brandName,
+                            e.fromCompany, e.fromContact, e.fromTel, e.brandName, e.fromLot,
                             (SELECT TOP 1 Manufacturers FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Manufacturers,
                             (SELECT TOP 1 Packaging FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Packaging,
-                            (SELECT TOP 1 Lot FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Lot,
+                            (SELECT TOP 1 Lot FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as GoodsLot,
                             (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ
                             FROM enquiryquoteprice e
                             WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
@@ -133,6 +134,8 @@ public partial class received_quotes : System.Web.UI.Page
                                 int readStatus = GetIntValue(row["readStatus"], 0);
                                 bool isViewed = readStatus == 1;
                                 
+                                newRow["SellerInfoHiddenClass"] = isViewed ? "" : "seller-info-hidden";
+                                
                                 // 是否新报价（24小时内且未查看）
                                 TimeSpan timeDiff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
                                 newRow["IsNew"] = !isViewed && timeDiff.TotalHours < 24;
@@ -152,7 +155,9 @@ public partial class received_quotes : System.Web.UI.Page
                                 string brand = GetStringValue(row["brandName"]);
                                 string manufacturers = GetStringValue(row["Manufacturers"]);
                                 string packaging = GetStringValue(row["Packaging"]);
-                                string lot = GetStringValue(row["Lot"]);
+                                string fromLot = GetStringValue(row["fromLot"]);
+                                string goodsLot = GetStringValue(row["GoodsLot"]);
+                                string displayLot = !string.IsNullOrEmpty(fromLot) ? fromLot : goodsLot;
                                 
                                 string finalBrand = "";
                                 System.Text.StringBuilder paramsBuilder = new System.Text.StringBuilder();
@@ -185,12 +190,13 @@ public partial class received_quotes : System.Web.UI.Page
                                         paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(packaging));
                                         paramsBuilder.Append("</span>");
                                     }
-                                    if (!string.IsNullOrEmpty(lot))
-                                    {
-                                        paramsBuilder.Append("<span class=\"param-chip\">批号: ");
-                                        paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(lot));
-                                        paramsBuilder.Append("</span>");
-                                    }
+                                }
+                                
+                                if (!string.IsNullOrEmpty(displayLot))
+                                {
+                                    paramsBuilder.Append("<span class=\"param-chip\">批次: ");
+                                    paramsBuilder.Append(System.Web.HttpUtility.HtmlEncode(displayLot));
+                                    paramsBuilder.Append("</span>");
                                 }
                                 
                                 newRow["Brand"] = finalBrand;

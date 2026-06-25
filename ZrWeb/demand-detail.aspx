@@ -25,7 +25,9 @@
                 </div>
                 <div class="actions">
                     <a class="btn back" href="/search.aspx" data-back>返回搜索</a>
+                    <% if (IsLoggedIn) { %>
                     <a class="btn soft" href="/buyer-workbench.aspx">采购后台</a>
+                    <% } %>
                 </div>
             </header>
 
@@ -144,8 +146,8 @@
 
                     <section class="detail-card detail-actions">
                         <div class="actions-grid">
-                            <a class="btn soft" href="/buyer-workbench.aspx">查看更多需求</a>
-                        </div>
+                        <a class="btn soft" href="/search.aspx">查看更多需求</a>
+                    </div>
                     </section>
                 </div>
 
@@ -155,7 +157,9 @@
                         <div class="sidebar-actions">
                             <a class="btn block primary" href="#tradeInteractionModal">我要报价</a>
                             <a class="btn block soft" href="/search.aspx">🔍 返回搜索</a>
+                            <% if (IsLoggedIn) { %>
                             <a class="btn block soft" href="/buyer-workbench.aspx">📋 采购后台</a>
+                            <% } %>
                         </div>
                     </div>
                     <div class="detail-card sidebar-card">

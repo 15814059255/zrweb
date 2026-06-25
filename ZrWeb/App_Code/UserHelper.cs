@@ -9,35 +9,42 @@ public static class UserHelper
     {
         int userId = 0;
         
-        if (HttpContext.Current.Session["UserID"] != null)
+        try
         {
-            int.TryParse(HttpContext.Current.Session["UserID"].ToString(), out userId);
-        }
-        
-        if (userId == 0)
-        {
-            HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
-            if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
+            if (HttpContext.Current.Session != null && HttpContext.Current.Session["UserID"] != null)
             {
-                int.TryParse(cookie["UserID"], out userId);
-                if (userId > 0)
+                int.TryParse(HttpContext.Current.Session["UserID"].ToString(), out userId);
+            }
+            
+            if (userId == 0)
+            {
+                HttpCookie cookie = HttpContext.Current.Request.Cookies[CookieName];
+                if (cookie != null && !string.IsNullOrEmpty(cookie["UserID"]))
                 {
-                    HttpContext.Current.Session["UserID"] = userId;
-                    HttpContext.Current.Session["UserName"] = cookie["UserName"] ?? "";
-                    HttpContext.Current.Session["LinkMan"] = cookie["LinkMan"] ?? "";
-                    HttpContext.Current.Session["MobilePhone"] = cookie["MobilePhone"] ?? "";
-                    HttpContext.Current.Session["RoseID"] = cookie["RoseID"] ?? "";
-                    HttpContext.Current.Session["UserGuid"] = cookie["UserGuid"] ?? "";
-                    
-                    int shopId = 0;
-                    if (int.TryParse(cookie["ShopId"], out shopId))
+                    int.TryParse(cookie["UserID"], out userId);
+                    if (userId > 0 && HttpContext.Current.Session != null)
                     {
-                        HttpContext.Current.Session["ShopId"] = shopId;
+                        HttpContext.Current.Session["UserID"] = userId;
+                        HttpContext.Current.Session["UserName"] = cookie["UserName"] ?? "";
+                        HttpContext.Current.Session["LinkMan"] = cookie["LinkMan"] ?? "";
+                        HttpContext.Current.Session["MobilePhone"] = cookie["MobilePhone"] ?? "";
+                        HttpContext.Current.Session["RoseID"] = cookie["RoseID"] ?? "";
+                        HttpContext.Current.Session["UserGuid"] = cookie["UserGuid"] ?? "";
+                        
+                        int shopId = 0;
+                        if (int.TryParse(cookie["ShopId"], out shopId))
+                        {
+                            HttpContext.Current.Session["ShopId"] = shopId;
+                        }
+                        HttpContext.Current.Session["ShopName"] = cookie["ShopName"] ?? "";
+                        HttpContext.Current.Session["ShopCompany"] = cookie["ShopCompany"] ?? "";
                     }
-                    HttpContext.Current.Session["ShopName"] = cookie["ShopName"] ?? "";
-                    HttpContext.Current.Session["ShopCompany"] = cookie["ShopCompany"] ?? "";
                 }
             }
+        }
+        catch
+        {
+            userId = 0;
         }
         
         return userId;
