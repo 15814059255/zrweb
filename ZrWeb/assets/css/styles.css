@@ -4132,6 +4132,82 @@ label { display: block; margin-bottom: 7px; color: #344054; font-weight: 700; fo
     color: #666;
 }
 
+.company-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.company-seal {
+    font-size: 12px;
+    color: #e74c3c;
+    background-color: #fef5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #fcdcdc;
+}
+
+.supplier-capabilities {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 0;
+}
+
+.capability-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    border-left: 4px solid #6366f1;
+}
+
+.capability-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.capability-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.brand-chip {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 5px 14px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.brand-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.models-list {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+    display: block;
+}
+
+.models-list strong {
+    color: #6366f1;
+    font-weight: 600;
+}
+
 .detail-actions .actions-grid {
     display: flex;
     gap: 12px;

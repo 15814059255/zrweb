@@ -59,10 +59,24 @@ public partial class admin_user_detail : System.Web.UI.Page
                 Response.Redirect("/admin-user-detail.aspx?id=" + UserID);
                 return;
             }
+            else if (action == "toggleStatus")
+            {
+                int status = Convert.ToInt32(Request.QueryString["status"]);
+                if (status == 0 || status == 1)
+                {
+                    DbHelper.ExecuteNonQuery("UPDATE [dbo].[userinfo] SET SysStatus = @status WHERE UserID = @userId",
+                        DbHelper.CreateParameter("@status", status),
+                        DbHelper.CreateParameter("@userId", UserID));
+                }
+                Response.Redirect("/admin-user-detail.aspx?id=" + UserID);
+                return;
+            }
             else if (action == "saveIDCard")
             {
                 string idCardName = Request.QueryString["name"] ?? "";
                 string idCardNumber = Request.QueryString["number"] ?? "";
+                idCardName = System.Web.HttpUtility.UrlDecode(idCardName, System.Text.Encoding.UTF8);
+                idCardName = DbHelper.FixAndCleanString(idCardName);
                 DbHelper.ExecuteNonQuery("UPDATE [dbo].[userinfo] SET IDCardName = @name, IDCardNumber = @number WHERE UserID = @userId",
                     DbHelper.CreateParameter("@name", idCardName),
                     DbHelper.CreateParameter("@number", idCardNumber),
@@ -73,7 +87,9 @@ public partial class admin_user_detail : System.Web.UI.Page
             else if (action == "saveCompanyName")
             {
                 string companyName = Request.QueryString["name"] ?? "";
-                // 保存到 shops 表
+                companyName = System.Web.HttpUtility.UrlDecode(companyName, System.Text.Encoding.UTF8);
+                companyName = DbHelper.FixAndCleanString(companyName);
+                
                 DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId FROM [dbo].[shops] WHERE userId = @userId AND dataFlag = 1",
                     DbHelper.CreateParameter("@userId", UserID));
                 if (shopDt != null && shopDt.Rows.Count > 0)
@@ -85,7 +101,6 @@ public partial class admin_user_detail : System.Web.UI.Page
                 }
                 else
                 {
-                    // 如果没有 shops 记录，插入一条
                     DbHelper.ExecuteNonQuery("INSERT INTO [dbo].[shops] (userId, shopCompany, telephone, shopStatus, dataFlag) VALUES (@userId, @companyName, @telephone, @shopStatus, @dataFlag)",
                         DbHelper.CreateParameter("@userId", UserID),
                         DbHelper.CreateParameter("@companyName", companyName),
@@ -93,7 +108,7 @@ public partial class admin_user_detail : System.Web.UI.Page
                         DbHelper.CreateParameter("@shopStatus", 0),
                         DbHelper.CreateParameter("@dataFlag", 1));
                 }
-                // 同时更新 userinfo 表
+                
                 DbHelper.ExecuteNonQuery("UPDATE [dbo].[userinfo] SET CompanyName = @companyName WHERE UserID = @userId",
                     DbHelper.CreateParameter("@companyName", companyName),
                     DbHelper.CreateParameter("@userId", UserID));

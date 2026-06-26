@@ -49,6 +49,15 @@
         .basic-info .profile-form-item .input.input-phone { width: 160px !important; }
         .basic-info .profile-form-item .input.input-qq { width: 170px !important; }
         .basic-info .profile-form-item .input.input-email { width: 180px !important; }
+        .user-role-tag {
+            font-size: 14px;
+            font-weight: 400;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 16px;
+            margin-left: 12px;
+        }
     </style>
     <script src="/assets/js/area-data.js"></script>
 </head>
@@ -57,14 +66,13 @@
         <uc1:head runat="server" ID="head" />
         <main class="main">
             <header class="topbar">
-                <div><h1>个人资料</h1></div>
+                <div><h1>个人资料 <span class="user-role-tag"><%= UserRoleName %></span></h1></div>
                 <div class="actions"><a class="btn back" href="/index.aspx" data-back>返回</a></div>
             </header>
             <section class="panel profile-panel">
                 <div class="profile-header">
                     <div class="profile-info">
                         <div class="profile-info-item">
-                            <span class="info-label">公司名称</span>
                             <span class="info-value"><%= CompanyName %></span>
                         </div>
                     </div>
@@ -87,7 +95,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="profile-form-row profile-form-row-5">
-                                        <div class="profile-form-item"><label>公司名称</label><input class="input input-company" name="companyName" value="<%= CompanyName %>" disabled></div>
+                                        <div class="profile-form-item"><label>公司名称</label><input class="input input-company" name="companyName" value="<%= CompanyName %>" placeholder="仅有一次填写机会 请谨慎填写" disabled></div>
                                         <div class="profile-form-item"><label>联系人</label><input class="input input-contact" name="contactName" value="<%= ContactName %>" disabled></div>
                                         <div class="profile-form-item"><label>联系电话</label><input class="input input-phone" name="contactPhone" value="<%= OriginalContactPhone %>" disabled></div>
                                         <div class="profile-form-item"><label>QQ</label><input class="input input-qq" name="contactQQ" value="<%= ContactQQ %>" placeholder="请输入QQ号码" disabled></div>
@@ -115,12 +123,13 @@
                                     <div class="profile-form-group">
                                         <label>优势型号</label>
                                         <div class="brands-select-grid">
-                                            <input class="input" name="model1" id="model1" value="<%= Model1 %>" placeholder="型号1" disabled>
-                                            <input class="input" name="model2" id="model2" value="<%= Model2 %>" placeholder="型号2" disabled>
-                                            <input class="input" name="model3" id="model3" value="<%= Model3 %>" placeholder="型号3" disabled>
-                                            <input class="input" name="model4" id="model4" value="<%= Model4 %>" placeholder="型号4" disabled>
-                                            <input class="input" name="model5" id="model5" value="<%= Model5 %>" placeholder="型号5" disabled>
+                                            <input class="input" name="model1" id="model1" value="<%= Model1 %>" placeholder="型号1" disabled oninput="validateModelInput(this)">
+                                            <input class="input" name="model2" id="model2" value="<%= Model2 %>" placeholder="型号2" disabled oninput="validateModelInput(this)">
+                                            <input class="input" name="model3" id="model3" value="<%= Model3 %>" placeholder="型号3" disabled oninput="validateModelInput(this)">
+                                            <input class="input" name="model4" id="model4" value="<%= Model4 %>" placeholder="型号4" disabled oninput="validateModelInput(this)">
+                                            <input class="input" name="model5" id="model5" value="<%= Model5 %>" placeholder="型号5" disabled oninput="validateModelInput(this)">
                                         </div>
+                                        <div id="modelError" class="model-error" style="color:#e53e3e; font-size:12px; margin-top:4px; display:none;">不得使用型号以外的文字</div>
                                     </div>
                                     <div class="profile-form-group">
                                         <label>公司简介</label>
@@ -221,6 +230,21 @@
         </div>
     </div>
     <script>
+        // 验证优势型号输入（禁止中文）
+        function validateModelInput(input) {
+            var value = input.value;
+            var chineseRegex = /[\u4e00-\u9fa5]/;
+            var errorDiv = document.getElementById('modelError');
+            
+            if (chineseRegex.test(value)) {
+                input.value = value.replace(/[\u4e00-\u9fa5]/g, '');
+                errorDiv.style.display = 'block';
+                setTimeout(function() {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             // 安全转义 JavaScript 字符串
             function jsEncode(str) {

@@ -10,6 +10,10 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .main { padding: 28px 24px; }
+        .inquiry-panel { padding: 0; }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -20,7 +24,15 @@
                 <div class="actions"><a class="btn back" href="merchant-workbench.aspx" data-back>返回商家</a></div>
             </header>
             <section class="panel">
-                <div class="searchbar inventory-searchbar"><input class="input" data-quote-search placeholder="搜索型号、采购商"><button class="btn primary" data-quote-search-btn>搜索</button></div>
+                <form method="get" action="quote-records.aspx" class="searchbar inventory-searchbar">
+                    <input class="input" name="keyword" placeholder="搜索型号或参数" value="<%= SearchKeyword %>">
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn primary" type="submit">搜索</button>
+                        <% if (!string.IsNullOrEmpty(SearchKeyword)) { %>
+                            <a class="btn" href="quote-records.aspx">清除</a>
+                        <% } %>
+                    </div>
+                </form>
             </section>
             <section class="panel inquiry-panel">
                 <div class="inquiry-list" id="quoteList">

@@ -11,291 +11,178 @@
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
     <style>
-        .quote-section-title {
-            display: flex;
-            justify-content: space-between;
+        .quote-page { padding: 28px 24px; }
+        .quote-page .panel { padding: 20px; }
+        .quote-list { display: grid; gap: 12px; }
+        .quote-card {
+            display: grid;
+            grid-template-columns: minmax(360px, 1.2fr) minmax(140px, .4fr) minmax(240px, .8fr) minmax(200px, .6fr);
+            gap: 16px;
             align-items: center;
-            margin-bottom: 16px;
-        }
-        .quote-section-title h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111827;
-            margin: 0;
-        }
-        .quote-count {
-            font-size: 13px;
-            color: #9ca3af;
-        }
-        .quote-count b {
-            color: #dc2626;
-            font-weight: 600;
-        }
-        .quote-card-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .quote-item {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
             padding: 16px 20px;
-            transition: all 0.2s ease;
-            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #fff, #f9fbff);
+            transition: all 0.25s ease;
         }
-        .quote-item:hover {
+        .quote-card:hover {
             border-color: #fca5a5;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.08);
+            transform: translateY(-1px);
         }
-        .quote-item.is-new::after {
-            content: 'NEW';
-            position: absolute;
-            top: 0;
-            right: 16px;
-            background: linear-gradient(135deg, #dc2626 0%, #f97316 100%);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 0 0 6px 6px;
-            letter-spacing: 0.5px;
-        }
-        .quote-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-        }
-        .quote-item-main {
-            flex: 1;
-            min-width: 0;
-        }
-        .quote-item-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-        .quote-item-title .tag {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-        .quote-item-title .tag.supply {
-            background: #eff6ff;
-            color: #2563eb;
-        }
-        .quote-item-title h3 {
-            margin: 0;
-            font-size: 17px;
-            font-weight: 600;
-            color: #111827;
-            line-height: 1.3;
-        }
-        .quote-item-title h3 a {
-            color: inherit;
-            text-decoration: none;
-        }
-        .quote-item-title h3 a:hover {
-            color: #dc2626;
-        }
-        .quote-price-area {
-            flex-shrink: 0;
-            text-align: right;
-            min-width: 160px;
-        }
-        .quote-price {
-            font-size: 24px;
-            font-weight: 700;
-            color: #dc2626;
-            line-height: 1.2;
-        }
-        .quote-price .tax-label {
-            font-size: 11px;
-            font-weight: 500;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-        .quote-price .tax-label.tax {
-            background: #ecfdf5;
-            color: #059669;
-        }
-        .quote-price .tax-label.notax {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        .view-price-btn {
+        .quote-card.is-new { box-shadow: inset 4px 0 0 #dc2626; }
+        .quote-main { display: grid; gap: 6px; }
+        .quote-main h3 { margin: 0; font-size: 16px; font-weight: 700; color: #101828; }
+        .quote-main h3 a { color: inherit; text-decoration: none; }
+        .quote-main h3 a:hover { color: #dc2626; }
+        .quote-main p { margin: 0; color: #475467; font-size: 12px; font-weight: 700; }
+        .quote-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .quote-tags span {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 18px;
+            min-height: 24px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .quote-price { display: grid; gap: 6px; justify-items: start; }
+        .quote-price strong { color: #dc2626; font-size: 22px; font-weight: 800; }
+        .quote-price span { color: #98a2b3; font-size: 12px; font-weight: 600; }
+        .quote-price .view-price-btn {
+            padding: 8px 20px;
             background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: #fff;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .view-price-btn:hover {
-            transform: translateY(-1px);
+        .quote-price .view-price-btn:hover {
+            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
-        .view-price-btn:active {
-            transform: translateY(0);
-        }
-        .price-hidden {
-            font-size: 14px;
-            color: #9ca3af;
-            margin-bottom: 6px;
-        }
-        .quote-item-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 8px;
-        }
-        .quote-item-meta span {
-            display: inline-flex;
-            align-items: center;
-        }
-        .quote-item-meta .meta-brand {
-            color: #dc2626;
-            font-weight: 500;
-        }
-        .quote-params {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .param-chip {
-            display: inline-block;
-            padding: 3px 10px;
-            background: #f3f4f6;
-            color: #4b5563;
-            font-size: 12px;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        .quote-item-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #f3f4f6;
-        }
-        .quote-seller-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-            color: #6b7280;
-        }
-        .quote-seller-info .company-name {
-            color: #374151;
-            font-weight: 500;
-            max-width: 240px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .quote-seller-info .dot {
-            color: #d1d5db;
-        }
-        .quote-seller-info .validity {
-            color: #2563eb;
-            font-weight: 500;
-        }
-        .quote-item-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .quote-price .price-hidden { color: #98a2b3; font-size: 12px; font-weight: 600; }
+        .quote-seller { display: grid; gap: 4px; color: #475467; font-size: 12px; line-height: 1.4; }
+        .quote-seller b { color: #101828; font-size: 14px; font-weight: 700; }
+        .quote-seller span:last-child { color: #2563eb; font-weight: 700; }
+        .quote-seller .seller-info-hidden { display: none; }
+        .quote-note { display: grid; gap: 6px; color: #475467; font-size: 12px; line-height: 1.4; }
+        .quote-note p { margin: 0; }
+        .quote-note .remark-label { font-weight: 700; color: #6b7280; }
         .quote-empty {
             text-align: center;
             padding: 60px 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #fff;
         }
-        .quote-empty .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        .quote-empty h3 {
-            font-size: 16px;
-            color: #374151;
-            margin: 0 0 8px 0;
-        }
-        .quote-empty p {
-            font-size: 13px;
-            color: #9ca3af;
-            margin: 0;
-        }
-        .quote-remarks {
-            margin-top: 12px;
-            padding: 10px 14px;
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #92400e;
-            line-height: 1.6;
-        }
-        .quote-remarks b {
-            color: #d97706;
-            font-weight: 600;
-        }
-        .seller-info-hidden {
-            display: none !important;
-        }
-        .tab-bar {
+        .quote-empty .empty-icon { font-size: 56px; margin-bottom: 16px; }
+        .quote-empty h3 { font-size: 18px; color: #374151; margin: 0 0 8px 0; }
+        .quote-empty p { font-size: 14px; color: #9ca3af; margin: 0; }
+        .quote-section-header {
             display: flex;
-            gap: 4px;
-            background: #f3f4f6;
-            padding: 4px;
-            border-radius: 8px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 16px;
-            width: fit-content;
         }
-        .tab-bar .tab-item {
-            padding: 8px 18px;
+        .quote-section-header h2 { font-size: 18px; font-weight: 700; color: #111827; margin: 0; }
+        .quote-actions { display: flex; align-items: center; gap: 16px; }
+        .quote-filter { display: flex; gap: 4px; padding: 4px; background: #f3f4f6; border-radius: 8px; }
+        .quote-filter .filter-btn {
+            padding: 6px 14px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: #6b7280;
+            text-decoration: none;
             border-radius: 6px;
-            cursor: pointer;
             transition: all 0.2s;
         }
-        .tab-bar .tab-item:hover {
-            color: #374151;
+        .quote-filter .filter-btn:hover { background: #e5e7eb; color: #374151; }
+        .quote-filter .filter-btn.active {
+            background: #dc2626;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
         }
-        .tab-bar .tab-item.active {
-            background: #fff;
-            color: #111827;
+        .quote-count { font-size: 14px; color: #6b7280; }
+        .quote-count b { color: #dc2626; font-weight: 700; font-size: 16px; }
+        .topbar h1 .subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            color: #9ca3af;
+            margin-left: 8px;
+        }
+        .topbar {
+            padding: 0 0 20px 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        .topbar .actions {
+            margin-left: auto;
+        }
+        .quote-search { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px; 
+            margin-bottom: 20px; 
+        }
+        .quote-search form { display: flex; gap: 10px; flex: 1; max-width: 520px; min-width: 0; }
+        .quote-search .search-input {
+            flex: 1;
+        }
+        .quote-search .btn { white-space: nowrap; }
+        .quote-search .quote-filter { display: flex; gap: 4px; padding: 4px; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .quote-search .quote-filter .filter-btn {
+            padding: 6px 14px;
+            font-size: 13px;
             font-weight: 600;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s;
         }
+        .quote-search .quote-filter .filter-btn:hover { background: #e5e7eb; color: #374151; }
+        .quote-search .quote-filter .filter-btn.active {
+            background: #dc2626;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+        .quote-card-actions { justify-self: end; display: flex; gap: 8px; }
+        .quote-card-actions .btn { white-space: nowrap; }
+        .quote-card-actions.seller-info-hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="app">
         <uc1:head runat="server" ID="head" />
-        <main class="main">
+        <main class="main quote-page">
             <header class="topbar">
-                <div><h1>收到报价</h1></div>
+                <div><h1>收到报价 <span class="subtitle">报价列表</span></h1></div>
                 <div class="actions"><a class="btn back" href="buyer-workbench.aspx" data-back>返回采购</a></div>
             </header>
+
             <section class="panel">
-                <div class="quote-section-title">
-                    <h2>报价列表</h2>
-                    <span class="quote-count">共 <b><%= TotalCount %></b> 条报价</span>
+                <div class="quote-search">
+                    <form id="searchForm" method="get" action="received-quotes.aspx" style="display:flex;gap:10px;flex:1;max-width:520px;min-width:0;align-items:center;">
+                        <input type="hidden" name="filter" value="<%= Request.QueryString["filter"] ?? "" %>" />
+                        <input type="text" name="keyword" placeholder="搜索型号或参数" value="<%= Request.QueryString["keyword"] ?? "" %>" class="input search-input" />
+                        <button type="submit" class="btn primary">搜索</button>
+                        <% if (!string.IsNullOrEmpty(Request.QueryString["keyword"])) { %>
+                            <a href="received-quotes.aspx<%= !string.IsNullOrEmpty(Request.QueryString["filter"]) ? "?filter=" + Request.QueryString["filter"] : "" %>" class="btn">清除</a>
+                        <% } %>
+                    </form>
+                    <div class="quote-filter">
+                        <a href="received-quotes.aspx<%= !string.IsNullOrEmpty(Request.QueryString["keyword"]) ? "?keyword=" + System.Web.HttpUtility.UrlEncode(Request.QueryString["keyword"]) : "" %>" class="filter-btn <%= Request.QueryString["filter"] == null || Request.QueryString["filter"] == "" ? "active" : "" %>">全部</a>
+                        <a href="received-quotes.aspx?filter=unread<%= !string.IsNullOrEmpty(Request.QueryString["keyword"]) ? "&keyword=" + System.Web.HttpUtility.UrlEncode(Request.QueryString["keyword"]) : "" %>" class="filter-btn <%= Request.QueryString["filter"] == "unread" ? "active" : "" %>">未查看</a>
+                        <a href="received-quotes.aspx?filter=read<%= !string.IsNullOrEmpty(Request.QueryString["keyword"]) ? "&keyword=" + System.Web.HttpUtility.UrlEncode(Request.QueryString["keyword"]) : "" %>" class="filter-btn <%= Request.QueryString["filter"] == "read" ? "active" : "" %>">已查看</a>
+                    </div>
                 </div>
+
                 <% if (!HasQuoteData) { %>
                 <div class="quote-empty">
                     <div class="empty-icon">📬</div>
@@ -303,55 +190,50 @@
                     <p>您还没有收到供应商的报价，去发布询价吧！</p>
                 </div>
                 <% } else { %>
-                <div class="quote-card-list">
+                <div class="quote-list">
                     <asp:Repeater ID="rptQuotes" runat="server" EnableViewState="false">
                         <ItemTemplate>
-                            <div class="quote-item <%# (bool)Eval("IsNew") ? "is-new" : "" %>" data-eq-id="<%# Eval("EqId") %>">
-                                <div class="quote-item-header">
-                                    <div class="quote-item-main">
-                                        <div class="quote-item-title">
-                                            <span class="tag supply">供应</span>
-                                            <h3><a href="/quote-detail.aspx?id=<%# Eval("EqId") %>"><%# Eval("Model") %></a></h3>
-                                        </div>
-                                        <div class="quote-item-meta">
-                                            <span class="meta-brand"><%# Eval("Brand") %></span>
-                                            <span>报价数量：<%# Eval("Quantity") %> <%# Eval("Unit") %></span>
-                                        </div>
-                                        <div class="quote-params">
-                                            <%# System.Web.HttpUtility.HtmlDecode(Eval("ParamsHtml").ToString()) %>
-                                        </div>
-                                        <%# System.Web.HttpUtility.HtmlDecode(Eval("RemarksHtml").ToString()) %>
-                                    </div>
-                                    <div class="quote-price-area">
-                                        <%# System.Web.HttpUtility.HtmlDecode(Eval("PriceAreaHtml").ToString()) %>
+                            <div class="quote-card <%# (bool)Eval("IsNew") ? "is-new" : "" %>" data-eq-id="<%# Eval("EqId") %>">
+                                <div class="quote-main">
+                                    <h3>
+                                        <%# (bool)Eval("IsViewed") ? "" : "<span class=\"model-text\">" + Eval("Model") + "</span>" %>
+                                        <a href="/quote-detail.aspx?id=<%# Eval("EqId") %>" class="model-link" style="<%# (bool)Eval("IsViewed") ? "" : "display:none;" %>"><%# Eval("Model") %></a>
+                                    </h3>
+                                    <p><%# Eval("Brand") %> · <%# Eval("Quantity") %><%# Eval("Unit") %> · 批次: <%# Eval("Batch") %> · <%# Eval("QuoteTime") %></p>
+                                    <div class="quote-tags">
+                                        <%# System.Web.HttpUtility.HtmlDecode(Eval("ParamsHtml").ToString()) %>
                                     </div>
                                 </div>
-                                <div class="quote-item-footer">
-                                    <div class="quote-seller-info">
-                                        <span class="company-name <%# Eval("SellerInfoHiddenClass") %>" data-seller-info><%# Eval("SellerName") %></span>
-                                        <span class="dot <%# Eval("SellerInfoHiddenClass") %>" data-seller-info>·</span>
-                                        <span><%# Eval("QuoteTime") %></span>
-                                        <span class="dot">·</span>
-                                        <span class="validity">有效期 <%# Eval("Validity") %></span>
-                                    </div>
-                                    <div class="quote-item-actions">
-                                        <a class="btn soft mini <%# Eval("SellerInfoHiddenClass") %>" href="tencent://message/?uin=<%# Eval("SellerQQ") %>" target="_blank" data-qq-btn="<%# Eval("SellerQQ") %>" data-seller-info>联系供应商</a>
-                                    </div>
+                                <div class="quote-price">
+                                    <%# System.Web.HttpUtility.HtmlDecode(Eval("PriceAreaHtml").ToString()) %>
+                                </div>
+                                <div class="quote-seller">
+                                    <b class="<%# Eval("SellerInfoHiddenClass") %>" data-seller-info><%# Eval("SellerName") %></b>
+                                    <span><%# Eval("Validity") %></span>
+                                </div>
+                                <div class="quote-card-actions <%# Eval("SellerInfoHiddenClass") %>" data-seller-info>
+                                    <a class="btn soft mini" href="tencent://message/?uin=<%# Eval("SellerQQ") %>" target="_blank" data-qq-btn="<%# Eval("SellerQQ") %>">联系供应商</a>
                                 </div>
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>
                 </div>
                 <% if (TotalPages > 1) { %>
-                <div class="pagination" style="margin-top:24px; justify-content: center;">
+                <div class="pagination" style="margin-top:24px; justify-content:center;">
+                    <% 
+                        string urlParams = "";
+                        if (!string.IsNullOrEmpty(Request.QueryString["filter"])) urlParams += "&filter=" + Request.QueryString["filter"];
+                        if (!string.IsNullOrEmpty(Request.QueryString["keyword"])) urlParams += "&keyword=" + System.Web.HttpUtility.UrlEncode(Request.QueryString["keyword"]);
+                        urlParams = urlParams.TrimStart('&');
+                    %>
                     <% if (CurrentPage > 1) { %>
-                    <a class="btn" href="received-quotes.aspx?page=<%= CurrentPage - 1 %>">上一页</a>
+                    <a class="btn" href="received-quotes.aspx?page=<%= CurrentPage - 1 %><%= urlParams.Length > 0 ? "&" + urlParams : "" %>">上一页</a>
                     <% } else { %>
                     <button class="btn" disabled>上一页</button>
                     <% } %>
                     <span>第 <%= CurrentPage %> / <%= TotalPages %> 页</span>
                     <% if (CurrentPage < TotalPages) { %>
-                    <a class="btn" href="received-quotes.aspx?page=<%= CurrentPage + 1 %>">下一页</a>
+                    <a class="btn" href="received-quotes.aspx?page=<%= CurrentPage + 1 %><%= urlParams.Length > 0 ? "&" + urlParams : "" %>">下一页</a>
                     <% } else { %>
                     <button class="btn" disabled>下一页</button>
                     <% } %>
@@ -365,57 +247,57 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 查看报价按钮
             document.querySelectorAll('[data-view-price]').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var eqId = this.getAttribute('data-eq-id');
-                    var card = this.closest('.quote-item');
-                    var priceArea = card.querySelector('.quote-price-area');
+                    var card = this.closest('.quote-card');
+                    var priceArea = card.querySelector('.quote-price');
                     var priceDisplay = this.getAttribute('data-price');
                     var self = this;
 
-                    // 标记为已查看
                     fetch('/api/mark-quote-readed.aspx?eqId=' + eqId, {
                         method: 'GET',
                         credentials: 'same-origin'
                     }).then(function(res) {
                         return res.json();
                     }).then(function(result) {
-                        // 显示价格
                         self.style.display = 'none';
                         var priceHidden = priceArea.querySelector('.price-hidden');
                         if (priceHidden) priceHidden.style.display = 'none';
 
-                        // 创建价格元素
                         var priceDiv = document.createElement('div');
-                        priceDiv.className = 'quote-price';
-                        priceDiv.innerHTML = priceDisplay;
+                        priceDiv.innerHTML = '<strong>' + priceDisplay + '</strong><span>点击查看详情</span>';
                         priceArea.appendChild(priceDiv);
 
-                        // 显示公司名称和联系按钮
                         card.querySelectorAll('[data-seller-info]').forEach(function(el) {
                             el.classList.remove('seller-info-hidden');
                         });
 
-                        // 移除 NEW 标签
+                        var modelText = card.querySelector('.model-text');
+                        var modelLink = card.querySelector('.model-link');
+                        if (modelText) modelText.style.display = 'none';
+                        if (modelLink) modelLink.style.display = 'inline';
+
                         if (card.classList.contains('is-new')) {
                             card.classList.remove('is-new');
                         }
                     }).catch(function(err) {
                         console.error('标记已查看失败:', err);
-                        // 即使失败也显示价格
                         self.style.display = 'none';
                         var priceHidden = priceArea.querySelector('.price-hidden');
                         if (priceHidden) priceHidden.style.display = 'none';
                         var priceDiv = document.createElement('div');
-                        priceDiv.className = 'quote-price';
-                        priceDiv.innerHTML = priceDisplay;
+                        priceDiv.innerHTML = '<strong>' + priceDisplay + '</strong><span>点击查看详情</span>';
                         priceArea.appendChild(priceDiv);
                         
-                        // 显示公司名称和联系按钮
                         card.querySelectorAll('[data-seller-info]').forEach(function(el) {
                             el.classList.remove('seller-info-hidden');
                         });
+                        
+                        var modelText = card.querySelector('.model-text');
+                        var modelLink = card.querySelector('.model-link');
+                        if (modelText) modelText.style.display = 'none';
+                        if (modelLink) modelLink.style.display = 'inline';
                         
                         if (card.classList.contains('is-new')) {
                             card.classList.remove('is-new');
@@ -424,7 +306,6 @@
                 });
             });
 
-            // 联系供应商QQ按钮 - 空QQ禁用
             document.querySelectorAll('[data-qq-btn]').forEach(function(btn) {
                 var qq = btn.getAttribute('data-qq-btn');
                 if (!qq || qq === '') {

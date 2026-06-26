@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>报价管理 - 阻容网</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .admin-table-wrap { max-height: none !important; overflow-y: visible !important; }
+    </style>
 </head>
 <body class="admin-page">
     <div class="admin-app">

@@ -104,7 +104,7 @@ document.querySelectorAll('[data-ad-card]').forEach((card) => {
   card.querySelector('[data-ad-end]')?.addEventListener('change', () => updateAdminAdStatus(card));
 });
 
-const AD_SLOT_DEFAULTS = {
+let AD_SLOT_DEFAULTS = {
   'SR-D01': { tier: 'diamond', page: '搜索结果页', position: '搜索框前 1', format: '图文', start: '2026-06-13', end: '2026-07-13' },
   'SR-D02': { tier: 'diamond', page: '搜索结果页', position: '搜索框前 2', format: '图文', start: '2026-06-13', end: '2026-07-13' },
   'SR-G01': { tier: 'gold', page: '搜索结果页', position: '搜索框后 1', format: '文字', start: '2026-06-13', end: '2026-07-13' },
@@ -117,6 +117,66 @@ const AD_SLOT_DEFAULTS = {
   'BW-S01': { tier: 'silver', page: '采购工作台', position: '数据概览下方', format: '文字', start: '2026-06-13', end: '2026-07-13' },
   'HELP-S01': { tier: 'silver', page: '帮助/关于页', position: '页面底部', format: '文字', start: '2026-06-13', end: '2026-07-13' }
 };
+
+let dbAds = [];
+
+async function loadAdsFromServer() {
+  try {
+    const response = await fetch('/api/ads.aspx');
+    const ads = await response.json();
+    dbAds = ads;
+    ads.forEach(ad => {
+      if (!AD_SLOT_DEFAULTS[ad.AdSlot]) {
+        AD_SLOT_DEFAULTS[ad.AdSlot] = {
+          tier: 'gold',
+          page: '数据库广告',
+          position: ad.Position || '未知',
+          format: '图文',
+          start: ad.StartDate || '',
+          end: ad.EndDate || ''
+        };
+      }
+    });
+    renderDbAds();
+  } catch (error) {
+    console.error('Failed to load ads from server:', error);
+  }
+}
+
+function renderDbAds() {
+  dbAds.forEach(ad => {
+    let container;
+    if (ad.AdSlot === 'HOME-D01') {
+      container = document.querySelector('.diamond-ad-panel .search-ad-grid');
+    } else if (ad.AdSlot === 'HOME-G01') {
+      container = document.querySelector('.inline-feed-ad');
+    } else if (ad.AdSlot.startsWith('SR-')) {
+      container = document.querySelector('.search-ad-grid');
+      if (!container) {
+        container = document.querySelector('.diamond-ad-panel .search-ad-grid');
+      }
+    }
+    
+    if (container) {
+      const card = document.createElement('a');
+      card.className = 'search-ad-card';
+      card.href = ad.LinkUrl || '#';
+      card.dataset.adSlot = ad.AdSlot;
+      card.dataset.adStart = ad.StartDate || '';
+      card.dataset.adEnd = ad.EndDate || '';
+      card.innerHTML = `<b>${ad.Title}</b><span>广告位: ${ad.AdSlot}</span>`;
+      container.appendChild(card);
+      
+      if (container.parentElement) {
+        container.parentElement.hidden = false;
+      }
+    }
+  });
+  
+  applySearchAdVisibility();
+}
+
+loadAdsFromServer();
 const getAdStorageKey = (slot) => `zr-ad-slot-${slot}`;
 const getAdDateStorageKey = (slot, type) => `zr-ad-slot-${slot}-${type}`;
 function getAdDateConfig(slot, element) {
@@ -1073,6 +1133,7 @@ function resetQuickPublishForm(form) {
     input.classList.remove('input-error', 'shake-error');
   });
   form.querySelectorAll('[data-publish-kind], [data-part-type]').forEach((btn) => btn.classList.remove('active'));
+  form.querySelectorAll('[data-validity]').forEach((btn) => btn.classList.remove('active'));
   form.querySelector('[data-publish-kind="supply"]')?.classList.add('active');
   form.querySelector('[data-part-type="capacitor"]')?.classList.add('active');
   const qtyLabel = form.querySelector('[data-qty-label]');
@@ -1091,7 +1152,9 @@ function resetQuickPublishForm(form) {
 }
 
 function setDefaultValidity(form, kind) {
-  const target = kind === 'demand' ? '3天' : '1个月';
+  const hasActive = form.querySelector('[data-validity].active');
+  if (hasActive) return;
+  const target = kind === 'demand' ? '3天' : '30天';
   form.querySelectorAll('[data-validity]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.validity === target);
   });
@@ -1207,13 +1270,20 @@ document.addEventListener('click', (event) => {
 
 document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
   btn.addEventListener('click', () => {
+    if (btn.dataset.publishing === 'true') return;
+    btn.dataset.publishing = 'true';
+    
     const form = btn.closest('[data-quick-publish-form]');
     const modal = btn.closest('.modal-backdrop');
-    if (!form) return;
+    if (!form) {
+      btn.dataset.publishing = 'false';
+      return;
+    }
     const kind = form.querySelector('[data-publish-kind].active')?.dataset.publishKind || 'supply';
 
     if (!isCurrentMemberLoggedIn()) {
       ZrToast.error('请先登录后再发布');
+      btn.dataset.publishing = 'false';
       return;
     }
     
@@ -1227,6 +1297,7 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
         input.classList.add('input-error', 'shake-error');
       });
       emptyInputs[0].focus();
+      btn.dataset.publishing = 'false';
       return;
     }
     
@@ -1236,13 +1307,11 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
         priceInput.value = normalizeTradePriceInput(priceInput.value);
         if (!isValidTradePrice(priceInput.value)) {
           markInteractionInputError(priceInput);
+          btn.dataset.publishing = 'false';
           return;
         }
       }
-      if (kind === 'supply' && !priceInput.value.trim()) {
-        markInteractionInputError(priceInput);
-        return;
-      }
+
     }
     
     const model = form.querySelector('[data-model-input]')?.value || '';
@@ -1254,10 +1323,11 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
     
     // 获取有效期
     const validityBtn = form.querySelector('[data-validity].active');
-    const validity = validityBtn ? validityBtn.dataset.validity : '1个月';
+    const validity = validityBtn ? validityBtn.dataset.validity : '30天';
     
     const data = new FormData();
     data.append('action', 'publish_goods');
+    data.append('requestId', Date.now().toString(36) + Math.random().toString(36).substr(2));
     data.append('goodsSn', model);
     data.append('goodsStock', qty);
     data.append('goodsUnit', qtyUnit);
@@ -1281,11 +1351,15 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/publish.ashx', true);
     xhr.onload = function() {
+      btn.dataset.publishing = 'false';
       let result;
       try {
         result = JSON.parse(xhr.responseText);
       } catch (e) {
-        result = { success: false, message: '服务器返回无效数据' };
+        console.error('JSON解析失败:', e);
+        console.error('服务器原始响应:', xhr.responseText);
+        console.error('响应状态:', xhr.status, xhr.statusText);
+        result = { success: false, message: '服务器返回无效数据，请查看控制台获取详细信息' };
       }
       
       const toast = document.createElement('div');
@@ -1303,10 +1377,14 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
         if (result.success) {
           resetQuickPublishForm(form);
           modal?.setAttribute('hidden', '');
+          if (window.location.pathname.includes('buyer-workbench') || window.location.pathname.includes('merchant-workbench')) {
+            window.location.reload();
+          }
         }
       }, 2000);
     };
     xhr.onerror = function() {
+      btn.dataset.publishing = 'false';
       const toast = document.createElement('div');
       toast.className = 'publish-toast';
       toast.textContent = '网络错误，请重试';
@@ -1462,7 +1540,7 @@ function ensureTradeModal() {
           <label data-interaction-unit-field>单位<select class="input unit-inline-input" data-interaction-unit><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></label>
           <label data-interaction-batch-field>批次<input class="input" data-interaction-batch placeholder="如 2025+ 或 2633"></label>
           <label data-interaction-price-field><span data-interaction-price-label>我的期望价</span><span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" data-interaction-price inputmode="decimal" min="0.0001" step="0.0001" placeholder="优势价格"><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></span></label>
-          <div class="interaction-validity" data-interaction-validity-row hidden><span>有效期</span><button type="button" data-interaction-validity="24小时">24小时</button><button class="active" type="button" data-interaction-validity="3天">3天</button><button type="button" data-interaction-validity="7天">7天</button><button type="button" data-interaction-validity="15天">15天</button><button type="button" data-interaction-validity="1个月">1个月</button></div>
+          <div class="interaction-validity" data-interaction-validity-row hidden><span>有效期</span><button type="button" data-interaction-validity="1天">1天</button><button class="active" type="button" data-interaction-validity="3天">3天</button><button type="button" data-interaction-validity="7天">7天</button><button type="button" data-interaction-validity="15天">15天</button><button type="button" data-interaction-validity="30天">30天</button></div>
           <label class="interaction-note"><span>备注</span><input class="input" placeholder="如交期、包装、分批等"><span class="trade-brand-row" data-interaction-brand-row hidden><span>品牌</span><input class="input" data-interaction-brand list="interactionBrandOptions" autocomplete="on" placeholder="请提供品牌"><small class="interaction-brand-hint" data-interaction-brand-hint></small></span></label>
           <button class="btn primary" type="button" data-interaction-submit>提交</button>
         </div>
@@ -1687,6 +1765,15 @@ document.addEventListener('click', (event) => {
   const submit = event.target.closest('[data-interaction-submit]');
   if (!submit) return;
   const modal = document.getElementById('tradeInteractionModal');
+  
+  // 检查是否是对自己的店铺询价/报价
+  const toShopId = modal?.dataset.toShopId || '0';
+  const currentShopId = window.ZR_CURRENT_MEMBER?.shopId || '0';
+  if (currentShopId && toShopId && currentShopId === toShopId) {
+    ZrToast.error('不能对自己的店铺询价或报价');
+    return;
+  }
+  
   const qtyInput = modal?.querySelector('[data-interaction-qty]');
   if (qtyInput && !qtyInput.value.trim()) {
     markInteractionInputError(qtyInput);

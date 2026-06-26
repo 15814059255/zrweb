@@ -111,5 +111,71 @@
     
     <!-- 底部 -->
     <uc1:bottom runat="server" ID="bottom" />
+    
+    <script>
+        (function() {
+            var modal = document.getElementById('feedbackModal');
+            var openBtn = document.querySelector('[data-feedback-open]');
+            var closeBtns = document.querySelectorAll('[data-feedback-close]');
+            var submitBtn = document.querySelector('[data-feedback-submit]');
+            var form = document.querySelector('[data-feedback-form]');
+            
+            openBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.removeAttribute('hidden');
+            });
+            
+            closeBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    modal.setAttribute('hidden', '');
+                });
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.setAttribute('hidden', '');
+                }
+            });
+            
+            submitBtn.addEventListener('click', function() {
+                var name = document.querySelector('[data-feedback-name]').value.trim();
+                var contact = document.querySelector('[data-feedback-contact]').value.trim();
+                var content = document.querySelector('[data-feedback-content]').value.trim();
+                
+                if (!name) {
+                    alert('请填写您的称呼');
+                    return;
+                }
+                if (!contact) {
+                    alert('请填写联系方式');
+                    return;
+                }
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/about-us.aspx', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        try {
+                            var result = JSON.parse(xhr.responseText);
+                            if (result.success) {
+                                alert('留言提交成功！感谢您的反馈。');
+                                form.reset();
+                                modal.setAttribute('hidden', '');
+                            } else {
+                                alert('提交失败: ' + (result.message || '未知错误'));
+                            }
+                        } catch (e) {
+                            alert('提交失败: 服务器响应异常');
+                        }
+                    }
+                };
+                
+                xhr.send('action=submitFeedback&name=' + encodeURIComponent(name) + 
+                         '&contact=' + encodeURIComponent(contact) + 
+                         '&content=' + encodeURIComponent(content));
+            });
+        })();
+    </script>
 </body>
 </html>

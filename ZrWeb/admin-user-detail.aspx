@@ -198,6 +198,17 @@
                             </span>
                         </div>
                         <div class="admin-detail-row">
+                            <span class="admin-detail-label">账号状态</span>
+                            <span class="admin-detail-value">
+                                <span class="tag <%= SysStatus == 1 ? "red" : "green" %>"><%= SysStatus == 1 ? "已禁用" : "正常" %></span>
+                                <% if (SysStatus == 0) { %>
+                                <button class="btn mini" style="margin-left:8px;" onclick="toggleUserStatus(<%= UserID %>, 1)">禁用账号</button>
+                                <% } else { %>
+                                <button class="btn mini" style="margin-left:8px;" onclick="toggleUserStatus(<%= UserID %>, 0)">启用账号</button>
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="admin-detail-row">
                             <span class="admin-detail-label">注册IP</span>
                             <span class="admin-detail-value"><%= Source %></span>
                         </div>
@@ -256,6 +267,12 @@
             var roleName = role == 2 ? '采购商' : '供应商';
             if (!confirm('确定将该用户修改为 ' + roleName + '？')) return;
             window.location.href = '/admin-user-detail.aspx?action=changeRole&id=' + userId + '&role=' + role;
+        }
+        
+        function toggleUserStatus(userId, status) {
+            var actionText = status == 1 ? '禁用' : '启用';
+            if (!confirm('确定要' + actionText + '该用户吗？' + (status == 1 ? '禁用后用户将无法登录。' : ''))) return;
+            window.location.href = '/admin-user-detail.aspx?action=toggleStatus&id=' + userId + '&status=' + status;
         }
         
         function saveIDCardInfo(userId) {

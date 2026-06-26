@@ -25,7 +25,9 @@
                 </div>
                 <div class="actions">
                     <a class="btn back" href="/search.aspx" data-back>返回搜索</a>
+                    <% if (IsLoggedIn && IsMerchant) { %>
                     <a class="btn soft" href="/merchant-workbench.aspx">商家后台</a>
+                    <% } %>
                 </div>
             </header>
 
@@ -134,17 +136,50 @@
                         <div class="company-card">
                             <div class="company-header">
                                 <div class="company-name"><%= CompanyName %></div>
-                                <span class="company-auth tag <%= AuthStatus == "已认证" ? "green" : "orange" %>"><%= AuthStatus %></span>
+                                <div class="company-tags">
+                                    <span class="company-auth tag <%= AuthStatus == "已认证" ? "green" : "orange" %>"><%= AuthStatus %></span>
+                                    <% if (AuthStatus == "已认证") { %>
+                                    <span class="company-seal">📜 公章</span>
+                                    <% } %>
+                                </div>
                             </div>
                             <div class="company-address">📍 <%= CompanyAddress %></div>
                         </div>
                     </section>
 
+                    <section class="detail-card">
+                        <div class="detail-card-header">
+                            <h3>业务信息</h3>
+                        </div>
+                        <div class="supplier-capabilities">
+                            <% if (!string.IsNullOrEmpty(MainBrands)) { %>
+                            <div class="capability-item">
+                                <span class="capability-label">主营品牌</span>
+                                <div class="capability-value">
+                                    <% foreach (string brand in MainBrands.Split('|')) { %>
+                                    <span class="brand-chip"><%= brand %></span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <% } %>
+                            <% if (!string.IsNullOrEmpty(AdvantageModels)) { %>
+                            <div class="capability-item">
+                                <span class="capability-label">优势型号</span>
+                                <div class="capability-value models-list">
+                                    <%= AdvantageModels.Replace("|", " · ") %>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </section>
+
+                    <% if (IsLoggedIn && IsMerchant) { %>
                     <section class="detail-card detail-actions">
                         <div class="actions-grid">
                             <a class="btn soft" href="/merchant-workbench.aspx">查看更多供应</a>
                         </div>
                     </section>
+                    <% } %>
                 </div>
 
                 <aside class="detail-sidebar">
@@ -153,7 +188,9 @@
                         <div class="sidebar-actions">
                             <a class="btn block primary" href="#tradeInteractionModal">立即询价</a>
                             <a class="btn block soft" href="/search.aspx">🔍 返回搜索</a>
+                            <% if (IsLoggedIn && IsMerchant) { %>
                             <a class="btn block soft" href="/merchant-workbench.aspx">📋 商家后台</a>
+                            <% } %>
                         </div>
                     </div>
                     <div class="detail-card sidebar-card">

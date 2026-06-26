@@ -1,4 +1,5 @@
 using System;
+using System.Web;
 using System.Web.UI;
 using System.Configuration;
 using System.Data;
@@ -34,10 +35,28 @@ public partial class demand_detail : Page
     protected string GoodsSn = "";
     protected int ShopId = 0;
     protected bool IsLoggedIn = false;
+    protected string TradeActionText = "我要报价";
 
     protected void Page_Load(object sender, EventArgs e)
     {
         IsLoggedIn = Session["UserID"] != null && !string.IsNullOrEmpty(Session["UserID"].ToString());
+        
+        int currentRoseID = 0;
+        if (Session["RoseID"] != null)
+        {
+            int.TryParse(Session["RoseID"].ToString(), out currentRoseID);
+        }
+        
+        if (currentRoseID == 0)
+        {
+            HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+            if (userCookie != null && !string.IsNullOrEmpty(userCookie["RoseID"]))
+            {
+                int.TryParse(userCookie["RoseID"], out currentRoseID);
+            }
+        }
+        
+        TradeActionText = currentRoseID == 2 ? "立即询价" : "我要报价";
         
         if (Request.HttpMethod == "POST")
         {
@@ -78,9 +97,40 @@ public partial class demand_detail : Page
                 int.TryParse(Session["UserID"].ToString(), out fromUserId);
             }
 
+            int fromRoseID = 0;
+            if (Session["RoseID"] != null)
+            {
+                int.TryParse(Session["RoseID"].ToString(), out fromRoseID);
+            }
+            if (fromRoseID == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null && !string.IsNullOrEmpty(userCookie["RoseID"]))
+                {
+                    int.TryParse(userCookie["RoseID"], out fromRoseID);
+                }
+            }
+            if (fromRoseID == 2)
+            {
+                ResponseClearAndWrite(false, "采购商身份不允许提交报价，请使用询价功能");
+                return;
+            }
+
             string fromCompany = "";
             string fromContact = "";
             string fromTel = "";
+            if (Session["ShopCompany"] != null)
+            {
+                fromCompany = Session["ShopCompany"].ToString();
+            }
+            if (string.IsNullOrEmpty(fromCompany) && Session["ShopName"] != null)
+            {
+                fromCompany = Session["ShopName"].ToString();
+            }
+            if (string.IsNullOrEmpty(fromCompany))
+            {
+                fromCompany = "匿名供应商";
+            }
             if (Session["LinkMan"] != null)
             {
                 fromContact = Session["LinkMan"].ToString();
@@ -107,6 +157,13 @@ public partial class demand_detail : Page
             }
 
             toShopId = ShopId;
+            
+            // 不能给自己店铺的询价进行报价
+            if (fromShopId == toShopId)
+            {
+                ResponseClearAndWrite(false, "不能对自己店铺的询价进行报价");
+                return;
+            }
             
             EnquiryQuoteService service = new EnquiryQuoteService();
             bool success = service.SubmitQuote(
@@ -294,25 +351,18 @@ public partial class demand_detail : Page
                 }
 
                 TimeSpan diff = validityDate - DateTime.Now;
-                if (diff.TotalHours < 24)
+                if (diff.TotalDays < 0)
                 {
-                    Validity = "24 小时";
+                    Validity = "已过期";
                 }
-                else if (diff.TotalDays < 3)
+                else if (diff.TotalDays < 1)
                 {
-                    Validity = "3 天";
-                }
-                else if (diff.TotalDays < 7)
-                {
-                    Validity = "7 天";
-                }
-                else if (diff.TotalDays < 30)
-                {
-                    Validity = (int)diff.TotalDays + " 天";
+                    Validity = "小于1天";
                 }
                 else
                 {
-                    Validity = validityDate.ToString("yyyy-MM-dd");
+                    int days = (int)diff.TotalDays;
+                    Validity = days + "天";
                 }
 
                 DeliveryRequirement = "尽快";

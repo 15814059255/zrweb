@@ -4,11 +4,12 @@ using System.Data.SqlClient;
 
 public class GoodsService
 {
-    public DataTable GetSupplyList(int pubType)
+    public DataTable GetSupplyList(int pubType, int page = 1, int pageSize = 45)
     {
         try
         {
-            string sql = @"SELECT TOP 50 
+            int offset = (page - 1) * pageSize;
+            string sql = string.Format(@"SELECT 
                 g.goodsId, g.goodsSn, g.[Name], g.Manufacturers, g.Packaging, g.goodsStock, g.goodsUnit, 
                 g.shopPrice, g.isIncludingTax, g.createTime, g.validityDate, g.isSale, g.goodsStatus, g.dataFlag, g.pubType, g.shopId,
                 g.Brand, g.Capacitance, g.Resistance, g.Tolerance, g.Voltage, g.Dielectric, g.Power, g.TempCoefficient,
@@ -16,7 +17,8 @@ public class GoodsService
                 FROM goods g
                 LEFT JOIN shops s ON g.shopId = s.shopId
                 WHERE g.dataFlag = 1 AND g.goodsStatus = 1 AND g.isSale = 1
-                ORDER BY g.createTime DESC";
+                ORDER BY g.createTime DESC
+                OFFSET {0} ROWS FETCH NEXT {1} ROWS ONLY", offset, pageSize);
 
             DataTable dt = DbHelper.ExecuteQuery(sql);
             
@@ -32,25 +34,70 @@ public class GoodsService
             return null;
         }
     }
+    
+    public int GetSupplyListCount(int pubType)
+    {
+        try
+        {
+            string sql = @"SELECT COUNT(*) 
+                FROM goods g
+                LEFT JOIN shops s ON g.shopId = s.shopId
+                WHERE g.dataFlag = 1 AND g.goodsStatus = 1 AND g.isSale = 1";
+
+            object result = DbHelper.ExecuteScalar(sql);
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToInt32(result);
+            }
+            return 0;
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+    }
 
     /// <summary>
     /// 获取商家工作台库存列表（只显示在线供应）
     /// </summary>
     public DataTable GetInventoryList(int pubType, int shopId)
     {
+        return GetInventoryList(pubType, shopId, "");
+    }
+
+    /// <summary>
+    /// 获取商家工作台库存列表（带搜索）
+    /// </summary>
+    public DataTable GetInventoryList(int pubType, int shopId, string keyword)
+    {
         try
         {
-            string sql = @"SELECT TOP 50 
+            string sql = @"SELECT 
                 goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
                 shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
-                WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId
-                ORDER BY createTime DESC";
+                WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId";
 
-            DataTable dt = DbHelper.ExecuteQuery(sql, 
-                DbHelper.CreateParameter("@pubType", pubType),
-                DbHelper.CreateParameter("@shopId", shopId));
+            var parameters = new System.Collections.Generic.List<SqlParameter>();
+            parameters.Add(DbHelper.CreateParameter("@pubType", pubType));
+            parameters.Add(DbHelper.CreateParameter("@shopId", shopId));
+
+            if (!string.IsNullOrEmpty(keyword) && keyword.Trim().Length > 0)
+            {
+                string[] searchFields = new string[] { 
+                    "goodsSn", "Name", "Manufacturers", "Brand", 
+                    "Packaging", "Capacitance", "Resistance", 
+                    "Tolerance", "Voltage", "Dielectric" 
+                };
+                var searchCond = BuildParametricSearchCondition(keyword, searchFields, "inv");
+                sql += searchCond.Item1;
+                parameters.AddRange(searchCond.Item2);
+            }
+
+            sql += " ORDER BY createTime DESC";
+
+            DataTable dt = DbHelper.ExecuteQuery(sql, parameters.ToArray());
             
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -157,8 +204,8 @@ public class GoodsService
     }
 
     public bool InsertGoods(string goodsSn, string name, string manufacturers, string packaging,
-        int goodsStock, string goodsUnit, decimal shopPrice, int isIncludingTax,
-        int pubType, string remarks, int shopId, int userId, string validity = "1个月",
+        int goodsStock, string goodsUnit, decimal? shopPrice, int isIncludingTax,
+        int pubType, string remarks, int shopId, int userId, string validity = "30天",
         string brand = "", string capacitance = "", string resistance = "", 
         string tolerance = "", string voltage = "", string dielectric = "", 
         string power = "", string tempCoefficient = "")
@@ -184,7 +231,7 @@ public class GoodsService
                 new SqlParameter("@Packaging", packaging ?? (object)DBNull.Value),
                 new SqlParameter("@goodsStock", goodsStock),
                 new SqlParameter("@goodsUnit", goodsUnit ?? "Kpcs"),
-                new SqlParameter("@shopPrice", shopPrice),
+                new SqlParameter("@shopPrice", shopPrice.HasValue ? (object)shopPrice.Value : DBNull.Value),
                 new SqlParameter("@isIncludingTax", isIncludingTax),
                 new SqlParameter("@pubType", pubType),
                 new SqlParameter("@remarks", remarks ?? (object)DBNull.Value),
@@ -216,18 +263,20 @@ public class GoodsService
         {
             case "24小时":
                 return now.AddHours(24);
+            case "1天":
+                return now.AddDays(1);
             case "3天":
                 return now.AddDays(3);
             case "7天":
                 return now.AddDays(7);
             case "15天":
                 return now.AddDays(15);
-            case "1个月":
-                return now.AddMonths(1);
+            case "30天":
+                return now.AddDays(30);
             case "长期":
-                return now.AddYears(10); // 长期设置为10年后
+                return now.AddYears(10);
             default:
-                return now.AddMonths(1); // 默认1个月
+                return now.AddDays(30);
         }
     }
 
@@ -560,25 +609,18 @@ public class GoodsService
 
             // 根据剩余时间计算有效期显示
             TimeSpan diff = validityDate - DateTime.Now;
-            if (diff.TotalHours < 0)
+            if (diff.TotalDays < 0)
             {
                 newRow["Validity"] = "已过期";
             }
-            else if (diff.TotalHours < 24)
+            else if (diff.TotalDays < 1)
             {
-                newRow["Validity"] = "小于 24 小时";
-            }
-            else if (diff.TotalDays < 3)
-            {
-                newRow["Validity"] = (int)diff.TotalHours + " 小时";
-            }
-            else if (diff.TotalDays >= 30)
-            {
-                newRow["Validity"] = (int)(diff.TotalDays / 30) + " 个月";
+                newRow["Validity"] = "小于1天";
             }
             else
             {
-                newRow["Validity"] = (int)diff.TotalDays + " 天";
+                int days = (int)diff.TotalDays;
+                newRow["Validity"] = days + "天";
             }
 
             // 使用公司名称，优先使用 shopCompany，如果没有则使用 shopName
@@ -803,6 +845,7 @@ public class GoodsService
         System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
         
         string brand = GetStringValue(row["Brand"]);
+        string packaging = GetStringValue(row["Packaging"]);
         string capacitance = GetStringValue(row["Capacitance"]);
         string resistance = GetStringValue(row["Resistance"]);
         string tolerance = GetStringValue(row["Tolerance"]);
@@ -812,6 +855,7 @@ public class GoodsService
         string tempCoefficient = GetStringValue(row["TempCoefficient"]);
         
         if (!string.IsNullOrEmpty(brand)) paramsList.Add(brand);
+        if (!string.IsNullOrEmpty(packaging)) paramsList.Add(packaging);
         if (!string.IsNullOrEmpty(capacitance)) paramsList.Add(capacitance);
         if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
         if (!string.IsNullOrEmpty(tolerance)) paramsList.Add(tolerance);
@@ -826,7 +870,7 @@ public class GoodsService
     /// <summary>
     /// 发布采购需求
     /// </summary>
-    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "1个月",
+    public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "30天",
         string brand = "", string capacitance = "", string resistance = "", 
         string tolerance = "", string voltage = "", string dielectric = "", 
         string power = "", string tempCoefficient = "")
@@ -930,10 +974,33 @@ public class GoodsService
     /// </summary>
     public bool TakeOff(int goodsId)
     {
+        return TakeOff(goodsId, 0, 0);
+    }
+
+    /// <summary>
+    /// 下架商品（带用户和店铺信息，用于防频繁操作检查）
+    /// </summary>
+    public bool TakeOff(int goodsId, int userId, int shopId)
+    {
         try
         {
+            if (userId > 0)
+            {
+                string warning = CheckFrequentOperation(userId, goodsId, "takeoff");
+                if (!string.IsNullOrEmpty(warning))
+                {
+                    return false;
+                }
+            }
+
             string sql = @"UPDATE goods SET isSale = 0, updateTime = GETDATE() WHERE goodsId = @goodsId";
             int result = DbHelper.ExecuteNonQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
+            
+            if (result > 0 && userId > 0)
+            {
+                LogOperation(goodsId, userId, shopId, "takeoff", 1, 0);
+            }
+            
             return result > 0;
         }
         catch (Exception)
@@ -1433,15 +1500,464 @@ public class GoodsService
     /// </summary>
     public bool Restock(int goodsId)
     {
+        return Restock(goodsId, 0, 0);
+    }
+
+    /// <summary>
+    /// 重新上架商品（带用户和店铺信息，用于记录操作日志）
+    /// </summary>
+    public bool Restock(int goodsId, int userId, int shopId)
+    {
         try
         {
-            string sql = @"UPDATE goods SET isSale = 1, updateTime = GETDATE() WHERE goodsId = @goodsId";
+            string sql = @"UPDATE goods SET isSale = 1, createTime = GETDATE(), updateTime = GETDATE() WHERE goodsId = @goodsId";
             int result = DbHelper.ExecuteNonQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
+            
+            if (result > 0 && userId > 0)
+            {
+                LogOperation(goodsId, userId, shopId, "restock", 0, 1);
+            }
+            
             return result > 0;
         }
         catch (Exception)
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 检查用户是否频繁操作（120秒内下架3次）
+    /// </summary>
+    public string CheckFrequentOperation(int userId, int goodsId, string operationType)
+    {
+        try
+        {
+            EnsureOperationLogTable();
+            
+            string sql = @"SELECT COUNT(*) FROM goods_operation_log 
+                WHERE userId = @userId AND operationType = @operationType 
+                AND createTime >= DATEADD(SECOND, -120, GETDATE())";
+            
+            object result = DbHelper.ExecuteScalar(sql,
+                DbHelper.CreateParameter("@userId", userId),
+                DbHelper.CreateParameter("@operationType", operationType));
+            
+            int count = result != null && result != DBNull.Value ? Convert.ToInt32(result) : 0;
+            
+            if (count >= 3)
+            {
+                return "该操作已被系统记录，即将被添加黑名单！";
+            }
+            
+            return "";
+        }
+        catch (Exception)
+        {
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// 记录商品操作日志
+    /// </summary>
+    private void LogOperation(int goodsId, int userId, int shopId, string operationType, int beforeStatus, int afterStatus)
+    {
+        try
+        {
+            EnsureOperationLogTable();
+            
+            string sql = @"INSERT INTO goods_operation_log (goodsId, userId, shopId, operationType, beforeStatus, afterStatus, createTime) 
+                VALUES (@goodsId, @userId, @shopId, @operationType, @beforeStatus, @afterStatus, GETDATE())";
+            
+            DbHelper.ExecuteNonQuery(sql,
+                DbHelper.CreateParameter("@goodsId", goodsId),
+                DbHelper.CreateParameter("@userId", userId),
+                DbHelper.CreateParameter("@shopId", shopId > 0 ? (object)shopId : DBNull.Value),
+                DbHelper.CreateParameter("@operationType", operationType),
+                DbHelper.CreateParameter("@beforeStatus", beforeStatus),
+                DbHelper.CreateParameter("@afterStatus", afterStatus));
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    /// <summary>
+    /// 确保操作日志表存在（自动创建）
+    /// </summary>
+    private void EnsureOperationLogTable()
+    {
+        try
+        {
+            string checkSql = @"IF NOT EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[dbo].[goods_operation_log]') AND type IN ('U'))
+                BEGIN
+                    CREATE TABLE [dbo].[goods_operation_log] (
+                        [logId] int IDENTITY(1,1) NOT NULL,
+                        [goodsId] int NOT NULL,
+                        [userId] int NOT NULL,
+                        [shopId] int NULL,
+                        [operationType] varchar(20) NOT NULL,
+                        [beforeStatus] int NULL,
+                        [afterStatus] int NULL,
+                        [createTime] datetime NOT NULL DEFAULT GETDATE(),
+                        CONSTRAINT [PK_goods_operation_log] PRIMARY KEY CLUSTERED ([logId])
+                    )
+                    CREATE INDEX [IX_goods_operation_log_goodsId] ON [dbo].[goods_operation_log] ([goodsId])
+                    CREATE INDEX [IX_goods_operation_log_userId] ON [dbo].[goods_operation_log] ([userId])
+                    CREATE INDEX [IX_goods_operation_log_createTime] ON [dbo].[goods_operation_log] ([createTime])
+                END";
+            
+            DbHelper.ExecuteNonQuery(checkSql);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    /// <summary>
+    /// 辅助方法：检查列表中是否包含指定字符串（不区分大小写）
+    /// </summary>
+    private static bool ListContainsIgnoreCase(System.Collections.Generic.List<string> list, string value)
+    {
+        if (list == null || list.Count == 0 || string.IsNullOrEmpty(value))
+            return false;
+        foreach (string s in list)
+        {
+            if (string.Equals(s, value, System.StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 获取搜索关键词的所有参数变体（用于乱序查询）
+    /// 输入如 "0603 100nf 50v"，返回所有等价表示的变体列表
+    /// </summary>
+    public static System.Collections.Generic.List<string> GetSearchKeywordVariants(string keyword)
+    {
+        var allVariants = new System.Collections.Generic.List<string>();
+        if (string.IsNullOrEmpty(keyword) || keyword.Trim().Length == 0)
+        {
+            return allVariants;
+        }
+
+        string kw = keyword.Trim();
+        string[] parts = kw.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+        var tempService = new GoodsService();
+        foreach (string part in parts)
+        {
+            var partVariants = new System.Collections.Generic.List<string>();
+            partVariants.Add(part);
+
+            var paramVariants = tempService.ExpandParamVariantsInternal(part);
+            foreach (var v in paramVariants)
+            {
+                if (!ListContainsIgnoreCase(partVariants, v))
+                {
+                    partVariants.Add(v);
+                }
+            }
+
+            allVariants.AddRange(partVariants);
+        }
+
+        var uniqueList = new System.Collections.Generic.List<string>();
+        foreach (string v in allVariants)
+        {
+            if (!ListContainsIgnoreCase(uniqueList, v))
+            {
+                uniqueList.Add(v);
+            }
+        }
+
+        return uniqueList;
+    }
+
+    /// <summary>
+    /// 构建带参数变体的搜索SQL条件和参数
+    /// 返回 Tuple(whereSql追加部分, 参数列表)
+    /// </summary>
+    public static System.Tuple<string, System.Collections.Generic.List<SqlParameter>> BuildParametricSearchCondition(
+        string keyword, 
+        string[] searchFields, 
+        string paramPrefix)
+    {
+        var parameters = new System.Collections.Generic.List<SqlParameter>();
+        string whereSql = "";
+
+        if (string.IsNullOrEmpty(keyword) || keyword.Trim().Length == 0 || searchFields == null || searchFields.Length == 0)
+        {
+            return System.Tuple.Create(whereSql, parameters);
+        }
+
+        string kw = keyword.Trim();
+        string[] parts = kw.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+        var tempService = new GoodsService();
+        var keywordGroups = new System.Collections.Generic.List<System.Collections.Generic.List<string>>();
+
+        foreach (string part in parts)
+        {
+            var partVariants = new System.Collections.Generic.List<string>();
+            partVariants.Add(part);
+
+            var paramVariants = tempService.ExpandParamVariantsInternal(part);
+            foreach (var v in paramVariants)
+            {
+                if (!ListContainsIgnoreCase(partVariants, v))
+                {
+                    partVariants.Add(v);
+                }
+            }
+
+            if (partVariants.Count > 0)
+            {
+                keywordGroups.Add(partVariants);
+            }
+        }
+
+        if (keywordGroups.Count == 0)
+        {
+            return System.Tuple.Create(whereSql, parameters);
+        }
+
+        int paramIndex = 0;
+        System.Text.StringBuilder groupBuilder = new System.Text.StringBuilder();
+
+        for (int g = 0; g < keywordGroups.Count; g++)
+        {
+            var group = keywordGroups[g];
+            if (group.Count == 0) continue;
+
+            if (groupBuilder.Length > 0) groupBuilder.Append(" AND ");
+            groupBuilder.Append("(");
+
+            for (int i = 0; i < group.Count; i++)
+            {
+                string variant = group[i];
+                if (i > 0) groupBuilder.Append(" OR ");
+                groupBuilder.Append("(");
+
+                for (int j = 0; j < searchFields.Length; j++)
+                {
+                    if (j > 0) groupBuilder.Append(" OR ");
+                    string paramName = "@" + paramPrefix + paramIndex;
+                    groupBuilder.Append(searchFields[j].Trim()).Append(" LIKE ").Append(paramName);
+                    parameters.Add(DbHelper.CreateParameter(paramName, "%" + variant + "%"));
+                    paramIndex++;
+                }
+
+                groupBuilder.Append(")");
+            }
+
+            groupBuilder.Append(")");
+        }
+
+        if (groupBuilder.Length > 0)
+        {
+            whereSql = " AND (" + groupBuilder.ToString() + ")";
+        }
+
+        return System.Tuple.Create(whereSql, parameters);
+    }
+
+    /// <summary>
+    /// 内部方法：扩展参数变体，返回所有变体值的字符串列表
+    /// </summary>
+    private System.Collections.Generic.List<string> ExpandParamVariantsInternal(string input)
+    {
+        var result = new System.Collections.Generic.List<string>();
+        if (string.IsNullOrEmpty(input)) return result;
+
+        string lower = input.ToLower().Trim();
+
+        // 三位数字编码（电容）104 -> 0.1uF
+        var threeDigitMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d{3})$");
+        if (threeDigitMatch.Success)
+        {
+            string num = threeDigitMatch.Groups[1].Value;
+            int firstTwo = int.Parse(num.Substring(0, 2));
+            int multiplier = int.Parse(num.Substring(2, 1));
+            double pfValue = firstTwo * Math.Pow(10, multiplier);
+            result.Add(num);
+            if (pfValue >= 1000000)
+            {
+                double ufValue = pfValue / 1000000;
+                result.Add(TrimZero(ufValue) + "uf");
+                result.Add(TrimZero(ufValue) + "uF");
+                result.Add(TrimZero(ufValue) + "u");
+            }
+            else if (pfValue >= 1000)
+            {
+                double nfValue = pfValue / 1000;
+                result.Add(TrimZero(nfValue) + "nf");
+                result.Add(TrimZero(nfValue) + "nF");
+                result.Add(TrimZero(nfValue) + "n");
+            }
+            else
+            {
+                result.Add(TrimZero(pfValue) + "pf");
+                result.Add(TrimZero(pfValue) + "pF");
+                result.Add(TrimZero(pfValue) + "p");
+            }
+        }
+
+        // 容值 100nf / 0.1uf / 100n / 0.1u / 100pf / 100p
+        var capMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(pf|nf|uf|p|n|u)$");
+        if (capMatch.Success)
+        {
+            string numStr = capMatch.Groups[1].Value;
+            string unit = capMatch.Groups[2].Value;
+            double numVal = double.Parse(numStr);
+            result.Add(numStr + unit);
+            string unitUpper = unit == "p" ? "pF" : (unit == "n" ? "nF" : (unit == "u" ? "uF" : unit));
+            result.Add(numStr + unitUpper);
+
+            double pfValue = 0;
+            if (unit == "pf" || unit == "p") pfValue = numVal;
+            else if (unit == "nf" || unit == "n") pfValue = numVal * 1000;
+            else if (unit == "uf" || unit == "u") pfValue = numVal * 1000000;
+
+            if (pfValue > 0)
+            {
+                string threeDigit = ToThreeDigitCode(pfValue);
+                if (!string.IsNullOrEmpty(threeDigit))
+                {
+                    result.Add(threeDigit);
+                }
+                if (pfValue >= 1000000 && unit != "uf" && unit != "u")
+                {
+                    result.Add(TrimZero(pfValue / 1000000) + "uf");
+                    result.Add(TrimZero(pfValue / 1000000) + "uF");
+                }
+                else if (pfValue >= 1000 && unit != "nf" && unit != "n")
+                {
+                    result.Add(TrimZero(pfValue / 1000) + "nf");
+                    result.Add(TrimZero(pfValue / 1000) + "nF");
+                }
+                else if (pfValue < 1000 && unit != "pf" && unit != "p")
+                {
+                    result.Add(TrimZero(pfValue) + "pf");
+                    result.Add(TrimZero(pfValue) + "pF");
+                }
+            }
+        }
+
+        // 电压: 50v / 16V
+        var voltageMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(v|kv|mv)$");
+        if (voltageMatch.Success)
+        {
+            string numStr = voltageMatch.Groups[1].Value;
+            string unit = voltageMatch.Groups[2].Value;
+            result.Add(numStr + unit);
+            result.Add(numStr + unit.ToUpper());
+            result.Add(numStr + " " + unit);
+            result.Add(numStr + " " + unit.ToUpper());
+        }
+
+        // 精度百分比: 5% / 10% / ±5% / ±10% / 1%
+        var percentMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^[±]?(\d+\.?\d*)%$");
+        if (percentMatch.Success)
+        {
+            string numStr = percentMatch.Groups[1].Value;
+            result.Add("±" + numStr + "%");
+            result.Add(numStr + "%");
+            string code = TolerancePercentToCode(numStr);
+            if (!string.IsNullOrEmpty(code))
+            {
+                result.Add(code);
+            }
+        }
+
+        // 精度代号: J(±5%), K(±10%), M(±20%), F(±1%), G(±2%)
+        if (lower.Length == 1 && "fjgkdmc".IndexOf(lower[0]) >= 0)
+        {
+            string code = lower.ToUpper();
+            string percent = ToleranceCodeToPercent(code);
+            if (!string.IsNullOrEmpty(percent))
+            {
+                result.Add("±" + percent + "%");
+                result.Add(percent + "%");
+            }
+            result.Add(code);
+        }
+
+        // 电阻: 104k / 100k / 4k7 / 4.7k
+        var resistorCodeMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d{2,3})k$");
+        if (resistorCodeMatch.Success)
+        {
+            string num = resistorCodeMatch.Groups[1].Value;
+            if (num.Length == 3)
+            {
+                int firstTwo = int.Parse(num.Substring(0, 2));
+                int multiplier = int.Parse(num.Substring(2, 1));
+                double ohmValue = firstTwo * Math.Pow(10, multiplier);
+                result.Add(num + "k");
+                result.Add(num + "K");
+                if (ohmValue >= 1000)
+                {
+                    result.Add(TrimZero(ohmValue / 1000) + "k");
+                    result.Add(TrimZero(ohmValue / 1000) + "K");
+                }
+                result.Add(TrimZero(ohmValue) + "ohm");
+                result.Add(TrimZero(ohmValue) + "Ω");
+            }
+        }
+
+        // 4k7 表示法
+        var resistorAltMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+)k(\d+)$");
+        if (resistorAltMatch.Success)
+        {
+            string intPart = resistorAltMatch.Groups[1].Value;
+            string decPart = resistorAltMatch.Groups[2].Value;
+            result.Add(intPart + "." + decPart + "k");
+            result.Add(intPart + "." + decPart + "K");
+        }
+
+        // 电阻值 100k / 1M / 4.7k / 10K
+        var resistorValMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(\d+\.?\d*)(k|m|ohm)$");
+        if (resistorValMatch.Success)
+        {
+            string numStr = resistorValMatch.Groups[1].Value;
+            string unit = resistorValMatch.Groups[2].Value;
+            result.Add(numStr + unit);
+            result.Add(numStr + unit.ToUpper());
+            result.Add(numStr + " " + unit);
+            result.Add(numStr + " " + unit.ToUpper());
+        }
+
+        // 封装: 0603 / 0805 / 1206
+        var packageMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(01005|0201|0402|0603|0805|1206|1210|1812|2010|2512)$");
+        if (packageMatch.Success)
+        {
+            result.Add(lower);
+            result.Add(lower.ToUpper());
+        }
+
+        // 介质: x7r / y5v / npo / c0g
+        var dielectricMatch = System.Text.RegularExpressions.Regex.Match(lower, @"^(x7r|y5v|z5u|npo|c0g|np0|x5r|x6s|x7s|cog)$");
+        if (dielectricMatch.Success)
+        {
+            result.Add(lower.ToUpper());
+            result.Add(lower.ToLower());
+            if (lower == "npo" || lower == "np0")
+            {
+                result.Add("C0G");
+                result.Add("COG");
+                result.Add("c0g");
+                result.Add("cog");
+            }
+            if (lower == "c0g" || lower == "cog")
+            {
+                result.Add("NPO");
+                result.Add("NP0");
+                result.Add("npo");
+                result.Add("np0");
+            }
+        }
+
+        return result;
     }
 }

@@ -230,17 +230,26 @@ public partial class my_inquiries : System.Web.UI.Page
                                 newRow["RemarksDisplay"] = "";
                             }
 
-                            // 状态：根据是否有报价回复来判断
+                            // 状态：根据是否有报价回复和readStatus来判断
                             int hasQuoteReply = GetIntValue(row["HasQuoteReply"], 0);
-                            if (hasQuoteReply == 0)
+                            int readStatus = GetIntValue(row["readStatus"], 0);
+                            if (hasQuoteReply == 1)
                             {
-                                newRow["Status"] = "待回复";
+                                // 已报价
+                                newRow["Status"] = "已报价";
+                                newRow["StatusClass"] = "green";
+                            }
+                            else if (readStatus == 0)
+                            {
+                                // 未查看
+                                newRow["Status"] = "待查看";
                                 newRow["StatusClass"] = "orange";
                             }
                             else
                             {
+                                // 已查看但未报价
                                 newRow["Status"] = "已查看";
-                                newRow["StatusClass"] = "blue";
+                                newRow["StatusClass"] = "gray";
                             }
 
                             dt.Rows.Add(newRow);

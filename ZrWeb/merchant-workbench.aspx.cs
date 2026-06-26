@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Web;
+using System.Text;
 
 public partial class merchant_workbench : System.Web.UI.Page
 {
@@ -16,13 +17,27 @@ public partial class merchant_workbench : System.Web.UI.Page
     public int CurrentPage = 1;
     public int TotalPages = 49;
     public bool HasInventoryData = false;
+    public string SearchKeyword = "";
 
     protected void Page_Load(object sender, EventArgs e)
     {
         // 处理AJAX请求
         if (Request["action"] == "publish_goods")
         {
+            if (Session != null && Session["IsPublishing"] != null && (bool)Session["IsPublishing"])
+            {
+                WriteJson("{\"success\":false,\"message\":\"正在发布中，请稍候\"}");
+                return;
+            }
+            if (Session != null)
+            {
+                Session["IsPublishing"] = true;
+            }
             HandlePublishGoods();
+            if (Session != null)
+            {
+                Session["IsPublishing"] = false;
+            }
             return;
         }
 
@@ -56,11 +71,7 @@ public partial class merchant_workbench : System.Web.UI.Page
         {
             if (Session == null)
             {
-                Response.Clear();
-                Response.ContentType = "application/json";
-                Response.Charset = "utf-8";
-                Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
-                Response.End();
+                WriteJson("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
                 return;
             }
             
@@ -74,8 +85,14 @@ public partial class merchant_workbench : System.Web.UI.Page
             string goodsUnit = Request["goodsUnit"];
             if (string.IsNullOrEmpty(goodsUnit)) goodsUnit = "Kpcs";
             
-            decimal shopPrice = 0;
-            decimal.TryParse(Request["shopPrice"], out shopPrice);
+            decimal? shopPrice = null;
+            string priceStr = Request["shopPrice"];
+            if (!string.IsNullOrEmpty(priceStr)) {
+                decimal price;
+                if (decimal.TryParse(priceStr, out price)) {
+                    shopPrice = price;
+                }
+            }
             
             int isIncludingTax = 0;
             int.TryParse(Request["isIncludingTax"], out isIncludingTax);
@@ -83,7 +100,7 @@ public partial class merchant_workbench : System.Web.UI.Page
             int pubType = 1;
             int.TryParse(Request["pubType"], out pubType);
             
-            string validity = Request["validity"] ?? "1个月";
+            string validity = Request["validity"] ?? "30天";
 
             // 收集参数字段
             string brand = Request["attr_品牌"] ?? "";
@@ -134,18 +151,14 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (string.IsNullOrEmpty(goodsSn))
             {
-                Response.Clear();
-                Response.Write("{\"success\":false,\"message\":\"请输入型号\"}");
-                Response.End();
+                WriteJson("{\"success\":false,\"message\":\"请输入型号\"}");
                 return;
             }
 
             int userId = UserHelper.GetUserId();
             if (userId == 0)
             {
-                Response.Clear();
-                Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
-                Response.End();
+                WriteJson("{\"success\":false,\"message\":\"请先登录\"}");
                 return;
             }
 
@@ -173,9 +186,7 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (shopId == 0)
             {
-                Response.Clear();
-                Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
-                Response.End();
+                WriteJson("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
                 return;
             }
 
@@ -188,31 +199,24 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (success)
             {
-                Response.Clear();
-                Response.Write("{\"success\":true,\"message\":\"发布成功\"}");
+                WriteJson("{\"success\":true,\"message\":\"发布成功\"}");
             }
             else
             {
-                Response.Clear();
-                Response.Write("{\"success\":false,\"message\":\"发布失败\"}");
+                WriteJson("{\"success\":false,\"message\":\"发布失败\"}");
             }
-            Response.End();
         }
         catch (System.Threading.ThreadAbortException)
         {
-            // 忽略 ThreadAbortException，这是 Response.End() 导致的
         }
         catch (Exception ex)
         {
-            Response.Clear();
-            Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
-            Response.End();
+            WriteJson("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
     }
 
     private void HandleTakeOff()
     {
-        Response.ContentType = "application/json";
         try
         {
             int goodsId = 0;
@@ -220,20 +224,31 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (goodsId == 0)
             {
-                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                WriteJson("{\"success\":false,\"message\":\"无效的商品ID\"}");
                 return;
             }
 
+            int userId = UserHelper.GetUserId();
+            int shopId = 0;
+            
             GoodsService service = new GoodsService();
-            bool success = service.TakeOff(goodsId);
+            
+            string warning = service.CheckFrequentOperation(userId, goodsId, "takeoff");
+            if (!string.IsNullOrEmpty(warning))
+            {
+                WriteJson("{\"success\":false,\"message\":\"" + warning.Replace("\"", "\\\"") + "\"}");
+                return;
+            }
+            
+            bool success = service.TakeOff(goodsId, userId, shopId);
 
             if (success)
             {
-                Response.Write("{\"success\":true,\"message\":\"下架成功\"}");
+                WriteJson("{\"success\":true,\"message\":\"下架成功\"}");
             }
             else
             {
-                Response.Write("{\"success\":false,\"message\":\"下架失败，请重试\"}");
+                WriteJson("{\"success\":false,\"message\":\"下架失败，请重试\"}");
             }
         }
         catch (System.Threading.ThreadAbortException)
@@ -241,14 +256,12 @@ public partial class merchant_workbench : System.Web.UI.Page
         }
         catch (Exception ex)
         {
-            Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            WriteJson("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
-        Response.End();
     }
 
     private void HandleRestock()
     {
-        Response.ContentType = "application/json";
         try
         {
             int goodsId = 0;
@@ -256,32 +269,33 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (goodsId == 0)
             {
-                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                WriteJson("{\"success\":false,\"message\":\"无效的商品ID\"}");
                 return;
             }
 
+            int userId = UserHelper.GetUserId();
+            int shopId = 0;
+            
             GoodsService service = new GoodsService();
-            bool success = service.Restock(goodsId);
+            bool success = service.Restock(goodsId, userId, shopId);
 
             if (success)
             {
-                Response.Write("{\"success\":true,\"message\":\"重新上架成功\"}");
+                WriteJson("{\"success\":true,\"message\":\"重新上架成功\"}");
             }
             else
             {
-                Response.Write("{\"success\":false,\"message\":\"重新上架失败\"}");
+                WriteJson("{\"success\":false,\"message\":\"重新上架失败\"}");
             }
         }
         catch (Exception ex)
         {
-            Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            WriteJson("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
-        Response.End();
     }
 
     private void HandleUpdateSupply()
     {
-        Response.ContentType = "application/json";
         try
         {
             int goodsId = 0;
@@ -296,7 +310,7 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (goodsId == 0)
             {
-                Response.Write("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                WriteJson("{\"success\":false,\"message\":\"无效的商品ID\"}");
                 return;
             }
 
@@ -305,18 +319,17 @@ public partial class merchant_workbench : System.Web.UI.Page
 
             if (success)
             {
-                Response.Write("{\"success\":true,\"message\":\"修改成功\"}");
+                WriteJson("{\"success\":true,\"message\":\"修改成功\"}");
             }
             else
             {
-                Response.Write("{\"success\":false,\"message\":\"修改失败\"}");
+                WriteJson("{\"success\":false,\"message\":\"修改失败\"}");
             }
         }
         catch (Exception ex)
         {
-            Response.Write("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            WriteJson("{\"success\":false,\"message\":\"错误: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
-        Response.End();
     }
 
     private void LoadStats()
@@ -397,8 +410,10 @@ public partial class merchant_workbench : System.Web.UI.Page
                 }
             }
 
+            SearchKeyword = Request.QueryString["keyword"] ?? "";
+
             GoodsService service = new GoodsService();
-            dt = shopId > 0 ? service.GetInventoryList(1, shopId) : null;
+            dt = shopId > 0 ? service.GetInventoryList(1, shopId, SearchKeyword) : null;
         }
         catch
         {
@@ -500,5 +515,21 @@ public partial class merchant_workbench : System.Web.UI.Page
         if (value == DBNull.Value || value == null)
             return "";
         return value.ToString();
+    }
+    
+    private void WriteJson(string json)
+    {
+        try {
+            Response.ClearContent();
+            Response.ClearHeaders();
+            Response.ContentType = "application/json";
+            Response.Charset = "UTF-8";
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            Response.OutputStream.Write(bytes, 0, bytes.Length);
+            Response.Flush();
+        } finally {
+            Response.SuppressContent = true;
+            ApplicationInstance.CompleteRequest();
+        }
     }
 }

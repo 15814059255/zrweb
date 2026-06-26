@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Web;
 
 public partial class register : System.Web.UI.Page
 {
@@ -154,10 +155,10 @@ public partial class register : System.Web.UI.Page
             // 插入用户数据，使用手机号作为用户名，并返回新插入的用户ID
             string insertSql = @"INSERT INTO userinfo
                 (UserName, Password, UserGuid, SysStatus, LinkMan, MobilePhone, QQ, Email,
-                 RoseID, IsCheck, CreateTime, Source)
+                 RoseID, IsCheck, CreateTime)
                 OUTPUT INSERTED.UserID
                 VALUES (@UserName, @Password, @UserGuid, 0, @LinkMan, @MobilePhone,
-                 @QQ, @Email, @RoseID, 1, GETDATE(), @Source)";
+                 @QQ, @Email, @RoseID, 1, GETDATE())";
 
             object userIdObj = DbHelper.ExecuteScalar(insertSql,
                 DbHelper.CreateParameter("@UserName", mobilePhone),
@@ -167,18 +168,46 @@ public partial class register : System.Web.UI.Page
                 DbHelper.CreateParameter("@MobilePhone", mobilePhone),
                 DbHelper.CreateParameter("@QQ", string.IsNullOrEmpty(qq) ? (object)DBNull.Value : qq),
                 DbHelper.CreateParameter("@Email", string.IsNullOrEmpty(email) ? (object)DBNull.Value : email),
-                DbHelper.CreateParameter("@RoseID", roseId),
-                DbHelper.CreateParameter("@Source", registerIP));
+                DbHelper.CreateParameter("@RoseID", roseId));
 
             int userId = userIdObj != DBNull.Value && userIdObj != null ? Convert.ToInt32(userIdObj) : 0;
 
             if (userId > 0)
             {
                 // 自动创建店铺记录
-                CreateShopForUser(userId, mobilePhone, linkMan, shopCompany);
+                int shopId = CreateShopForUser(userId, mobilePhone, linkMan, shopCompany);
+                
+                // 查询店铺信息
+                string shopName = "";
+                string shopCompanyName = "";
+                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopName, shopCompany FROM shops WHERE userId = @userId AND dataFlag = 1", 
+                    DbHelper.CreateParameter("@userId", userId));
+                if (shopDt != null && shopDt.Rows.Count > 0)
+                {
+                    shopName = GetStringValue(shopDt.Rows[0]["shopName"]);
+                    shopCompanyName = GetStringValue(shopDt.Rows[0]["shopCompany"]);
+                }
 
-                // 注册成功 - 隐藏表单，显示成功页
-                ShowSuccessState();
+                // 自动登录 - 设置Session
+                Session["UserID"] = userId;
+                Session["UserName"] = mobilePhone;
+                Session["LinkMan"] = linkMan;
+                Session["MobilePhone"] = mobilePhone;
+                Session["RoseID"] = roseId;
+                Session["UserGuid"] = userGuid;
+                Session["ShopId"] = shopId;
+                Session["ShopName"] = shopName;
+                Session["ShopCompany"] = shopCompanyName;
+
+                // 保存用户信息到Cookie（有效期7天）
+                SaveUserCookie(userId, mobilePhone, linkMan, mobilePhone, roseId, userGuid, shopId, shopName, shopCompanyName);
+
+                // 缓存用户信息到Redis
+                try { RedisHelper.CacheUserInfo(userId, mobilePhone, linkMan, mobilePhone, roseId, userGuid); } catch { }
+
+                // 注册成功 - 跳转到对应工作台
+                string redirectUrl = roseId == 2 ? "/buyer-workbench.aspx" : "/merchant-workbench.aspx";
+                Response.Redirect(redirectUrl);
             }
             else
             {
@@ -192,7 +221,7 @@ public partial class register : System.Web.UI.Page
         }
     }
 
-    private void CreateShopForUser(int userId, string telephone, string shopkeeper, string shopCompany)
+    private int CreateShopForUser(int userId, string telephone, string shopkeeper, string shopCompany)
     {
         try
         {
@@ -206,11 +235,19 @@ public partial class register : System.Web.UI.Page
                 DbHelper.CreateParameter("@shopCompany", shopCompany ?? ""),
                 DbHelper.CreateParameter("@telephone", telephone),
                 DbHelper.CreateParameter("@shopkeeper", shopkeeper));
+            
+            DataTable dt = DbHelper.ExecuteQuery("SELECT shopId FROM shops WHERE userId = @userId AND dataFlag = 1 ORDER BY createTime DESC",
+                DbHelper.CreateParameter("@userId", userId));
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                return Convert.ToInt32(dt.Rows[0]["shopId"]);
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine("CreateShopForUser 错误: " + ex.Message);
         }
+        return 0;
     }
 
     private string GetMD5Hash(string input)
@@ -245,12 +282,59 @@ public partial class register : System.Web.UI.Page
                 {
                     ip = Request.ServerVariables["REMOTE_ADDR"];
                 }
+                
+                // 将 IPv6 本地回环地址转换为 IPv4 格式
+                if (ip == "::1")
+                {
+                    ip = "127.0.0.1";
+                }
+                // 将完整 IPv6 地址转换为简洁格式
+                if (ip.StartsWith("::ffff:"))
+                {
+                    ip = ip.Substring(7);
+                }
             }
             catch
             {
-                ip = "未知";
+                ip = "127.0.0.1";
             }
             return ip;
+        }
+        
+        private int GetIntValue(object value, int defaultValue)
+        {
+            if (value == DBNull.Value || value == null)
+            {
+                return defaultValue;
+            }
+            return Convert.ToInt32(value);
+        }
+        
+        private string GetStringValue(object value)
+        {
+            if (value == DBNull.Value || value == null)
+            {
+                return "";
+            }
+            return value.ToString();
+        }
+        
+        private void SaveUserCookie(int userId, string userName, string linkMan, string mobilePhone, int roseId, string userGuid, int shopId, string shopName, string shopCompany)
+        {
+            HttpCookie userCookie = new HttpCookie("ZrWebUser");
+            userCookie["UserID"] = userId.ToString();
+            userCookie["UserName"] = userName;
+            userCookie["LinkMan"] = linkMan;
+            userCookie["MobilePhone"] = mobilePhone;
+            userCookie["RoseID"] = roseId.ToString();
+            userCookie["UserGuid"] = userGuid;
+            userCookie["ShopId"] = shopId.ToString();
+            userCookie["ShopName"] = shopName;
+            userCookie["ShopCompany"] = shopCompany;
+            userCookie.Expires = DateTime.Now.AddDays(7);
+            userCookie.HttpOnly = true;
+            userCookie.Path = "/";
+            Response.Cookies.Add(userCookie);
         }
 
     private void ShowError(string message)

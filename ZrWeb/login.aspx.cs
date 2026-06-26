@@ -49,7 +49,7 @@ public partial class login : System.Web.UI.Page
         string encryptedPassword = GetMD5Hash(password);
 
         // 查询用户
-        string sql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, UserGuid FROM userinfo WHERE UserName=@UserName AND Password=@Password AND SysStatus=0";
+        string sql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, SysStatus, UserGuid FROM userinfo WHERE UserName=@UserName AND Password=@Password";
         DataTable dt = DbHelper.ExecuteQuery(sql,
             DbHelper.CreateParameter("@UserName", userName),
             DbHelper.CreateParameter("@Password", encryptedPassword));
@@ -57,6 +57,13 @@ public partial class login : System.Web.UI.Page
         if (dt.Rows.Count > 0)
         {
             DataRow row = dt.Rows[0];
+            
+            int sysStatus = GetIntValue(row["SysStatus"], 0);
+            if (sysStatus == 1)
+            {
+                ShowError("账号已被禁用，请联系管理员");
+                return;
+            }
             
             // 安全获取 IsCheck（处理 DBNull）
             int isCheck = GetIntValue(row["IsCheck"], 0);

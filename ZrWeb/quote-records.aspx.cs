@@ -10,6 +10,7 @@ public partial class quote_records : System.Web.UI.Page
     public int CurrentPage = 1;
     public int TotalPages = 1;
     public bool HasData = false;
+    public string SearchKeyword = "";
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -27,6 +28,19 @@ public partial class quote_records : System.Web.UI.Page
 
     private int GetInquiryQuantity(string goodsSn, int fromShopId, int toShopId)
     {
+        try
+        {
+            string sql = "SELECT TOP 1 goodsStock FROM goods WHERE goodsSn = @goodsSn AND dataFlag = 1 AND isSale = 1";
+            object result = DbHelper.ExecuteScalar(sql,
+                DbHelper.CreateParameter("@goodsSn", goodsSn));
+            if (result != null && result != DBNull.Value)
+            {
+                int stock = Convert.ToInt32(result);
+                if (stock > 0) return stock;
+            }
+        }
+        catch { }
+        
         try
         {
             string sql = "SELECT TOP 1 fromQuantity FROM enquiryquoteprice WHERE eqType = 1 AND goodsSn = @goodsSn AND fromShopId = @fromShopId AND toShopId = @toShopId AND dataFlag = 1 ORDER BY createTime DESC";
@@ -99,9 +113,11 @@ public partial class quote_records : System.Web.UI.Page
 
             EnquiryQuoteService service = new EnquiryQuoteService();
             
+            SearchKeyword = Request.QueryString["keyword"] ?? "";
+
             if (shopId > 0)
             {
-                dt = service.GetQuotesByShop(shopId);
+                dt = service.GetQuotesByShop(shopId, SearchKeyword);
             }
             else if (userId > 0)
             {
@@ -153,13 +169,13 @@ public partial class quote_records : System.Web.UI.Page
                 foreach (DataRow row in dt.Rows)
                 {
                     int readStatus = GetIntValue(row["readStatus"], 0);
-                    row["StatusClass"] = readStatus == 1 ? "blue" : "green";
-                    
+                    row["StatusClass"] = readStatus == 1 ? "green" : "orange";
+
                     if (!dt.Columns.Contains("Status"))
                     {
                         dt.Columns.Add("Status", typeof(string));
                     }
-                    row["Status"] = readStatus == 1 ? "已查看" : "未查看";
+                    row["Status"] = readStatus == 1 ? "已查看" : "待查看";
                 }
             }
             
@@ -255,8 +271,22 @@ public partial class quote_records : System.Web.UI.Page
                     row["InquiryPrice"] = "面议";
                 if (row["InquiryRemarks"] == DBNull.Value || string.IsNullOrEmpty(row["InquiryRemarks"].ToString()))
                     row["InquiryRemarks"] = "-";
+                
+                // 报价数量：优先使用报价数量，为0时使用询价方的采购数量
+                string myQtyStr = row["MyQuantity"] == DBNull.Value ? "" : row["MyQuantity"].ToString();
+                string inquiryQtyStr = row["InquiryQuantity"] == DBNull.Value ? "0" : row["InquiryQuantity"].ToString();
+                int myQty = 0;
+                int inquiryQty = 0;
+                int.TryParse(myQtyStr, out myQty);
+                int.TryParse(inquiryQtyStr, out inquiryQty);
+                
+                if (myQty <= 0 && inquiryQty > 0)
+                {
+                    row["MyQuantity"] = inquiryQty.ToString();
+                    row["Quantity"] = inquiryQty.ToString();
+                }
                 if (row["MyQuantity"] == DBNull.Value || string.IsNullOrEmpty(row["MyQuantity"].ToString()))
-                    row["MyQuantity"] = row["Quantity"];
+                    row["MyQuantity"] = "0";
                 if (row["MyUnit"] == DBNull.Value || string.IsNullOrEmpty(row["MyUnit"].ToString()))
                     row["MyUnit"] = row["Unit"];
                 if (row["MyPrice"] == DBNull.Value || string.IsNullOrEmpty(row["MyPrice"].ToString()))

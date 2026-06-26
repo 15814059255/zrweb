@@ -12,6 +12,29 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .detail-hero-inner {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+        }
+        .detail-hero-left {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+        .detail-hero-right {
+            flex: 0 0 auto !important;
+            margin-left: 200px !important;
+            min-width: 200px !important;
+            text-align: right !important;
+        }
+        .detail-price-wrap {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+        }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -155,7 +178,7 @@
                     <div class="detail-card sidebar-card">
                         <h3>快速导航</h3>
                         <div class="sidebar-actions">
-                            <a class="btn block primary" href="#tradeInteractionModal">我要报价</a>
+                            <a class="btn block primary" href="#tradeInteractionModal"><%= TradeActionText %></a>
                             <a class="btn block soft" href="/search.aspx">🔍 返回搜索</a>
                             <% if (IsLoggedIn) { %>
                             <a class="btn block soft" href="/buyer-workbench.aspx">📋 采购后台</a>

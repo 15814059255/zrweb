@@ -27,13 +27,26 @@ public partial class supply_detail : Page
     protected string CompanyName = "";
     protected string CompanyAddress = "";
     protected string AuthStatus = "";
+    protected string MainBrands = "";
+    protected string AdvantageModels = "";
     protected int GoodsId = 0;
     protected int ShopId = 0;
+    protected bool IsLoggedIn = false;
+    protected bool IsMerchant = false;
 
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
+            int userId = 0;
+            if (Session["UserID"] != null && int.TryParse(Session["UserID"].ToString(), out userId))
+            {
+                IsLoggedIn = userId > 0;
+            }
+            if (Session["IsMerchant"] != null)
+            {
+                bool.TryParse(Session["IsMerchant"].ToString(), out IsMerchant);
+            }
             LoadSupplyDetail();
         }
     }
@@ -55,10 +68,10 @@ public partial class supply_detail : Page
     {
         try
         {
-            string sql = @"SELECT g.*, s.shopName, s.shopCompany, s.shopAddress, s.userId 
+            string sql = @"SELECT g.*, s.shopName, s.shopCompany, s.shopAddress, s.shopTel, s.userId 
                           FROM goods g 
                           LEFT JOIN shops s ON g.shopId = s.shopId 
-                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.pubType = 1 AND g.isSale = 1";
+                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.pubType = 1";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@goodsId", goodsId));
 
@@ -166,7 +179,13 @@ public partial class supply_detail : Page
                 }
                 Parameters = paramPairs.Count > 0 ? string.Join(" · ", paramPairs) : (!string.IsNullOrEmpty(goodsDesc) ? goodsDesc : "");
 
-                if (goodsStock > 0)
+                int isSale = GetIntValue(row["isSale"], 0);
+                
+                if (isSale == 0)
+                {
+                    Quantity = "<span style='color:#e74c3c;font-weight:600;'>已下架</span>";
+                }
+                else if (goodsStock > 0)
                 {
                     string unit = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
                     Quantity = "现货 " + goodsStock + "/" + unit;
@@ -200,6 +219,9 @@ public partial class supply_detail : Page
 
                 CompanyName = !string.IsNullOrEmpty(shopCompany) ? shopCompany : (!string.IsNullOrEmpty(shopName) ? shopName : "匿名供应商");
                 CompanyAddress = !string.IsNullOrEmpty(shopAddress) ? shopAddress : "未填写";
+                
+                MainBrands = GetStringValue(row["shopName"]);
+                AdvantageModels = GetStringValue(row["shopTel"]);
                 
                 if (userId > 0)
                 {
@@ -274,9 +296,12 @@ public partial class supply_detail : Page
 
     private void SetSEO()
     {
-        PageTitle = Model + " 供应详情 - 阻容网";
-        PageKeywords = Model + "," + Brand + ",贴片电容,0603,供应,阻容网";
-        PageDescription = Model + " (" + Brand + " " + Package + " " + Parameters + ") 供应信息，" + Quantity + "，有效期" + Validity + "，供应商：" + CompanyName;
+        string brandKeywords = !string.IsNullOrEmpty(MainBrands) ? "," + MainBrands.Replace("|", ",") : "";
+        string modelKeywords = !string.IsNullOrEmpty(AdvantageModels) ? "," + AdvantageModels.Replace("|", ",") : "";
+        
+        PageTitle = Model + " " + Brand + " " + Package + " 供应详情 - 阻容网";
+        PageKeywords = Model + "," + Brand + "," + Package + "," + Capacitance + "," + Resistance + "," + Tolerance + "," + Voltage + "," + Dielectric + ",贴片电容,贴片电阻,电子元器件,供应,采购,阻容网" + brandKeywords + modelKeywords;
+        PageDescription = Model + " (" + Brand + " " + Package + " " + ParametersSummary + ") 供应信息，" + Quantity + "，有效期" + Validity + "，供应商：" + CompanyName + "。主营品牌：" + MainBrands.Replace("|", "、") + "。优势型号：" + AdvantageModels.Replace("|", "、");
     }
 
     private int GetIntValue(object value, int defaultValue)

@@ -71,6 +71,7 @@
                         </ItemTemplate>
                     </asp:Repeater>
                 </div>
+                <div class="pagination"><button class="btn" type="button" data-page-prev<% if (CurrentPage <= 1) { %> disabled<% } %>>上一页</button><span data-page-info>第 <%= CurrentPage %> / <%= TotalPages %> 页</span><span class="page-size">每页 45 条</span><button class="btn" type="button" data-page-next<% if (CurrentPage >= TotalPages) { %> disabled<% } %>>下一页</button></div>
             </section>
         </main>
     </div>
@@ -84,7 +85,7 @@
                     <div class="form-row suggest-wrap inline-row"><label>型号</label><input class="input" data-model-input data-clear-on-click autocomplete="off" placeholder="输入型号，如 GRM188R71H104KA93D"><div class="suggest-list" data-suggest-list hidden></div></div>
                     <div class="form-row"><div class="attr-grid" data-attr-grid></div></div>
                     <div class="form-row trade-grid"><label>单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button></span></label><label><span data-qty-label>可供数量</span><span class="qty-unit-inline"><input class="input" data-required="数量" placeholder="填写数量"><select class="input unit-inline-input" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
-                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
+                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="1天">1天</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="30天">30天</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
                 </form>
             </div>
         </div>
@@ -122,6 +123,24 @@
         document.getElementById('indexSearchInput')?.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') doIndexSearch();
         });
+
+        // 首页分页功能
+        (function() {
+            var currentPage = <%= CurrentPage %>;
+            var totalPages = <%= TotalPages %>;
+            
+            document.querySelector('[data-page-prev]')?.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    window.location.href = '?page=' + (currentPage - 1);
+                }
+            });
+            
+            document.querySelector('[data-page-next]')?.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    window.location.href = '?page=' + (currentPage + 1);
+                }
+            });
+        })();
 
         // 发布弹窗初始化
         document.addEventListener('DOMContentLoaded', function() {

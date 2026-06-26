@@ -33,7 +33,15 @@
                 </div>
             </header>
             <section class="panel">
-                <div class="searchbar inventory-searchbar"><input class="input" data-inventory-search placeholder="搜索型号、品牌、参数"><button class="btn primary" data-inventory-search-btn>搜索</button></div>
+                <form method="get" action="merchant-workbench.aspx" class="searchbar inventory-searchbar">
+                    <input class="input" name="keyword" placeholder="搜索型号或参数" value="<%= SearchKeyword %>">
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn primary" type="submit">搜索</button>
+                        <% if (!string.IsNullOrEmpty(SearchKeyword)) { %>
+                            <a class="btn" href="merchant-workbench.aspx">清除</a>
+                        <% } %>
+                    </div>
+                </form>
             </section>
             
             <section class="panel" style="margin-top:18px"><div class="section-title"><div><h2>库存管理</h2></div><div class="actions"><button class="btn primary merchant-publish-fab" type="button" data-publish-open data-publish-default="supply" data-publish-part-default="capacitor">发布供采</button></div></div>
@@ -97,7 +105,7 @@
                     </div>
                     <div class="form-row trade-grid"><label>单价<span class="tax-inline"><span class="price-field is-untaxed"><input class="price-input" name="shopPrice" min="0.0001" step="0.0001" value=""><span>未税</span></span><button class="tax-switch" type="button" data-tax-toggle aria-pressed="false"><span></span></button><input type="hidden" name="isIncludingTax" value="0"></span></label><label><span data-qty-label>可供数量</span><span class="qty-unit-inline"><input class="input" name="goodsStock" data-required="数量" placeholder="填写数量"><select class="input unit-inline-input" name="goodsUnit" data-clear-on-click><option>Kpcs</option><option>Pcs</option><option>盘</option><option>卷</option><option>件</option></select></span></label></div>
                     <input type="hidden" name="pubType" id="pubTypeInput" value="1">
-                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="24小时">24小时</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="1个月">1个月</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
+                    <div class="publish-footer"><div class="validity-picker" aria-label="有效期"><span>有效期</span><button type="button" data-validity="1天">1天</button><button type="button" data-validity="3天">3天</button><button type="button" data-validity="7天">7天</button><button type="button" data-validity="15天">15天</button><button class="active" type="button" data-validity="30天">30天</button><button type="button" data-validity="长期">长期</button></div><button class="btn primary publish-confirm" type="button" data-publish-confirm>确定</button></div>
                 </form>
             </div>
         </div>
@@ -203,7 +211,6 @@
 
             var publishModal = document.getElementById('publishModal');
             var publishForm = document.getElementById('merchantPublishForm');
-            var publishConfirmBtn = publishModal.querySelector('[data-publish-confirm]');
             var pubTypeInput = document.getElementById('pubTypeInput');
 
             // 初始渲染参数输入框
@@ -231,48 +238,6 @@
                     }
                 });
             });
-
-            if (publishConfirmBtn) {
-                publishConfirmBtn.addEventListener('click', function() {
-                    var formData = new FormData(publishForm);
-                    var goodsSn = formData.get('goodsSn');
-                    var goodsStock = formData.get('goodsStock');
-
-                    if (!goodsSn || goodsSn.trim() === '') {
-                        Toast.warning('请输入型号');
-                        return;
-                    }
-                    if (!goodsStock || goodsStock.trim() === '') {
-                        Toast.warning('请输入数量');
-                        return;
-                    }
-
-                    publishConfirmBtn.disabled = true;
-                    publishConfirmBtn.textContent = '发布中...';
-
-                    fetch('merchant-workbench.aspx', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Toast.success('发布成功！');
-                            publishModal.hidden = true;
-                            setTimeout(function() { location.reload(); }, 1500);
-                        } else {
-                            Toast.error('发布失败：' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        Toast.error('发布异常：' + error);
-                    })
-                    .finally(() => {
-                        publishConfirmBtn.disabled = false;
-                        publishConfirmBtn.textContent = '确定';
-                    });
-                });
-            }
 
         });
     </script>

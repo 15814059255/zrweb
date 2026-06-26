@@ -87,3 +87,603 @@ Invalid column name 'TempCoefficient'.
 2026-06-25 19:27:11 - Action: submit_quote
 2026-06-25 19:32:49 - PublishHandler.ProcessRequest called
 2026-06-25 19:32:49 - Action: submit_quote
+2026-06-25 23:30:29 - PublishHandler.ProcessRequest called
+2026-06-25 23:30:29 - Action: submit_quote
+2026-06-25 23:30:55 - PublishHandler.ProcessRequest called
+2026-06-25 23:30:55 - Action: submit_quote
+2026-06-26 10:18:54 - PublishHandler.ProcessRequest called
+2026-06-26 10:18:54 - Action: submit_quote
+2026-06-26 10:22:14 - PublishHandler.ProcessRequest called
+2026-06-26 10:22:14 - Action: submit_quote
+2026-06-26 10:22:38 - PublishHandler.ProcessRequest called
+2026-06-26 10:22:38 - Action: submit_quote
+2026-06-26 10:26:30 - PublishHandler.ProcessRequest called
+2026-06-26 10:26:30 - Action: submit_quote
+2026-06-26 10:34:53 - PublishHandler.ProcessRequest called
+2026-06-26 10:34:53 - Action: submit_quote
+2026-06-26 10:47:21 - PublishHandler.ProcessRequest called
+2026-06-26 10:47:21 - Action: submit_quote
+2026-06-26 11:02:03 - PublishHandler.ProcessRequest called
+2026-06-26 11:02:03 - Action: submit_quote
+2026-06-26 11:04:50 - PublishHandler.ProcessRequest called
+2026-06-26 11:04:50 - Action: submit_quote
+2026-06-26 11:14:59 - PublishHandler.ProcessRequest called
+2026-06-26 11:14:59 - Action: submit_quote
+2026-06-26 11:22:42 - PublishHandler.ProcessRequest called
+2026-06-26 11:22:42 - Action: submit_quote
+2026-06-26 11:28:09 - PublishHandler.ProcessRequest called
+2026-06-26 11:28:09 - Action: submit_quote
+2026-06-26 11:28:28 - PublishHandler.ProcessRequest called
+2026-06-26 11:28:28 - Action: submit_quote
+2026-06-26 11:29:26 - PublishHandler.ProcessRequest called
+2026-06-26 11:29:26 - Action: submit_quote
+2026-06-26 11:36:15 - PublishHandler.ProcessRequest called
+2026-06-26 11:36:15 - Action: submit_quote
+2026-06-26 11:37:25 - PublishHandler.ProcessRequest called
+2026-06-26 11:37:25 - Action: submit_quote
+2026-06-26 11:38:47 - PublishHandler.ProcessRequest called
+2026-06-26 11:38:47 - Action: submit_quote
+2026-06-26 11:39:02 - PublishHandler.ProcessRequest called
+2026-06-26 11:39:02 - Action: submit_quote
+2026-06-26 11:50:13 - PublishHandler.ProcessRequest called
+2026-06-26 11:50:13 - Action: submit_quote
+2026-06-26 11:50:30 - PublishHandler.ProcessRequest called
+2026-06-26 11:50:30 - Action: submit_quote
+2026-06-26 11:51:38 - PublishHandler.ProcessRequest called
+2026-06-26 11:51:38 - Action: submit_quote
+2026-06-26 11:52:01 - PublishHandler.ProcessRequest called
+2026-06-26 11:52:01 - Action: submit_quote
+2026-06-26 14:13:38 - PublishHandler.ProcessRequest called
+2026-06-26 14:13:38 - Action: publish_goods
+2026-06-26 14:13:38 - HandlePublishGoods started
+2026-06-26 14:13:38 - goodsSn: GCM21BC72A105KE36L
+2026-06-26 14:13:38 - validity: 24小时
+2026-06-26 14:13:38 - goodsStock: 6000
+2026-06-26 14:13:38 - goodsUnit: Kpcs
+2026-06-26 14:13:38 - shopPrice: 1.5
+2026-06-26 14:13:38 - isIncludingTax: 1
+2026-06-26 14:13:38 - pubType: 1
+2026-06-26 14:13:38 - Session null check: False
+2026-06-26 14:13:38 - userId: 12
+2026-06-26 14:13:38 - roseId: 1
+2026-06-26 14:13:38 - shopId from request: 50
+2026-06-26 14:13:38 - Calling service method with pubType=1
+2026-06-26 14:13:38 - Service call result: True
+2026-06-26 14:13:38 - HandlePublishGoods completed
+2026-06-26 14:15:41 - PublishHandler.ProcessRequest called
+2026-06-26 14:15:41 - Action: publish_goods
+2026-06-26 14:15:41 - HandlePublishGoods started
+2026-06-26 14:15:41 - goodsSn: HMK212BC7105KGHTE
+2026-06-26 14:15:41 - validity: 24小时
+2026-06-26 14:15:41 - goodsStock: 9000
+2026-06-26 14:15:41 - goodsUnit: Kpcs
+2026-06-26 14:15:41 - shopPrice: 2.5
+2026-06-26 14:15:41 - isIncludingTax: 1
+2026-06-26 14:15:41 - pubType: 1
+2026-06-26 14:15:41 - Session null check: False
+2026-06-26 14:15:41 - userId: 12
+2026-06-26 14:15:41 - roseId: 1
+2026-06-26 14:15:41 - shopId from request: 50
+2026-06-26 14:15:41 - Calling service method with pubType=1
+2026-06-26 14:15:41 - Service call result: True
+2026-06-26 14:15:41 - HandlePublishGoods completed
+2026-06-26 14:16:13 - PublishHandler.ProcessRequest called
+2026-06-26 14:16:13 - Action: publish_goods
+2026-06-26 14:16:13 - HandlePublishGoods started
+2026-06-26 14:16:13 - goodsSn: AC0805KKX7R9BB105
+2026-06-26 14:16:13 - validity: 3天
+2026-06-26 14:16:13 - goodsStock: 12000
+2026-06-26 14:16:13 - goodsUnit: Kpcs
+2026-06-26 14:16:13 - shopPrice: 1
+2026-06-26 14:16:13 - isIncludingTax: 0
+2026-06-26 14:16:13 - pubType: 1
+2026-06-26 14:16:13 - Session null check: False
+2026-06-26 14:16:13 - userId: 12
+2026-06-26 14:16:13 - roseId: 1
+2026-06-26 14:16:13 - shopId from request: 50
+2026-06-26 14:16:13 - Calling service method with pubType=1
+2026-06-26 14:16:13 - Service call result: True
+2026-06-26 14:16:13 - HandlePublishGoods completed
+2026-06-26 14:16:49 - PublishHandler.ProcessRequest called
+2026-06-26 14:16:49 - Action: publish_goods
+2026-06-26 14:16:49 - HandlePublishGoods started
+2026-06-26 14:16:49 - goodsSn: CL21A106KAYNNNE
+2026-06-26 14:16:49 - validity: 15天
+2026-06-26 14:16:49 - goodsStock: 1200
+2026-06-26 14:16:49 - goodsUnit: Pcs
+2026-06-26 14:16:49 - shopPrice: 0.5
+2026-06-26 14:16:49 - isIncludingTax: 0
+2026-06-26 14:16:49 - pubType: 1
+2026-06-26 14:16:49 - Session null check: False
+2026-06-26 14:16:49 - userId: 12
+2026-06-26 14:16:49 - roseId: 1
+2026-06-26 14:16:49 - shopId from request: 50
+2026-06-26 14:16:49 - Calling service method with pubType=1
+2026-06-26 14:16:49 - Service call result: True
+2026-06-26 14:16:49 - HandlePublishGoods completed
+2026-06-26 15:11:35 - PublishHandler.ProcessRequest called
+2026-06-26 15:11:35 - Action: publish_goods
+2026-06-26 15:11:35 - HandlePublishGoods started
+2026-06-26 15:11:35 - goodsSn: GRM21BZ71E106KE15L
+2026-06-26 15:11:35 - validity: 24小时
+2026-06-26 15:11:35 - goodsStock: 4000
+2026-06-26 15:11:35 - goodsUnit: Kpcs
+2026-06-26 15:11:35 - shopPrice: 5
+2026-06-26 15:11:35 - isIncludingTax: 1
+2026-06-26 15:11:35 - pubType: 1
+2026-06-26 15:11:35 - Session null check: False
+2026-06-26 15:11:35 - userId: 12
+2026-06-26 15:11:36 - roseId: 1
+2026-06-26 15:11:36 - shopId from request: 50
+2026-06-26 15:11:36 - Calling service method with pubType=1
+2026-06-26 15:11:36 - Service call result: True
+2026-06-26 15:11:36 - HandlePublishGoods completed
+2026-06-26 15:11:54 - PublishHandler.ProcessRequest called
+2026-06-26 15:11:54 - Action: publish_goods
+2026-06-26 15:11:54 - HandlePublishGoods started
+2026-06-26 15:11:54 - goodsSn: GRM21BR61H106KE43L
+2026-06-26 15:11:54 - validity: 3天
+2026-06-26 15:11:54 - goodsStock: 9000
+2026-06-26 15:11:54 - goodsUnit: Kpcs
+2026-06-26 15:11:54 - shopPrice: 3
+2026-06-26 15:11:54 - isIncludingTax: 0
+2026-06-26 15:11:54 - pubType: 1
+2026-06-26 15:11:54 - Session null check: False
+2026-06-26 15:11:54 - userId: 12
+2026-06-26 15:11:54 - roseId: 1
+2026-06-26 15:11:54 - shopId from request: 50
+2026-06-26 15:11:54 - Calling service method with pubType=1
+2026-06-26 15:11:54 - Service call result: True
+2026-06-26 15:11:54 - HandlePublishGoods completed
+2026-06-26 15:13:18 - PublishHandler.ProcessRequest called
+2026-06-26 15:13:18 - Action: publish_goods
+2026-06-26 15:13:18 - HandlePublishGoods started
+2026-06-26 15:13:18 - goodsSn: CL10A226MQ8NRNC
+2026-06-26 15:13:18 - validity: 3天
+2026-06-26 15:13:18 - goodsStock: 3600
+2026-06-26 15:13:18 - goodsUnit: Kpcs
+2026-06-26 15:13:18 - shopPrice: 1
+2026-06-26 15:13:18 - isIncludingTax: 0
+2026-06-26 15:13:18 - pubType: 1
+2026-06-26 15:13:18 - Session null check: False
+2026-06-26 15:13:18 - userId: 12
+2026-06-26 15:13:18 - roseId: 1
+2026-06-26 15:13:18 - shopId from request: 50
+2026-06-26 15:13:18 - Calling service method with pubType=1
+2026-06-26 15:13:18 - Service call result: True
+2026-06-26 15:13:18 - HandlePublishGoods completed
+2026-06-26 15:29:08 - PublishHandler.ProcessRequest called
+2026-06-26 15:29:08 - Action: publish_goods
+2026-06-26 15:29:08 - HandlePublishGoods started
+2026-06-26 15:29:08 - goodsSn: CL21B105KBFNNNE
+2026-06-26 15:29:08 - validity: 7天
+2026-06-26 15:29:08 - goodsStock: 657
+2026-06-26 15:29:08 - goodsUnit: Kpcs
+2026-06-26 15:29:08 - shopPrice: 4
+2026-06-26 15:29:08 - isIncludingTax: 0
+2026-06-26 15:29:08 - pubType: 1
+2026-06-26 15:29:08 - Session null check: False
+2026-06-26 15:29:08 - userId: 12
+2026-06-26 15:29:08 - roseId: 1
+2026-06-26 15:29:08 - shopId from request: 50
+2026-06-26 15:29:08 - Calling service method with pubType=1
+2026-06-26 15:29:08 - Service call result: True
+2026-06-26 15:29:08 - HandlePublishGoods completed
+2026-06-26 16:28:46 - PublishHandler.ProcessRequest called
+2026-06-26 16:28:46 - Action: publish_goods
+2026-06-26 16:28:46 - HandlePublishGoods started
+2026-06-26 16:28:46 - goodsSn: CC0603KRX7R0BB104
+2026-06-26 16:28:46 - validity: 15天
+2026-06-26 16:28:46 - goodsStock: 311
+2026-06-26 16:28:46 - goodsUnit: Kpcs
+2026-06-26 16:28:46 - shopPrice: 1
+2026-06-26 16:28:46 - isIncludingTax: 1
+2026-06-26 16:28:46 - pubType: 1
+2026-06-26 16:28:46 - Session null check: False
+2026-06-26 16:28:46 - userId: 12
+2026-06-26 16:28:46 - roseId: 1
+2026-06-26 16:28:46 - shopId from request: 50
+2026-06-26 16:28:46 - Calling service method with pubType=1
+2026-06-26 16:28:46 - Service call result: True
+2026-06-26 16:28:46 - HandlePublishGoods completed
+2026-06-26 16:29:29 - PublishHandler.ProcessRequest called
+2026-06-26 16:29:29 - Action: publish_goods
+2026-06-26 16:29:29 - HandlePublishGoods started
+2026-06-26 16:29:29 - goodsSn: CL31B104KBCNNNC
+2026-06-26 16:29:29 - validity: 3天
+2026-06-26 16:29:29 - goodsStock: 680
+2026-06-26 16:29:29 - goodsUnit: Kpcs
+2026-06-26 16:29:29 - shopPrice: 3
+2026-06-26 16:29:29 - isIncludingTax: 1
+2026-06-26 16:29:29 - pubType: 1
+2026-06-26 16:29:29 - Session null check: False
+2026-06-26 16:29:29 - userId: 12
+2026-06-26 16:29:29 - roseId: 1
+2026-06-26 16:29:29 - shopId from request: 50
+2026-06-26 16:29:29 - Calling service method with pubType=1
+2026-06-26 16:29:29 - Service call result: True
+2026-06-26 16:29:29 - HandlePublishGoods completed
+2026-06-26 16:30:05 - PublishHandler.ProcessRequest called
+2026-06-26 16:30:05 - Action: publish_goods
+2026-06-26 16:30:05 - HandlePublishGoods started
+2026-06-26 16:30:05 - goodsSn: CL21A106KPFNNNE
+2026-06-26 16:30:05 - validity: 15天
+2026-06-26 16:30:05 - goodsStock: 7
+2026-06-26 16:30:05 - goodsUnit: Kpcs
+2026-06-26 16:30:05 - shopPrice: 6
+2026-06-26 16:30:05 - isIncludingTax: 0
+2026-06-26 16:30:05 - pubType: 1
+2026-06-26 16:30:05 - Session null check: False
+2026-06-26 16:30:05 - userId: 12
+2026-06-26 16:30:05 - roseId: 1
+2026-06-26 16:30:05 - shopId from request: 50
+2026-06-26 16:30:05 - Calling service method with pubType=1
+2026-06-26 16:30:05 - Service call result: True
+2026-06-26 16:30:05 - HandlePublishGoods completed
+2026-06-26 16:38:20 - PublishHandler.ProcessRequest called
+2026-06-26 16:38:20 - Action: publish_goods
+2026-06-26 16:38:20 - HandlePublishGoods started
+2026-06-26 16:38:20 - goodsSn: CL31A226KOHNNNE
+2026-06-26 16:38:20 - validity: 3天
+2026-06-26 16:38:20 - goodsStock: 421
+2026-06-26 16:38:20 - goodsUnit: Kpcs
+2026-06-26 16:38:20 - shopPrice: 12
+2026-06-26 16:38:20 - isIncludingTax: 0
+2026-06-26 16:38:20 - pubType: 2
+2026-06-26 16:38:20 - Session null check: False
+2026-06-26 16:38:20 - userId: 12
+2026-06-26 16:38:20 - roseId: 1
+2026-06-26 16:38:20 - shopId from request: 50
+2026-06-26 16:38:20 - Calling service method with pubType=2
+2026-06-26 16:38:20 - Service call result: True
+2026-06-26 16:38:20 - HandlePublishGoods completed
+2026-06-26 16:39:19 - PublishHandler.ProcessRequest called
+2026-06-26 16:39:19 - Action: publish_goods
+2026-06-26 16:39:19 - HandlePublishGoods started
+2026-06-26 16:39:19 - goodsSn: GRM155R60J226ME11D
+2026-06-26 16:39:19 - validity: 30天
+2026-06-26 16:39:19 - goodsStock: 4010
+2026-06-26 16:39:19 - goodsUnit: Kpcs
+2026-06-26 16:39:19 - shopPrice: 0
+2026-06-26 16:39:19 - isIncludingTax: 0
+2026-06-26 16:39:19 - pubType: 2
+2026-06-26 16:39:19 - Session null check: False
+2026-06-26 16:39:19 - userId: 12
+2026-06-26 16:39:19 - roseId: 1
+2026-06-26 16:39:19 - shopId from request: 50
+2026-06-26 16:39:19 - Calling service method with pubType=2
+2026-06-26 16:39:19 - Service call result: True
+2026-06-26 16:39:19 - HandlePublishGoods completed
+2026-06-26 16:40:02 - PublishHandler.ProcessRequest called
+2026-06-26 16:40:02 - Action: publish_goods
+2026-06-26 16:40:02 - HandlePublishGoods started
+2026-06-26 16:40:02 - goodsSn: GRM31CC72A475KE11L
+2026-06-26 16:40:02 - validity: 1天
+2026-06-26 16:40:02 - goodsStock: 300
+2026-06-26 16:40:02 - goodsUnit: Kpcs
+2026-06-26 16:40:02 - shopPrice: 0
+2026-06-26 16:40:02 - isIncludingTax: 0
+2026-06-26 16:40:02 - pubType: 2
+2026-06-26 16:40:02 - Session null check: False
+2026-06-26 16:40:02 - userId: 12
+2026-06-26 16:40:02 - roseId: 1
+2026-06-26 16:40:02 - shopId from request: 50
+2026-06-26 16:40:02 - Calling service method with pubType=2
+2026-06-26 16:40:02 - Service call result: True
+2026-06-26 16:40:02 - HandlePublishGoods completed
+2026-06-26 16:40:22 - PublishHandler.ProcessRequest called
+2026-06-26 16:40:22 - Action: publish_goods
+2026-06-26 16:40:22 - HandlePublishGoods started
+2026-06-26 16:40:22 - goodsSn: CC0402KRX7R8BB104
+2026-06-26 16:40:22 - validity: 3天
+2026-06-26 16:40:22 - goodsStock: 500
+2026-06-26 16:40:22 - goodsUnit: Kpcs
+2026-06-26 16:40:22 - shopPrice: 0
+2026-06-26 16:40:22 - isIncludingTax: 0
+2026-06-26 16:40:22 - pubType: 2
+2026-06-26 16:40:22 - Session null check: False
+2026-06-26 16:40:22 - userId: 12
+2026-06-26 16:40:22 - roseId: 1
+2026-06-26 16:40:22 - shopId from request: 50
+2026-06-26 16:40:22 - Calling service method with pubType=2
+2026-06-26 16:40:22 - Service call result: True
+2026-06-26 16:40:22 - HandlePublishGoods completed
+2026-06-26 16:40:51 - PublishHandler.ProcessRequest called
+2026-06-26 16:40:51 - Action: publish_goods
+2026-06-26 16:40:51 - HandlePublishGoods started
+2026-06-26 16:40:51 - goodsSn: CC0805KRX7R9BB102
+2026-06-26 16:40:51 - validity: 15天
+2026-06-26 16:40:51 - goodsStock: 215
+2026-06-26 16:40:51 - goodsUnit: Kpcs
+2026-06-26 16:40:51 - shopPrice: 0
+2026-06-26 16:40:51 - isIncludingTax: 0
+2026-06-26 16:40:51 - pubType: 2
+2026-06-26 16:40:51 - Session null check: False
+2026-06-26 16:40:51 - userId: 12
+2026-06-26 16:40:51 - roseId: 1
+2026-06-26 16:40:51 - shopId from request: 50
+2026-06-26 16:40:51 - Calling service method with pubType=2
+2026-06-26 16:40:51 - Service call result: True
+2026-06-26 16:40:51 - HandlePublishGoods completed
+2026-06-26 16:41:44 - PublishHandler.ProcessRequest called
+2026-06-26 16:41:44 - Action: publish_goods
+2026-06-26 16:41:44 - HandlePublishGoods started
+2026-06-26 16:41:44 - goodsSn: CC1206KKX7RDBB102
+2026-06-26 16:41:44 - validity: 7天
+2026-06-26 16:41:44 - goodsStock: 207
+2026-06-26 16:41:44 - goodsUnit: Kpcs
+2026-06-26 16:41:44 - shopPrice: 2
+2026-06-26 16:41:44 - isIncludingTax: 0
+2026-06-26 16:41:44 - pubType: 1
+2026-06-26 16:41:44 - Session null check: False
+2026-06-26 16:41:44 - userId: 12
+2026-06-26 16:41:44 - roseId: 1
+2026-06-26 16:41:44 - shopId from request: 50
+2026-06-26 16:41:44 - Calling service method with pubType=1
+2026-06-26 16:41:44 - Service call result: True
+2026-06-26 16:41:44 - HandlePublishGoods completed
+2026-06-26 16:42:07 - PublishHandler.ProcessRequest called
+2026-06-26 16:42:07 - Action: publish_goods
+2026-06-26 16:42:07 - HandlePublishGoods started
+2026-06-26 16:42:07 - goodsSn: GRM155R61A475KEAAD
+2026-06-26 16:42:07 - validity: 30天
+2026-06-26 16:42:07 - goodsStock: 3333
+2026-06-26 16:42:07 - goodsUnit: Kpcs
+2026-06-26 16:42:07 - shopPrice: 3
+2026-06-26 16:42:07 - isIncludingTax: 0
+2026-06-26 16:42:07 - pubType: 1
+2026-06-26 16:42:07 - Session null check: False
+2026-06-26 16:42:07 - userId: 12
+2026-06-26 16:42:07 - roseId: 1
+2026-06-26 16:42:07 - shopId from request: 50
+2026-06-26 16:42:07 - Calling service method with pubType=1
+2026-06-26 16:42:07 - Service call result: True
+2026-06-26 16:42:07 - HandlePublishGoods completed
+2026-06-26 16:42:30 - PublishHandler.ProcessRequest called
+2026-06-26 16:42:30 - Action: publish_goods
+2026-06-26 16:42:30 - HandlePublishGoods started
+2026-06-26 16:42:30 - goodsSn: CC0603KRX7R9BB474
+2026-06-26 16:42:30 - validity: 15天
+2026-06-26 16:42:30 - goodsStock: 15
+2026-06-26 16:42:30 - goodsUnit: Kpcs
+2026-06-26 16:42:30 - shopPrice: 2
+2026-06-26 16:42:30 - isIncludingTax: 0
+2026-06-26 16:42:30 - pubType: 1
+2026-06-26 16:42:30 - Session null check: False
+2026-06-26 16:42:30 - userId: 12
+2026-06-26 16:42:30 - roseId: 1
+2026-06-26 16:42:30 - shopId from request: 50
+2026-06-26 16:42:30 - Calling service method with pubType=1
+2026-06-26 16:42:30 - Service call result: True
+2026-06-26 16:42:30 - HandlePublishGoods completed
+2026-06-26 16:43:10 - PublishHandler.ProcessRequest called
+2026-06-26 16:43:10 - Action: publish_goods
+2026-06-26 16:43:10 - HandlePublishGoods started
+2026-06-26 16:43:10 - goodsSn: GRM188R60J226MEA0D
+2026-06-26 16:43:10 - validity: 3天
+2026-06-26 16:43:10 - goodsStock: 3
+2026-06-26 16:43:10 - goodsUnit: Kpcs
+2026-06-26 16:43:10 - shopPrice: 3
+2026-06-26 16:43:10 - isIncludingTax: 0
+2026-06-26 16:43:10 - pubType: 1
+2026-06-26 16:43:10 - Session null check: False
+2026-06-26 16:43:10 - userId: 12
+2026-06-26 16:43:10 - roseId: 1
+2026-06-26 16:43:10 - shopId from request: 50
+2026-06-26 16:43:10 - Calling service method with pubType=1
+2026-06-26 16:43:10 - Service call result: True
+2026-06-26 16:43:10 - HandlePublishGoods completed
+2026-06-26 17:49:05 - PublishHandler.ProcessRequest called
+2026-06-26 17:49:05 - Action: publish_goods
+2026-06-26 17:49:05 - HandlePublishGoods started
+2026-06-26 17:49:05 - goodsSn: CL10B103KB8NNNC
+2026-06-26 17:49:05 - validity: 30天
+2026-06-26 17:49:05 - goodsStock: 432
+2026-06-26 17:49:05 - goodsUnit: Kpcs
+2026-06-26 17:49:05 - shopPrice: 0
+2026-06-26 17:49:05 - isIncludingTax: 0
+2026-06-26 17:49:05 - pubType: 1
+2026-06-26 17:49:05 - Session null check: False
+2026-06-26 17:49:05 - userId: 12
+2026-06-26 17:49:05 - roseId: 1
+2026-06-26 17:49:05 - shopId from request: 50
+2026-06-26 17:49:05 - Calling service method with pubType=1
+2026-06-26 17:49:05 - Service call result: True
+2026-06-26 17:49:05 - HandlePublishGoods completed
+2026-06-26 17:49:28 - PublishHandler.ProcessRequest called
+2026-06-26 17:49:28 - Action: publish_goods
+2026-06-26 17:49:28 - HandlePublishGoods started
+2026-06-26 17:49:28 - goodsSn: 0603B105K250NT
+2026-06-26 17:49:28 - validity: 3天
+2026-06-26 17:49:28 - goodsStock: 989
+2026-06-26 17:49:28 - goodsUnit: Kpcs
+2026-06-26 17:49:28 - shopPrice: 0
+2026-06-26 17:49:28 - isIncludingTax: 0
+2026-06-26 17:49:28 - pubType: 2
+2026-06-26 17:49:28 - Session null check: False
+2026-06-26 17:49:28 - userId: 12
+2026-06-26 17:49:28 - roseId: 1
+2026-06-26 17:49:28 - shopId from request: 50
+2026-06-26 17:49:28 - Calling service method with pubType=2
+2026-06-26 17:49:28 - Service call result: True
+2026-06-26 17:49:28 - HandlePublishGoods completed
+2026-06-26 17:50:14 - PublishHandler.ProcessRequest called
+2026-06-26 17:50:14 - Action: publish_goods
+2026-06-26 17:50:14 - HandlePublishGoods started
+2026-06-26 17:50:14 - goodsSn: 0805B105K500NT
+2026-06-26 17:50:14 - validity: 3天
+2026-06-26 17:50:14 - goodsStock: 211
+2026-06-26 17:50:14 - goodsUnit: Kpcs
+2026-06-26 17:50:14 - shopPrice: 0
+2026-06-26 17:50:14 - isIncludingTax: 0
+2026-06-26 17:50:14 - pubType: 2
+2026-06-26 17:50:14 - Session null check: False
+2026-06-26 17:50:14 - userId: 12
+2026-06-26 17:50:14 - roseId: 1
+2026-06-26 17:50:14 - shopId from request: 50
+2026-06-26 17:50:14 - Calling service method with pubType=2
+2026-06-26 17:50:14 - Service call result: True
+2026-06-26 17:50:14 - HandlePublishGoods completed
+2026-06-26 19:58:09 - PublishHandler.ProcessRequest called
+2026-06-26 19:58:09 - Action: publish_goods
+2026-06-26 19:58:09 - HandlePublishGoods started
+2026-06-26 19:58:09 - goodsSn: CC0805KKX7R7BB106
+2026-06-26 19:58:09 - validity: 30天
+2026-06-26 19:58:09 - goodsStock: 342
+2026-06-26 19:58:09 - goodsUnit: Kpcs
+2026-06-26 19:58:09 - shopPrice: 0
+2026-06-26 19:58:09 - isIncludingTax: 0
+2026-06-26 19:58:09 - pubType: 1
+2026-06-26 19:58:09 - Session null check: False
+2026-06-26 19:58:09 - userId: 10
+2026-06-26 19:58:09 - roseId: 3
+2026-06-26 19:58:09 - shopId from request: 48
+2026-06-26 19:58:09 - Calling service method with pubType=1
+2026-06-26 19:58:09 - Service call result: True
+2026-06-26 19:58:09 - Exception in HandlePublishGoods: 正在中止线程。
+2026-06-26 19:58:13 - PublishHandler.ProcessRequest called
+2026-06-26 19:58:13 - Action: publish_goods
+2026-06-26 19:58:13 - HandlePublishGoods started
+2026-06-26 19:58:13 - goodsSn: CC0805KKX7R7BB106
+2026-06-26 19:58:13 - validity: 30天
+2026-06-26 19:58:13 - goodsStock: 342
+2026-06-26 19:58:13 - goodsUnit: Kpcs
+2026-06-26 19:58:13 - shopPrice: 0
+2026-06-26 19:58:13 - isIncludingTax: 0
+2026-06-26 19:58:13 - pubType: 1
+2026-06-26 19:58:13 - Session null check: False
+2026-06-26 19:58:13 - userId: 10
+2026-06-26 19:58:13 - roseId: 3
+2026-06-26 19:58:13 - shopId from request: 48
+2026-06-26 19:58:13 - Calling service method with pubType=1
+2026-06-26 19:58:13 - Service call result: True
+2026-06-26 19:58:13 - Exception in HandlePublishGoods: 正在中止线程。
+2026-06-26 20:03:50 - PublishHandler.ProcessRequest called
+2026-06-26 20:03:50 - Action: publish_goods
+2026-06-26 20:03:50 - HandlePublishGoods started
+2026-06-26 20:03:50 - goodsSn: CL32B225KCJSNNE
+2026-06-26 20:03:50 - validity: 15天
+2026-06-26 20:03:50 - goodsStock: 4342
+2026-06-26 20:03:50 - goodsUnit: Kpcs
+2026-06-26 20:03:50 - shopPrice: 15
+2026-06-26 20:03:50 - isIncludingTax: 0
+2026-06-26 20:03:50 - pubType: 1
+2026-06-26 20:03:50 - Session null check: False
+2026-06-26 20:03:50 - userId: 10
+2026-06-26 20:03:50 - roseId: 3
+2026-06-26 20:03:50 - shopId from request: 48
+2026-06-26 20:03:50 - Calling service method with pubType=1
+2026-06-26 20:03:50 - Service call result: True
+2026-06-26 20:04:27 - PublishHandler.ProcessRequest called
+2026-06-26 20:04:27 - Action: publish_goods
+2026-06-26 20:04:27 - HandlePublishGoods started
+2026-06-26 20:04:27 - goodsSn: GRM32ER71H475KA88L
+2026-06-26 20:04:27 - validity: 3天
+2026-06-26 20:04:27 - goodsStock: 3
+2026-06-26 20:04:27 - goodsUnit: Kpcs
+2026-06-26 20:04:27 - shopPrice: 3
+2026-06-26 20:04:27 - isIncludingTax: 0
+2026-06-26 20:04:27 - pubType: 2
+2026-06-26 20:04:27 - Session null check: False
+2026-06-26 20:04:27 - userId: 10
+2026-06-26 20:04:27 - roseId: 3
+2026-06-26 20:04:27 - shopId from request: 48
+2026-06-26 20:04:27 - Calling service method with pubType=2
+2026-06-26 20:04:27 - Service call result: True
+2026-06-26 20:06:40 - PublishHandler.ProcessRequest called
+2026-06-26 20:06:40 - Action: submit_quote
+2026-06-26 21:16:07 - PublishHandler.ProcessRequest called
+2026-06-26 21:16:07 - Action: submit_quote
+2026-06-26 21:17:12 - PublishHandler.ProcessRequest called
+2026-06-26 21:17:12 - Action: submit_quote
+2026-06-26 21:22:21 - PublishHandler.ProcessRequest called
+2026-06-26 21:22:21 - Action: submit_quote
+2026-06-26 21:25:47 - PublishHandler.ProcessRequest called
+2026-06-26 21:25:47 - Action: submit_quote
+2026-06-26 21:31:00 - PublishHandler.ProcessRequest called
+2026-06-26 21:31:00 - Action: submit_quote
+2026-06-26 21:32:31 - PublishHandler.ProcessRequest called
+2026-06-26 21:32:31 - Action: submit_quote
+2026-06-26 21:32:43 - PublishHandler.ProcessRequest called
+2026-06-26 21:32:43 - Action: submit_quote
+2026-06-26 21:37:54 - PublishHandler.ProcessRequest called
+2026-06-26 21:37:54 - Action: submit_quote
+2026-06-26 22:05:11 - PublishHandler.ProcessRequest called
+2026-06-26 22:05:11 - Action: publish_goods
+2026-06-26 22:05:11 - HandlePublishGoods started
+2026-06-26 22:05:11 - goodsSn: CC0805KRX7R9BB104
+2026-06-26 22:05:11 - validity: 7天
+2026-06-26 22:05:11 - goodsStock: 222
+2026-06-26 22:05:11 - goodsUnit: Kpcs
+2026-06-26 22:05:11 - shopPrice: 2
+2026-06-26 22:05:11 - isIncludingTax: 0
+2026-06-26 22:05:11 - pubType: 1
+2026-06-26 22:05:11 - Session null check: False
+2026-06-26 22:05:11 - userId: 15
+2026-06-26 22:05:11 - roseId: 2
+2026-06-26 22:05:12 - PublishHandler.ProcessRequest called
+2026-06-26 22:05:12 - Action: publish_goods
+2026-06-26 22:05:12 - HandlePublishGoods started
+2026-06-26 22:05:12 - goodsSn: CC0805KRX7R9BB104
+2026-06-26 22:05:12 - validity: 7天
+2026-06-26 22:05:12 - goodsStock: 222
+2026-06-26 22:05:12 - goodsUnit: Kpcs
+2026-06-26 22:05:12 - shopPrice: 2
+2026-06-26 22:05:12 - isIncludingTax: 0
+2026-06-26 22:05:12 - pubType: 1
+2026-06-26 22:05:12 - Session null check: False
+2026-06-26 22:05:12 - userId: 15
+2026-06-26 22:05:12 - roseId: 2
+2026-06-26 22:05:15 - PublishHandler.ProcessRequest called
+2026-06-26 22:05:15 - Action: publish_goods
+2026-06-26 22:05:15 - HandlePublishGoods started
+2026-06-26 22:05:15 - goodsSn: CC0805KRX7R9BB104
+2026-06-26 22:05:15 - validity: 7天
+2026-06-26 22:05:15 - goodsStock: 222
+2026-06-26 22:05:15 - goodsUnit: Kpcs
+2026-06-26 22:05:15 - shopPrice: 2
+2026-06-26 22:05:15 - isIncludingTax: 0
+2026-06-26 22:05:15 - pubType: 1
+2026-06-26 22:05:15 - Session null check: False
+2026-06-26 22:05:15 - userId: 15
+2026-06-26 22:05:15 - roseId: 2
+2026-06-26 22:05:18 - PublishHandler.ProcessRequest called
+2026-06-26 22:05:18 - Action: publish_goods
+2026-06-26 22:05:18 - HandlePublishGoods started
+2026-06-26 22:05:18 - goodsSn: CC0805KRX7R9BB104
+2026-06-26 22:05:18 - validity: 7天
+2026-06-26 22:05:18 - goodsStock: 222
+2026-06-26 22:05:18 - goodsUnit: Kpcs
+2026-06-26 22:05:18 - shopPrice: 2
+2026-06-26 22:05:18 - isIncludingTax: 0
+2026-06-26 22:05:18 - pubType: 2
+2026-06-26 22:05:18 - Session null check: False
+2026-06-26 22:05:18 - userId: 15
+2026-06-26 22:05:19 - roseId: 2
+2026-06-26 22:05:19 - shopId from request: 51
+2026-06-26 22:05:19 - Calling service method with pubType=2
+2026-06-26 22:05:19 - Service call result: True
+2026-06-26 22:14:34 - PublishHandler.ProcessRequest called
+2026-06-26 22:14:34 - Action: submit_quote
+2026-06-26 22:18:48 - PublishHandler.ProcessRequest called
+2026-06-26 22:18:48 - Action: submit_quote
+2026-06-26 22:19:27 - PublishHandler.ProcessRequest called
+2026-06-26 22:19:27 - Action: submit_quote
+2026-06-26 22:26:30 - PublishHandler.ProcessRequest called
+2026-06-26 22:26:30 - Action: submit_quote
+2026-06-26 22:26:34 - PublishHandler.ProcessRequest called
+2026-06-26 22:26:34 - Action: submit_quote
+2026-06-26 22:26:45 - PublishHandler.ProcessRequest called
+2026-06-26 22:26:45 - Action: submit_quote
+2026-06-26 22:27:17 - PublishHandler.ProcessRequest called
+2026-06-26 22:27:17 - Action: submit_quote
+2026-06-26 22:32:23 - PublishHandler.ProcessRequest called
+2026-06-26 22:32:23 - Action: submit_quote
+2026-06-26 22:34:09 - PublishHandler.ProcessRequest called
+2026-06-26 22:34:09 - Action: submit_quote
+2026-06-26 22:43:39 - PublishHandler.ProcessRequest called
+2026-06-26 22:43:39 - Action: submit_quote
+2026-06-26 22:58:14 - PublishHandler.ProcessRequest called
+2026-06-26 22:58:14 - Action: submit_quote
+2026-06-26 22:58:44 - PublishHandler.ProcessRequest called
+2026-06-26 22:58:44 - Action: submit_quote

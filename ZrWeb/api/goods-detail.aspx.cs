@@ -34,12 +34,12 @@ public partial class api_goods_detail : System.Web.UI.Page
     {
         try
         {
-            string sql = @"SELECT g.goodsId, g.goodsSn, g.shopPrice, g.goodsStock, g.goodsUnit, g.pubType, g.createTime, 
+            string sql = @"SELECT g.goodsId, g.goodsSn, g.shopPrice, g.goodsStock, g.goodsUnit, g.pubType, g.createTime, g.isSale,
                           ISNULL(u.CompanyName, s.shopCompany) AS PublisherName
                           FROM goods g 
                           LEFT JOIN shops s ON g.shopId = s.shopId 
                           LEFT JOIN userinfo u ON s.userId = u.UserID 
-                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1 AND g.isSale = 1";
+                          WHERE g.goodsId = @goodsId AND g.dataFlag = 1";
             
             DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@goodsId", GoodsId));
             
@@ -68,17 +68,27 @@ public partial class api_goods_detail : System.Web.UI.Page
     {
         try
         {
-            string sql = @"SELECT eq.fromContact AS LinkMan, eq.fromTel AS MobilePhone, eq.fromCompany, 
+            int targetEqType = PubType == 1 ? 1 : 2;
+            
+            string sql = @"SELECT eq.eqId, eq.fromContact AS LinkMan, eq.fromTel AS MobilePhone, eq.fromCompany, 
                           eq.fromQuantity, eq.fromPrice, eq.fromRemarks AS Remarks, 
                           ISNULL(u.CompanyName, s.shopCompany) AS CompanyName, 
-                          eq.createTime AS CreateTime, eq.fromPrice AS Price
+                          eq.createTime AS CreateTime, eq.fromPrice AS Price,
+                          eq.isIncludingTax, eq.fromLot, eq.brandName, eq.validity,
+                          eq.toQuantity, eq.toPrice, eq.toRemarks,
+                          eq.fromShopId, eq.toShopId, eq.eqType, eq.goodsSn, eq.goodsId,
+                          s.shopQQ
                           FROM enquiryquoteprice eq 
                           LEFT JOIN shops s ON eq.fromShopID = s.shopId 
                           LEFT JOIN userinfo u ON s.userId = u.UserID 
-                          WHERE eq.goodsId = @goodsId AND eq.dataFlag = 1 
+                          WHERE eq.eqType = @eqType AND eq.dataFlag = 1 
+                          AND (eq.goodsId = @goodsId OR eq.goodsSn = @goodsSn)
                           ORDER BY eq.createTime DESC";
             
-            QuoteList = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@goodsId", GoodsId));
+            QuoteList = DbHelper.ExecuteQuery(sql, 
+                DbHelper.CreateParameter("@goodsId", GoodsId),
+                DbHelper.CreateParameter("@goodsSn", GoodsSn),
+                DbHelper.CreateParameter("@eqType", targetEqType));
             QuoteCount = QuoteList != null ? QuoteList.Rows.Count : 0;
         }
         catch (Exception ex)

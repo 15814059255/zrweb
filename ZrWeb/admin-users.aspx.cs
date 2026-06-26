@@ -17,6 +17,7 @@ public partial class admin_users : System.Web.UI.Page
         {
             CheckLogin();
             HandleActions();
+            SetRoleSelected();
             LoadUserList();
         }
     }
@@ -28,6 +29,15 @@ public partial class admin_users : System.Web.UI.Page
             Response.Redirect("/admin-login.aspx");
         }
         AdminName = Session["AdminName"] != null ? Session["AdminName"].ToString() : "";
+    }
+
+    private void SetRoleSelected()
+    {
+        string role = Request.QueryString["role"];
+        if (!string.IsNullOrEmpty(role))
+        {
+            selRole.Value = role;
+        }
     }
 
     private void HandleActions()
@@ -61,6 +71,7 @@ public partial class admin_users : System.Web.UI.Page
         try
         {
             string keyword = Request.QueryString["keyword"];
+            string role = Request.QueryString["role"];
             string pageStr = Request.QueryString["page"];
             int page = 1;
             if (!string.IsNullOrEmpty(pageStr) && int.TryParse(pageStr, out page))
@@ -68,17 +79,45 @@ public partial class admin_users : System.Web.UI.Page
                 CurrentPage = Math.Max(1, page);
             }
 
-            string countSql = "SELECT COUNT(*) FROM userinfo WHERE SysStatus = 0";
-            string listSql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, SysStatus, CreateTime FROM userinfo WHERE SysStatus = 0";
+            string countSql = "SELECT COUNT(*) FROM userinfo WHERE 1=1";
+            string listSql = "SELECT UserID, UserName, LinkMan, MobilePhone, RoseID, IsCheck, SysStatus, CreateTime FROM userinfo WHERE 1=1";
             
             SqlParameter[] countParams = null;
+            
+            // 状态/角色筛选
+            if (role == "disabled")
+            {
+                countSql += " AND SysStatus = 1";
+                listSql += " AND SysStatus = 1";
+            }
+            else
+            {
+                countSql += " AND SysStatus = 0";
+                listSql += " AND SysStatus = 0";
+            }
             
             if (!string.IsNullOrEmpty(keyword))
             {
                 countSql += " AND (UserName LIKE @keyword OR MobilePhone LIKE @keyword OR LinkMan LIKE @keyword)";
                 listSql += " AND (UserName LIKE @keyword OR MobilePhone LIKE @keyword OR LinkMan LIKE @keyword)";
-                countParams = new[] { DbHelper.CreateParameter("@keyword", "%" + keyword + "%") };
             }
+            
+            if (!string.IsNullOrEmpty(role) && role != "disabled")
+            {
+                countSql += " AND RoseID = @role";
+                listSql += " AND RoseID = @role";
+            }
+            
+            var paramList = new System.Collections.Generic.List<SqlParameter>();
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                paramList.Add(DbHelper.CreateParameter("@keyword", "%" + keyword + "%"));
+            }
+            if (!string.IsNullOrEmpty(role) && role != "disabled")
+            {
+                paramList.Add(DbHelper.CreateParameter("@role", Convert.ToInt32(role)));
+            }
+            countParams = paramList.ToArray();
             
             object countResult = DbHelper.ExecuteScalar(countSql, countParams);
             TotalUsers = countResult != null && countResult != DBNull.Value ? Convert.ToInt32(countResult) : 0;
@@ -90,22 +129,19 @@ public partial class admin_users : System.Web.UI.Page
 
             string finalSql = listSql + " ORDER BY CreateTime DESC OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
             
-            SqlParameter[] listParams;
-            if (string.IsNullOrEmpty(keyword))
+            var listParamList = new System.Collections.Generic.List<SqlParameter>();
+            if (!string.IsNullOrEmpty(keyword))
             {
-                listParams = new[] { 
-                    DbHelper.CreateParameter("@offset", (CurrentPage - 1) * PageSize),
-                    DbHelper.CreateParameter("@pageSize", PageSize)
-                };
+                listParamList.Add(DbHelper.CreateParameter("@keyword", "%" + keyword + "%"));
             }
-            else
+            if (!string.IsNullOrEmpty(role) && role != "disabled")
             {
-                listParams = new[] { 
-                    DbHelper.CreateParameter("@keyword", "%" + keyword + "%"),
-                    DbHelper.CreateParameter("@offset", (CurrentPage - 1) * PageSize),
-                    DbHelper.CreateParameter("@pageSize", PageSize)
-                };
+                listParamList.Add(DbHelper.CreateParameter("@role", Convert.ToInt32(role)));
             }
+            listParamList.Add(DbHelper.CreateParameter("@offset", (CurrentPage - 1) * PageSize));
+            listParamList.Add(DbHelper.CreateParameter("@pageSize", PageSize));
+            
+            SqlParameter[] listParams = listParamList.ToArray();
 
             UserList = DbHelper.ExecuteQuery(finalSql, listParams);
             if (UserList != null)
@@ -127,10 +163,15 @@ public partial class admin_users : System.Web.UI.Page
     public string GetPageUrl(int page)
     {
         string keyword = Request.QueryString["keyword"];
+        string role = Request.QueryString["role"];
         string url = "/admin-users.aspx?page=" + page;
         if (!string.IsNullOrEmpty(keyword))
         {
             url += "&keyword=" + Server.UrlEncode(keyword);
+        }
+        if (!string.IsNullOrEmpty(role))
+        {
+            url += "&role=" + role;
         }
         return url;
     }

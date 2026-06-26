@@ -108,7 +108,7 @@ public class EnquiryQuoteService
             decimal fromPrice = GetDecimalValue(row["fromPrice"], 0);
             int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
             DateTime createTime = GetDateTimeValue(row["createTime"], DateTime.Now);
-            string toCompany = GetStringValue(row["toCompany"]);
+            string toCompany = DbHelper.FixAndCleanString(GetStringValue(row["toCompany"]));
             string fromRemarks = GetStringValue(row["fromRemarks"]);
 
             newRow["EqId"] = eqId;
@@ -202,11 +202,18 @@ public class EnquiryQuoteService
             decimal toPrice = GetDecimalValue(row["toPrice"], 0);
             string toRemarks = GetStringValue(row["toRemarks"]);
             
-            // 优先使用 JOIN 得到的真实询价数据
+            // 优先使用 goods 表中的需求数量
+            if (row.Table.Columns.Contains("GoodsStock"))
+            {
+                int goodsStock = GetIntValue(row["GoodsStock"], 0);
+                if (goodsStock > 0) toQuantity = goodsStock;
+            }
+            
+            // 其次使用 JOIN 得到的真实询价数据
             if (row.Table.Columns.Contains("RealInquiryQuantity"))
             {
                 int realQty = GetIntValue(row["RealInquiryQuantity"], 0);
-                if (realQty > 0) toQuantity = realQty;
+                if (realQty > 0 && toQuantity <= 0) toQuantity = realQty;
             }
             if (row.Table.Columns.Contains("RealInquiryPrice"))
             {
@@ -224,10 +231,11 @@ public class EnquiryQuoteService
             newRow["InquiryPrice"] = toPrice > 0 ? "¥" + toPrice.ToString("0.00") : "面议";
             newRow["InquiryRemarks"] = !string.IsNullOrEmpty(toRemarks) ? toRemarks : "-";
 
-            // 设置我的报价信息
-            if (fromQuantity > 0)
+            // 设置我的报价信息 - 报价数量优先使用报价时填写的数量，为0时使用询价方的采购数量
+            int displayQuantity = fromQuantity > 0 ? fromQuantity : toQuantity;
+            if (displayQuantity > 0)
             {
-                newRow["MyQuantity"] = fromQuantity.ToString();
+                newRow["MyQuantity"] = displayQuantity.ToString();
                 newRow["MyUnit"] = "Kpcs";
             }
             else
@@ -283,26 +291,21 @@ public class EnquiryQuoteService
             string quoteValidity = GetStringValue(row["validity"]);
             if (!string.IsNullOrEmpty(quoteValidity))
             {
+                if (quoteValidity == "24小时") quoteValidity = "1天";
+                else if (quoteValidity == "1个月") quoteValidity = "30天";
                 newRow["Validity"] = quoteValidity;
             }
             else
             {
                 TimeSpan diff = DateTime.Now - createTime;
-                if (diff.TotalHours < 24)
+                int days = (int)diff.TotalDays;
+                if (days < 1)
                 {
-                    newRow["Validity"] = "24 小时";
-                }
-                else if (diff.TotalDays < 2)
-                {
-                    newRow["Validity"] = "48 小时";
-                }
-                else if (diff.TotalDays < 3)
-                {
-                    newRow["Validity"] = "72 小时";
+                    newRow["Validity"] = "1天";
                 }
                 else
                 {
-                    newRow["Validity"] = createTime.AddDays(3).ToString("yyyy-MM-dd");
+                    newRow["Validity"] = days + "天";
                 }
             }
 
@@ -452,9 +455,22 @@ public class EnquiryQuoteService
 
             int fromQuantity = 0;
             try { fromQuantity = GetIntValue(row["fromQuantity"], 0); } catch { }
-            newRow["Quantity"] = fromQuantity > 0 ? fromQuantity.ToString() : "0";
+            
+            // 询价方信息 - 优先使用 RealInquiryQuantity
+            int toQty = 0;
+            try { toQty = GetIntValue(row["toQuantity"], 0); } catch { }
+            if (toQty <= 0)
+            {
+                try { toQty = GetIntValue(row["RealInquiryQuantity"], 0); } catch { }
+            }
+            newRow["InquiryQuantity"] = toQty > 0 ? toQty.ToString() : "0";
+            newRow["InquiryUnit"] = "Kpcs";
+
+            // 报价数量 - 优先使用报价时填写的数量，为0时使用询价方的采购数量
+            int displayQty = fromQuantity > 0 ? fromQuantity : toQty;
+            newRow["Quantity"] = displayQty > 0 ? displayQty.ToString() : "0";
             newRow["Unit"] = "Kpcs";
-            newRow["MyQuantity"] = fromQuantity > 0 ? fromQuantity.ToString() : "0";
+            newRow["MyQuantity"] = displayQty > 0 ? displayQty.ToString() : "0";
             newRow["MyUnit"] = "Kpcs";
 
             decimal fromPrice = 0;
@@ -474,16 +490,7 @@ public class EnquiryQuoteService
                 newRow["MyPrice"] = "面议";
             }
 
-            // 询价方信息 - 优先使用 RealInquiryQuantity
-            int toQty = 0;
-            try { toQty = GetIntValue(row["toQuantity"], 0); } catch { }
-            if (toQty <= 0)
-            {
-                try { toQty = GetIntValue(row["RealInquiryQuantity"], 0); } catch { }
-            }
-            newRow["InquiryQuantity"] = toQty > 0 ? toQty.ToString() : "0";
-            newRow["InquiryUnit"] = "Kpcs";
-
+            // 询价方价格和备注信息
             decimal toPrice = 0;
             try { toPrice = GetDecimalValue(row["toPrice"], 0); } catch { }
             if (toPrice <= 0)
@@ -519,7 +526,7 @@ public class EnquiryQuoteService
             newRow["BuyerQQ"] = buyerQQ;
 
             string toCompany = "";
-            try { toCompany = GetStringValue(row["toCompany"]); } catch { }
+            try { toCompany = DbHelper.FixAndCleanString(GetStringValue(row["toCompany"])); } catch { }
             newRow["BuyerName"] = !string.IsNullOrEmpty(toCompany) ? toCompany : "匿名采购商";
 
             DateTime createTime = DateTime.Now;
@@ -530,26 +537,21 @@ public class EnquiryQuoteService
             try { quoteValidity = GetStringValue(row["validity"]); } catch { }
             if (!string.IsNullOrEmpty(quoteValidity))
             {
+                if (quoteValidity == "24小时") quoteValidity = "1天";
+                else if (quoteValidity == "1个月") quoteValidity = "30天";
                 newRow["Validity"] = quoteValidity;
             }
             else
             {
                 TimeSpan diff = DateTime.Now - createTime;
-                if (diff.TotalHours < 24)
+                int days = (int)diff.TotalDays;
+                if (days < 1)
                 {
-                    newRow["Validity"] = "24 小时";
-                }
-                else if (diff.TotalDays < 2)
-                {
-                    newRow["Validity"] = "48 小时";
-                }
-                else if (diff.TotalDays < 3)
-                {
-                    newRow["Validity"] = "72 小时";
+                    newRow["Validity"] = "1天";
                 }
                 else
                 {
-                    newRow["Validity"] = createTime.AddDays(3).ToString("yyyy-MM-dd");
+                    newRow["Validity"] = days + "天";
                 }
             }
 
@@ -650,7 +652,7 @@ public class EnquiryQuoteService
             decimal fromPrice = GetDecimalValue(row["fromPrice"], 0);
             int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
             DateTime createTime = GetDateTimeValue(row["createTime"], DateTime.Now);
-            string fromCompany = GetStringValue(row["fromCompany"]);
+            string fromCompany = DbHelper.FixAndCleanString(GetStringValue(row["fromCompany"]));
             string fromRemarks = GetStringValue(row["fromRemarks"]);
 
             // 设置类型
@@ -764,21 +766,14 @@ public class EnquiryQuoteService
 
             // 设置有效期（根据创建时间计算）
             TimeSpan diff = DateTime.Now - createTime;
-            if (diff.TotalHours < 24)
+            int days = (int)diff.TotalDays;
+            if (days < 1)
             {
-                newRow["Validity"] = "24 小时内";
-            }
-            else if (diff.TotalDays < 3)
-            {
-                newRow["Validity"] = "3 天内";
-            }
-            else if (diff.TotalDays < 7)
-            {
-                newRow["Validity"] = "7 天内";
+                newRow["Validity"] = "1天内";
             }
             else
             {
-                newRow["Validity"] = createTime.ToString("yyyy-MM-dd");
+                newRow["Validity"] = days + "天内";
             }
 
             // 设置公司名称
@@ -816,6 +811,11 @@ public class EnquiryQuoteService
     {
         try
         {
+            if (fromShopId > 0 && toShopId > 0 && fromShopId == toShopId)
+            {
+                return false;
+            }
+
             EnsureQuoteTableColumns();
 
             if (goodsId > 0)
@@ -1030,6 +1030,8 @@ public class EnquiryQuoteService
                 ISNULL(e.fromLot, 
                        ISNULL((SELECT TOP 1 Lot FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1),
                               (SELECT TOP 1 Lot FROM goods WHERE goodsSn = e.goodsSn AND dataFlag = 1))) as Lot,
+                ISNULL((SELECT TOP 1 goodsStock FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1),
+                       (SELECT TOP 1 goodsStock FROM goods WHERE goodsSn = e.goodsSn AND dataFlag = 1)) as GoodsStock,
                 (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ,
                 (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.toShopId AND dataFlag = 1) as BuyerQQ,
                 ISNULL((SELECT TOP 1 Manufacturers FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1), 
@@ -1067,9 +1069,14 @@ public class EnquiryQuoteService
     /// <returns></returns>
     public DataTable GetQuotesByShop(int fromShopId)
     {
+        return GetQuotesByShop(fromShopId, "");
+    }
+
+    public DataTable GetQuotesByShop(int fromShopId, string keyword)
+    {
         try
         {
-            string sql = @"SELECT TOP 50 
+            string sql = @"SELECT 
                 e.eqId, e.goodsSn, e.eqType, e.fromQuantity, e.fromPrice, e.isIncludingTax, 
                 e.createTime, e.fromCompany, e.brandName as SellerBrandName, e.toCompany, e.readStatus, e.fromRemarks,
                 e.fromDataFlag, e.fromShopId, e.toShopId, e.goodsId, e.fromLot, e.validity,
@@ -1083,6 +1090,8 @@ public class EnquiryQuoteService
                 ISNULL(e.fromLot, 
                        ISNULL((SELECT TOP 1 Lot FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1),
                               (SELECT TOP 1 Lot FROM goods WHERE goodsSn = e.goodsSn AND dataFlag = 1))) as Lot,
+                ISNULL((SELECT TOP 1 goodsStock FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1),
+                       (SELECT TOP 1 goodsStock FROM goods WHERE goodsSn = e.goodsSn AND dataFlag = 1)) as GoodsStock,
                 (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ,
                 (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.toShopId AND dataFlag = 1) as BuyerQQ,
                 ISNULL((SELECT TOP 1 Manufacturers FROM goods WHERE goodsId = e.goodsId AND dataFlag = 1), 
@@ -1093,10 +1102,24 @@ public class EnquiryQuoteService
                        (SELECT TOP 1 goodsDesc FROM goods WHERE goodsSn = e.goodsSn AND dataFlag = 1)) as goodsDesc
                 FROM enquiryquoteprice e
                 LEFT JOIN enquiryquoteprice iq ON iq.eqId = e.sourceEqId AND iq.dataFlag = 1
-                WHERE e.dataFlag = 1 AND e.eqType = 2 AND e.fromShopId = @fromShopId AND (e.fromDataFlag IS NULL OR e.fromDataFlag = 1)
-                ORDER BY e.createTime DESC";
+                WHERE e.dataFlag = 1 AND e.eqType = 2 AND e.fromShopId = @fromShopId AND (e.fromDataFlag IS NULL OR e.fromDataFlag = 1)";
 
-            DataTable dt = DbHelper.ExecuteQuery(sql, DbHelper.CreateParameter("@fromShopId", fromShopId));
+            var parameters = new System.Collections.Generic.List<System.Data.SqlClient.SqlParameter>();
+            parameters.Add(DbHelper.CreateParameter("@fromShopId", fromShopId));
+
+            if (!string.IsNullOrEmpty(keyword) && keyword.Trim().Length > 0)
+            {
+                string[] searchFields = new string[] { 
+                    "e.goodsSn", "e.brandName", "e.toCompany", "e.fromCompany" 
+                };
+                var searchCond = GoodsService.BuildParametricSearchCondition(keyword, searchFields, "qr");
+                sql += searchCond.Item1;
+                parameters.AddRange(searchCond.Item2);
+            }
+
+            sql += " ORDER BY e.createTime DESC";
+
+            DataTable dt = DbHelper.ExecuteQuery(sql, parameters.ToArray());
             
             if (dt != null && dt.Rows.Count > 0)
             {

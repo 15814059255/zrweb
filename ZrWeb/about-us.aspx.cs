@@ -1,6 +1,8 @@
 using System;
+using System.Web;
 using System.Web.UI;
 using System.Configuration;
+using System.Data;
 
 public partial class about_us : Page
 {
@@ -14,5 +16,59 @@ public partial class about_us : Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (Request["action"] == "submitFeedback")
+        {
+            HandleSubmitFeedback();
+        }
+    }
+
+    private void HandleSubmitFeedback()
+    {
+        try
+        {
+            string name = Request["name"] != null ? Request["name"].Trim() : "";
+            string contact = Request["contact"] != null ? Request["contact"].Trim() : "";
+            string content = Request["content"] != null ? Request["content"].Trim() : "";
+            
+            if (string.IsNullOrEmpty(name))
+            {
+                Response.Write("{\"success\":false,\"message\":\"请填写您的称呼\"}");
+                Response.End();
+                return;
+            }
+            if (string.IsNullOrEmpty(contact))
+            {
+                Response.Write("{\"success\":false,\"message\":\"请填写联系方式\"}");
+                Response.End();
+                return;
+            }
+            
+            int userId = 0;
+            try
+            {
+                userId = Convert.ToInt32(Session["UserID"] != null ? Session["UserID"] : "0");
+            }
+            catch { }
+            
+            string userIP = Request.UserHostAddress;
+            if (userIP == "::1") userIP = "127.0.0.1";
+            
+            string insertSQL = @"INSERT INTO feedbacks (name, contact, content, userId, userIP, status, createTime)
+                                VALUES (@name, @contact, @content, @userId, @userIP, 0, GETDATE())";
+            
+            DbHelper.ExecuteNonQuery(insertSQL,
+                DbHelper.CreateParameter("@name", name),
+                DbHelper.CreateParameter("@contact", contact),
+                DbHelper.CreateParameter("@content", content),
+                DbHelper.CreateParameter("@userId", userId),
+                DbHelper.CreateParameter("@userIP", userIP));
+            
+            Response.Write("{\"success\":true,\"message\":\"留言提交成功\"}");
+        }
+        catch (Exception ex)
+        {
+            Response.Write("{\"success\":false,\"message\":\"" + ex.Message.Replace("\"", "\\\"") + "\"}");
+        }
+        Response.End();
     }
 }

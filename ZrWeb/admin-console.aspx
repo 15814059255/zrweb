@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>管理员控制台 - 阻容网</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .admin-table-wrap { max-height: none !important; overflow-y: visible !important; overflow-x: visible !important; }
+        .admin-sidebar { overflow-y: visible !important; }
+        .admin-main { overflow: visible !important; }
+        .admin-section-grid .admin-table { min-width: 0 !important; width: 100%; }
+    </style>
 </head>
 <body class="admin-page">
     <div class="admin-app">
@@ -41,6 +47,10 @@
                 <a href="admin-ads.aspx">
                     <span class="nav-icon">📢</span>
                     <span>广告管理</span>
+                </a>
+                <a href="admin-feedback.aspx">
+                    <span class="nav-icon">💬</span>
+                    <span>反馈管理</span>
                 </a>
             </nav>
             <div class="admin-sidebar-footer">
@@ -103,16 +113,16 @@
                     </div>
                     <div class="admin-table-wrap">
                         <table class="table admin-table">
-                            <thead><tr><th>会员ID</th><th>用户名</th><th>联系人</th><th>手机号</th><th>注册时间</th><th>状态</th></tr></thead>
+                            <thead><tr><th>会员ID</th><th>用户名</th><th>联系人</th><th>注册时间</th><th>状态</th></tr></thead>
                             <tbody>
                                 <% if (RecentMembers != null && RecentMembers.Rows.Count > 0) { %>
                                 <asp:Repeater ID="rptRecentMembers" runat="server" EnableViewState="false">
                                     <ItemTemplate>
-                                        <tr><td>U<%# Eval("UserID") %></td><td><%# Eval("UserName") %></td><td><%# Eval("LinkMan") %></td><td><%# Eval("MobilePhone") %></td><td><%# Convert.ToDateTime(Eval("CreateTime")).ToString("yyyy-MM-dd HH:mm") %></td><td><span class="tag <%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "green" : "orange" %>"><%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "已审核" : "待审核" %></span></td></tr>
+                                        <tr><td>U<%# Eval("UserID") %></td><td><%# Eval("UserName") %></td><td><%# Eval("LinkMan") %></td><td><%# Convert.ToDateTime(Eval("CreateTime")).ToString("yyyy-MM-dd HH:mm") %></td><td><span class="tag <%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "green" : "orange" %>"><%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "已审核" : "待审核" %></span></td></tr>
                                     </ItemTemplate>
                                 </asp:Repeater>
                                 <% } else { %>
-                                <tr><td colspan="6" style="text-align:center;padding:20px;">暂无数据</td></tr>
+                                <tr><td colspan="5" style="text-align:center;padding:20px;">暂无数据</td></tr>
                                 <% } %>
                             </tbody>
                         </table>
@@ -125,16 +135,16 @@
                     </div>
                     <div class="admin-table-wrap">
                         <table class="table admin-table">
-                            <thead><tr><th>商品ID</th><th>型号</th><th>类型</th><th>价格</th><th>发布时间</th><th>状态</th></tr></thead>
+                            <thead><tr><th>型号</th><th>类型</th><th>价格</th><th>发布时间</th><th>状态</th></tr></thead>
                             <tbody>
                                 <% if (RecentGoods != null && RecentGoods.Rows.Count > 0) { %>
                                 <asp:Repeater ID="rptRecentGoods" runat="server" EnableViewState="false">
                                     <ItemTemplate>
-                                        <tr><td>G<%# Eval("goodsId") %></td><td><%# Eval("goodsSn") %></td><td><span class="tag <%# Convert.ToInt32(Eval("pubType")) == 1 ? "blue" : "orange" %>"><%# Convert.ToInt32(Eval("pubType")) == 1 ? "供应" : "需求" %></span></td><td>¥<%# Eval("shopPrice") %>/<%# Eval("goodsUnit") %></td><td><%# Convert.ToDateTime(Eval("createTime")).ToString("yyyy-MM-dd HH:mm") %></td><td><span class="tag <%# Convert.ToInt32(Eval("isSale")) == 1 ? "green" : "gray" %>"><%# Convert.ToInt32(Eval("isSale")) == 1 ? "在线" : "已下架" %></span></td></tr>
+                                        <tr><td><%# Eval("goodsSn") %></td><td><span class="tag <%# Convert.ToInt32(Eval("pubType")) == 1 ? "blue" : "orange" %>"><%# Convert.ToInt32(Eval("pubType")) == 1 ? "供应" : "需求" %></span></td><td>¥<%# Eval("shopPrice") %>/<%# Eval("goodsUnit") %></td><td><%# Convert.ToDateTime(Eval("createTime")).ToString("yyyy-MM-dd HH:mm") %></td><td><span class="tag <%# Convert.ToInt32(Eval("isSale")) == 1 ? "green" : "gray" %>"><%# Convert.ToInt32(Eval("isSale")) == 1 ? "在线" : "已下架" %></span></td></tr>
                                     </ItemTemplate>
                                 </asp:Repeater>
                                 <% } else { %>
-                                <tr><td colspan="6" style="text-align:center;padding:20px;">暂无数据</td></tr>
+                                <tr><td colspan="5" style="text-align:center;padding:20px;">暂无数据</td></tr>
                                 <% } %>
                             </tbody>
                         </table>

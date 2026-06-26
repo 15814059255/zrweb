@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>供需管理 - 阻容网</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .admin-table-wrap { max-height: none !important; overflow-y: visible !important; }
+    </style>
 </head>
 <body class="admin-page">
     <div class="admin-app">
@@ -63,14 +66,16 @@
                         <h2>供需列表</h2>
                         <span class="admin-table-count">共 <%= TotalGoods %> 条记录</span>
                     </div>
-                    <div class="admin-search-actions">
-                        <select class="input" id="selPubType" runat="server">
+                    <div class="admin-search-actions" style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn" onclick="batchToggleStatus(0)" style="padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; background:#fef3c7; color:#92400e; border:1px solid #fde68a;">下架</button>
+                        <button class="btn" onclick="batchDelete()" style="padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; background:#fee2e2; color:#991b1b; border:1px solid #fecaca;">删除</button>
+                        <select class="input" id="selPubType" runat="server" style="padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; background:#fff; font-size:13px; width:120px;">
                             <option value="">全部类型</option>
                             <option value="1">供应</option>
                             <option value="2">需求</option>
                         </select>
-                        <input class="input admin-search" id="txtSearch" runat="server" placeholder="搜索型号">
-                        <button class="btn" onclick="searchGoods()">搜索</button>
+                        <input class="input admin-search" id="txtSearch" runat="server" placeholder="搜索型号" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; font-size:13px; width:220px;">
+                        <button class="btn" onclick="searchGoods()" style="padding:8px 20px; border-radius:8px; font-size:13px; font-weight:600;">搜索</button>
                     </div>
                 </div>
                 <div class="admin-table-wrap">
@@ -84,6 +89,7 @@
                                 <th>价格</th>
                                 <th>库存</th>
                                 <th>单位</th>
+                                <th>交互数</th>
                                 <th>发布时间</th>
                                 <th>状态</th>
                                 <th>操作</th>
@@ -101,6 +107,10 @@
                                         <td>¥<%# Eval("shopPrice") %></td>
                                         <td><%# Eval("goodsStock") %></td>
                                         <td><%# Eval("goodsUnit") %></td>
+                                        <td>
+                                            <%# Convert.ToInt32(Eval("InteractionCount")) > 0 ? 
+                                                "<span style='color:#e74c3c;font-weight:600;'>" + Eval("InteractionCount") + "</span>" : "0" %>
+                                        </td>
                                         <td><%# Convert.ToDateTime(Eval("createTime")).ToString("yyyy-MM-dd HH:mm") %></td>
                                         <td><span class="tag <%# Convert.ToInt32(Eval("isSale")) == 1 ? "green" : "gray" %>"><%# Convert.ToInt32(Eval("isSale")) == 1 ? "在线" : "已下架" %></span></td>
                                         <td>
@@ -113,7 +123,7 @@
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } else { %>
-                            <tr><td colspan="10" style="text-align:center;padding:40px;">暂无数据</td></tr>
+                            <tr><td colspan="11" style="text-align:center;padding:40px;">暂无数据</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -145,6 +155,65 @@
             checkboxes.forEach(function(cb) {
                 cb.checked = checkbox.checked;
             });
+        }
+        
+        function getSelectedGoodsIds() {
+            var checkboxes = document.querySelectorAll('input[name="goodsIds"]:checked');
+            var ids = [];
+            checkboxes.forEach(function(cb) {
+                ids.push(cb.value);
+            });
+            return ids;
+        }
+        
+        function batchToggleStatus(status) {
+            var ids = getSelectedGoodsIds();
+            if (ids.length === 0) {
+                alert('请先选择要操作的商品');
+                return;
+            }
+            if (!confirm('确定' + (status == 1 ? '上架' : '下架') + '选中的 ' + ids.length + ' 个商品？')) return;
+            
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin-goods.aspx?action=batchToggleStatus';
+            
+            var inputIds = document.createElement('input');
+            inputIds.type = 'hidden';
+            inputIds.name = 'goodsIds';
+            inputIds.value = ids.join(',');
+            form.appendChild(inputIds);
+            
+            var inputStatus = document.createElement('input');
+            inputStatus.type = 'hidden';
+            inputStatus.name = 'status';
+            inputStatus.value = status;
+            form.appendChild(inputStatus);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        function batchDelete() {
+            var ids = getSelectedGoodsIds();
+            if (ids.length === 0) {
+                alert('请先选择要操作的商品');
+                return;
+            }
+            if (!confirm('确定删除选中的 ' + ids.length + ' 个商品？此操作不可恢复！')) return;
+            
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin-goods.aspx?action=batchDelete';
+            
+            var inputIds = document.createElement('input');
+            inputIds.type = 'hidden';
+            inputIds.name = 'goodsIds';
+            inputIds.value = ids.join(',');
+            form.appendChild(inputIds);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
         
         function showGoodsDetail(goodsId, goodsSn, pubType) {

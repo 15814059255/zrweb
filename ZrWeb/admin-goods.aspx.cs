@@ -17,6 +17,7 @@ public partial class admin_goods : System.Web.UI.Page
         {
             CheckLogin();
             HandleActions();
+            SetPubTypeSelected();
             LoadGoodsList();
         }
     }
@@ -30,27 +31,76 @@ public partial class admin_goods : System.Web.UI.Page
         AdminName = Session["AdminName"] != null ? Session["AdminName"].ToString() : "";
     }
 
+    private void SetPubTypeSelected()
+    {
+        string pubType = Request.QueryString["pubType"];
+        if (!string.IsNullOrEmpty(pubType))
+        {
+            selPubType.Value = pubType;
+        }
+    }
+
     private void HandleActions()
     {
         string action = Request.QueryString["action"];
-        string goodsId = Request.QueryString["goodsId"];
 
-        if (!string.IsNullOrEmpty(action) && !string.IsNullOrEmpty(goodsId))
+        if (!string.IsNullOrEmpty(action))
         {
-            int goodsID = Convert.ToInt32(goodsId);
-            
-            if (action == "toggleStatus")
+            if (action == "batchToggleStatus")
             {
-                int status = Convert.ToInt32(Request.QueryString["status"]);
-                DbHelper.ExecuteNonQuery("UPDATE goods SET isSale = @status WHERE goodsId = @goodsId",
-                    DbHelper.CreateParameter("@status", status),
-                    DbHelper.CreateParameter("@goodsId", goodsID));
+                string goodsIds = Request.Form["goodsIds"];
+                int status = Convert.ToInt32(Request.Form["status"]);
+                if (!string.IsNullOrEmpty(goodsIds))
+                {
+                    string[] idArray = goodsIds.Split(',');
+                    foreach (string id in idArray)
+                    {
+                        int goodsID;
+                        if (int.TryParse(id.Trim(), out goodsID))
+                        {
+                            DbHelper.ExecuteNonQuery("UPDATE goods SET isSale = @status WHERE goodsId = @goodsId",
+                                DbHelper.CreateParameter("@status", status),
+                                DbHelper.CreateParameter("@goodsId", goodsID));
+                        }
+                    }
+                }
             }
-            else if (action == "delete")
+            else if (action == "batchDelete")
             {
-                // 使用 0 表示已删除，兼容 tinyint 类型
-                DbHelper.ExecuteNonQuery("UPDATE goods SET dataFlag = 0 WHERE goodsId = @goodsId",
-                    DbHelper.CreateParameter("@goodsId", goodsID));
+                string goodsIds = Request.Form["goodsIds"];
+                if (!string.IsNullOrEmpty(goodsIds))
+                {
+                    string[] idArray = goodsIds.Split(',');
+                    foreach (string id in idArray)
+                    {
+                        int goodsID;
+                        if (int.TryParse(id.Trim(), out goodsID))
+                        {
+                            DbHelper.ExecuteNonQuery("UPDATE goods SET dataFlag = 0 WHERE goodsId = @goodsId",
+                                DbHelper.CreateParameter("@goodsId", goodsID));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                string goodsId = Request.QueryString["goodsId"];
+                int goodsID;
+                if (!string.IsNullOrEmpty(goodsId) && int.TryParse(goodsId, out goodsID))
+                {
+                    if (action == "toggleStatus")
+                    {
+                        int status = Convert.ToInt32(Request.QueryString["status"]);
+                        DbHelper.ExecuteNonQuery("UPDATE goods SET isSale = @status WHERE goodsId = @goodsId",
+                            DbHelper.CreateParameter("@status", status),
+                            DbHelper.CreateParameter("@goodsId", goodsID));
+                    }
+                    else if (action == "delete")
+                    {
+                        DbHelper.ExecuteNonQuery("UPDATE goods SET dataFlag = 0 WHERE goodsId = @goodsId",
+                            DbHelper.CreateParameter("@goodsId", goodsID));
+                    }
+                }
             }
         }
     }
@@ -69,7 +119,13 @@ public partial class admin_goods : System.Web.UI.Page
             }
 
             string countSql = "SELECT COUNT(*) FROM goods g LEFT JOIN shops s ON g.shopId = s.shopId LEFT JOIN userinfo u ON s.userId = u.UserID WHERE g.dataFlag = 1";
-            string listSql = "SELECT g.goodsId, g.goodsSn, g.shopPrice, g.goodsStock, g.goodsUnit, g.pubType, g.isSale, g.createTime, ISNULL(u.CompanyName, s.shopCompany) AS PublisherName FROM goods g LEFT JOIN shops s ON g.shopId = s.shopId LEFT JOIN userinfo u ON s.userId = u.UserID WHERE g.dataFlag = 1";
+            string listSql = @"SELECT g.goodsId, g.goodsSn, g.shopPrice, g.goodsStock, g.goodsUnit, g.pubType, g.isSale, g.createTime, 
+                          ISNULL(u.CompanyName, s.shopCompany) AS PublisherName,
+                          (SELECT COUNT(*) FROM enquiryquoteprice eq WHERE eq.dataFlag = 1 AND eq.goodsId = g.goodsId AND eq.eqType = CASE WHEN g.pubType = 1 THEN 1 ELSE 2 END) AS InteractionCount
+                          FROM goods g 
+                          LEFT JOIN shops s ON g.shopId = s.shopId 
+                          LEFT JOIN userinfo u ON s.userId = u.UserID 
+                          WHERE g.dataFlag = 1";
             
             if (!string.IsNullOrEmpty(keyword))
             {

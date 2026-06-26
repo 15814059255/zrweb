@@ -66,7 +66,8 @@ public partial class received_inquiries : System.Web.UI.Page
                 e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus, e.validity,
                 e.fromCompany, e.fromContact, e.fromTel, e.brandName, e.fromShopId, e.fromLot,
                 g.Manufacturers, g.Packaging, g.goodsDesc, g.goodsUnit, g.shopPrice, g.Lot,
-                g.isSale, g.goodsStatus, g.dataFlag as GoodsDataFlag
+                g.isSale, g.goodsStatus, g.dataFlag as GoodsDataFlag,
+                CASE WHEN EXISTS (SELECT 1 FROM enquiryquoteprice eq2 WHERE eq2.sourceEqId = e.eqId AND eq2.eqType = 2 AND eq2.dataFlag = 1) THEN 1 ELSE 0 END as HasQuoteReply
                 FROM enquiryquoteprice e
                 LEFT JOIN goods g ON e.goodsId = g.goodsId
                 WHERE e.toShopId = @shopId AND e.eqType = 1 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
@@ -85,10 +86,10 @@ public partial class received_inquiries : System.Web.UI.Page
                     newRow["EqId"] = GetIntValue(row["eqId"], 0);
                     newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
                     newRow["Model"] = GetStringValue(row["goodsSn"]);
-                    string buyerName = CleanStringValue(row["fromCompany"]);
+                    string buyerName = DbHelper.FixAndCleanString(GetStringValue(row["fromCompany"]));
                     if (string.IsNullOrEmpty(buyerName))
                     {
-                        buyerName = CleanStringValue(row["fromContact"]);
+                        buyerName = DbHelper.FixAndCleanString(GetStringValue(row["fromContact"]));
                     }
                     if (string.IsNullOrEmpty(buyerName))
                     {
@@ -239,36 +240,43 @@ public partial class received_inquiries : System.Web.UI.Page
                     {
                         DateTime createTime = Convert.ToDateTime(row["createTime"]);
                         TimeSpan diff = DateTime.Now - createTime;
-                        if (diff.TotalHours < 24)
+                        int days = (int)diff.TotalDays;
+                        if (days < 1)
                         {
-                            validity = "24小时";
-                        }
-                        else if (diff.TotalDays < 2)
-                        {
-                            validity = "48小时";
-                        }
-                        else if (diff.TotalDays < 3)
-                        {
-                            validity = "72小时";
+                            validity = "1天";
                         }
                         else
                         {
-                            validity = createTime.AddDays(3).ToString("yyyy-MM-dd");
+                            validity = days + "天";
                         }
-                    }
-                    newRow["Validity"] = validity;
-
-                    // 状态
-                    int readStatus = GetIntValue(row["readStatus"], 0);
-                    if (readStatus == 0)
-                    {
-                        newRow["Status"] = "新询价";
-                        newRow["StatusClass"] = "green";
                     }
                     else
                     {
-                        newRow["Status"] = "已读";
-                        newRow["StatusClass"] = "blue";
+                        if (validity == "24小时") validity = "1天";
+                        else if (validity == "1个月") validity = "30天";
+                    }
+                    newRow["Validity"] = validity;
+
+                    // 状态：根据是否已报价来判断
+                    int hasQuoteReply = GetIntValue(row["HasQuoteReply"], 0);
+                    int readStatus = GetIntValue(row["readStatus"], 0);
+                    if (hasQuoteReply == 1)
+                    {
+                        // 已报价
+                        newRow["Status"] = "已报价";
+                        newRow["StatusClass"] = "green";
+                    }
+                    else if (readStatus == 0)
+                    {
+                        // 未报价且未查看
+                        newRow["Status"] = "待报价";
+                        newRow["StatusClass"] = "orange";
+                    }
+                    else
+                    {
+                        // 未报价但已查看
+                        newRow["Status"] = "已查看";
+                        newRow["StatusClass"] = "gray";
                     }
 
                     dt.Rows.Add(newRow);
@@ -346,27 +354,5 @@ public partial class received_inquiries : System.Web.UI.Page
         {
         }
         return 0;
-    }
-    
-    private string CleanStringValue(object value)
-    {
-        if (value == DBNull.Value || value == null)
-            return "";
-        string str = value.ToString();
-        if (string.IsNullOrEmpty(str))
-            return "";
-        char[] cleanChars = new char[str.Length];
-        int idx = 0;
-        foreach (char c in str)
-        {
-            if (c >= 0x20 && c <= 0x7E || 
-                c >= 0x4E00 && c <= 0x9FFF || 
-                c >= 0x3000 && c <= 0x303F ||
-                c >= 0xFF00 && c <= 0xFFEF)
-            {
-                cleanChars[idx++] = c;
-            }
-        }
-        return new string(cleanChars, 0, idx).Trim();
     }
 }

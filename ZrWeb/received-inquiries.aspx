@@ -10,6 +10,10 @@
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .main { padding: 28px 24px; }
+        .inquiry-panel { padding: 0; }
+    </style>
 </head>
 <body>
     <div class="app">

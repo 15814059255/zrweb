@@ -68,7 +68,35 @@ public partial class admin_init : System.Web.UI.Page
                 }
                 result.Append("<div class='result success'>✓ 管理员账号创建成功</div>");
                 
-                // 4. 验证
+                // 4. 创建反馈表
+                result.Append("<div class='result info'>正在创建反馈表...</div>");
+                string createFeedbacksSQL = @"
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'feedbacks')
+                    BEGIN
+                        CREATE TABLE [dbo].[feedbacks] (
+                            [feedbackId] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [name] nvarchar(50) NULL,
+                            [contact] nvarchar(100) NULL,
+                            [content] text NULL,
+                            [userId] int NULL,
+                            [userIP] nvarchar(50) NULL,
+                            [status] tinyint DEFAULT 0,
+                            [createTime] datetime DEFAULT GETDATE(),
+                            [replyContent] text NULL,
+                            [replyTime] datetime NULL,
+                            [replyAdminId] int NULL
+                        )
+                        CREATE INDEX [IX_feedbacks_status] ON [dbo].[feedbacks] ([status] ASC)
+                        CREATE INDEX [IX_feedbacks_createTime] ON [dbo].[feedbacks] ([createTime] DESC)
+                    END";
+                
+                using (SqlCommand cmd = new SqlCommand(createFeedbacksSQL, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                result.Append("<div class='result success'>✓ 反馈表创建成功（或已存在）</div>");
+                
+                // 5. 验证
                 result.Append("<div class='result info'>正在验证数据...</div>");
                 using (SqlCommand cmd = new SqlCommand("SELECT AdminID, AdminName, Password, RealName, Status FROM admin_users WHERE AdminName = 'superadmin'", conn))
                 {

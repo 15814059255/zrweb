@@ -37,9 +37,17 @@ public partial class profile : System.Web.UI.Page
     public string District = "";
     public string Street = "";
     public string Address = "";
+    public string UserRoleName = "";
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        // 自动扩大数据库字段长度（只执行一次）
+        if (Session["FieldsMigrated"] == null)
+        {
+            MigrateDatabaseFields();
+            Session["FieldsMigrated"] = true;
+        }
+        
         if (Request.HttpMethod == "POST")
         {
             if (Request["action"] == "save_profile")
@@ -57,6 +65,50 @@ public partial class profile : System.Web.UI.Page
         LoadUserProfile();
     }
 
+    private void MigrateDatabaseFields()
+    {
+        // 先确保 userinfo 表有必要的字段（ADD COLUMN 如果不存在）
+        string[] addColumnSqls = new string[]
+        {
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'CompanyName') ALTER TABLE [dbo].[userinfo] ADD [CompanyName] nvarchar(500) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'Province') ALTER TABLE [dbo].[userinfo] ADD [Province] nvarchar(100) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'City') ALTER TABLE [dbo].[userinfo] ADD [City] nvarchar(100) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'District') ALTER TABLE [dbo].[userinfo] ADD [District] nvarchar(100) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'Street') ALTER TABLE [dbo].[userinfo] ADD [Street] nvarchar(200) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'Address') ALTER TABLE [dbo].[userinfo] ADD [Address] nvarchar(500) NULL",
+            "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('userinfo') AND name = 'CompanyModified') ALTER TABLE [dbo].[userinfo] ADD [CompanyModified] int NULL DEFAULT 0"
+        };
+        
+        foreach (string sql in addColumnSqls)
+        {
+            try
+            {
+                DbHelper.ExecuteNonQuery(sql);
+            }
+            catch { }
+        }
+        
+        // 再扩大字段长度
+        string[] alterSqls = new string[]
+        {
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopName] nvarchar(500) NULL",
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopCompany] nvarchar(500) NULL",
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopTel] nvarchar(500) NULL",
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopImg] nvarchar(500) NULL",
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopQQ] nvarchar(255) NULL",
+            "ALTER TABLE [dbo].[shops] ALTER COLUMN [shopAddress] nvarchar(1000) NULL"
+        };
+        
+        foreach (string sql in alterSqls)
+        {
+            try
+            {
+                DbHelper.ExecuteNonQuery(sql);
+            }
+            catch { }
+        }
+    }
+
     private void LoadUserProfile()
     {
         try
@@ -72,49 +124,24 @@ public partial class profile : System.Web.UI.Page
                 return;
             }
 
-            DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone, QQ, Email, CompanyName, Province, City, District, Street, Address, IsCertified, CompanyModified FROM [dbo].[userinfo] WHERE UserID = @userId AND SysStatus = 0",
-                DbHelper.CreateParameter("@userId", userId));
-            
-            if (userDt != null && userDt.Rows.Count > 0)
-            {
-                DataRow userRow = userDt.Rows[0];
-                ContactName = GetStringValue(userRow["LinkMan"]);
-                OriginalContactPhone = GetStringValue(userRow["MobilePhone"]);
-                ContactPhone = OriginalContactPhone;
-                ContactQQ = GetStringValue(userRow["QQ"]);
-                ContactEmail = GetStringValue(userRow["Email"]);
-                IsCertified = GetIntValue(userRow["IsCertified"], 0) == 1;
-                CompanyModified = GetIntValue(userRow["CompanyModified"], 0) == 1;
-                
-                // 先从 userinfo 表读取公司名称作为默认值
-                string userCompanyName = GetStringValue(userRow["CompanyName"]);
-                if (!string.IsNullOrEmpty(userCompanyName))
-                {
-                    CompanyName = userCompanyName;
-                }
-                
-                Province = GetStringValue(userRow["Province"]);
-                City = GetStringValue(userRow["City"]);
-                District = GetStringValue(userRow["District"]);
-                Street = GetStringValue(userRow["Street"]);
-                Address = GetStringValue(userRow["Address"]);
-                
-                if (!string.IsNullOrEmpty(ContactPhone) && ContactPhone.Length >= 11)
-                {
-                    ContactPhone = ContactPhone.Substring(0, 3) + "****" + ContactPhone.Substring(7);
-                }
-            }
-
-            // 加载公司信息
+            // 先从 shops 表读取公司名称（主要数据源）
             try
             {
-                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopName, shopCompany, shopAddress, shopTel, shopImg, shopQQ FROM [dbo].[shops] WHERE userId = @userId AND dataFlag = 1",
+                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId, shopName, shopCompany, shopAddress, shopTel, shopImg, shopQQ FROM [dbo].[shops] WHERE userId = @userId AND dataFlag = 1",
                     DbHelper.CreateParameter("@userId", userId));
                 
                 if (shopDt != null && shopDt.Rows.Count > 0)
                 {
                     DataRow shopRow = shopDt.Rows[0];
-                    // shopName 用于存储主营品牌（多个品牌用|分隔）
+                    
+                    // shopCompany 是公司名称的主要存储位置
+                    string shopCompanyName = GetStringValue(shopRow["shopCompany"]);
+                    if (!string.IsNullOrEmpty(shopCompanyName))
+                    {
+                        CompanyName = shopCompanyName;
+                    }
+                    
+                    // shopName 用于存储主营品牌
                     string mainBrandsStr = GetStringValue(shopRow["shopName"]);
                     string[] brands = mainBrandsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     MainBrand1 = brands.Length > 0 ? brands[0] : "";
@@ -123,65 +150,94 @@ public partial class profile : System.Web.UI.Page
                     MainBrand4 = brands.Length > 3 ? brands[3] : "";
                     MainBrand5 = brands.Length > 4 ? brands[4] : "";
                     
-                    // shopCompany 用于存储公司名称
-                    string shopCompanyName = GetStringValue(shopRow["shopCompany"]);
-                    if (!string.IsNullOrEmpty(shopCompanyName))
-                    {
-                        CompanyName = shopCompanyName;
-                    }
-                    // 如果CompanyName仍然为空（既没有 shops 也没有 userinfo），显示提示
-                    if (string.IsNullOrEmpty(CompanyName))
-                    {
-                        CompanyName = "请完善公司信息";
-                    }
-                    
                     // shopAddress 用于存储公司简介
                     CompanyDescription = GetStringValue(shopRow["shopAddress"]);
-                    if (string.IsNullOrEmpty(CompanyDescription))
-                    {
-                        CompanyDescription = "暂无公司简介";
-                    }
                     
-                    // shopTel 用于存储优势型号（多个型号用|分隔）
-                    try
-                    {
-                        string modelsStr = GetStringValue(shopRow["shopTel"]);
-                        string[] models = modelsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                        Model1 = models.Length > 0 ? models[0] : "";
-                        Model2 = models.Length > 1 ? models[1] : "";
-                        Model3 = models.Length > 2 ? models[2] : "";
-                        Model4 = models.Length > 3 ? models[3] : "";
-                        Model5 = models.Length > 4 ? models[4] : "";
-                    }
-                    catch
-                    {
-                        // shopTel 字段可能不存在或值为空
-                    }
+                    // shopTel 用于存储优势型号
+                    string modelsStr = GetStringValue(shopRow["shopTel"]);
+                    string[] models = modelsStr.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    Model1 = models.Length > 0 ? models[0] : "";
+                    Model2 = models.Length > 1 ? models[1] : "";
+                    Model3 = models.Length > 2 ? models[2] : "";
+                    Model4 = models.Length > 3 ? models[3] : "";
+                    Model5 = models.Length > 4 ? models[4] : "";
                     
-                    // 加载证照信息
                     BusinessLicense = GetStringValue(shopRow["shopImg"]);
                     IDCard = GetStringValue(shopRow["shopQQ"]);
-                }
-                else
-                {
-                    // 只有在userinfo也没有公司名称时才显示提示
-                    if (string.IsNullOrEmpty(CompanyName))
-                    {
-                        CompanyName = "请完善公司信息";
-                    }
-                    CompanyDescription = "暂无公司简介";
                 }
             }
             catch (Exception shopEx)
             {
-                // shops表加载失败时，如果userinfo已有公司名称则保留
-                if (string.IsNullOrEmpty(CompanyName))
-                {
-                    CompanyName = "请完善公司信息";
-                }
-                CompanyDescription = "暂无公司简介";
+                System.Diagnostics.Debug.WriteLine("shops表读取异常: " + shopEx.Message);
             }
 
+            // 从 userinfo 表读取联系人和其他信息
+            try
+            {
+                DataTable userDt = DbHelper.ExecuteQuery("SELECT LinkMan, MobilePhone, QQ, Email, CompanyName, Province, City, District, Street, Address, IsCertified, CompanyModified FROM [dbo].[userinfo] WHERE UserID = @userId AND SysStatus = 0",
+                    DbHelper.CreateParameter("@userId", userId));
+                
+                if (userDt != null && userDt.Rows.Count > 0)
+                {
+                    DataRow userRow = userDt.Rows[0];
+                    ContactName = GetStringValue(userRow["LinkMan"]);
+                    OriginalContactPhone = GetStringValue(userRow["MobilePhone"]);
+                    ContactPhone = OriginalContactPhone;
+                    ContactQQ = GetStringValue(userRow["QQ"]);
+                    ContactEmail = GetStringValue(userRow["Email"]);
+                    IsCertified = GetIntValue(userRow["IsCertified"], 0) == 1;
+                    CompanyModified = GetIntValue(userRow["CompanyModified"], 0) == 1;
+                    
+                    Province = GetStringValue(userRow["Province"]);
+                    City = GetStringValue(userRow["City"]);
+                    District = GetStringValue(userRow["District"]);
+                    Street = GetStringValue(userRow["Street"]);
+                    Address = GetStringValue(userRow["Address"]);
+                    
+                    // 如果 shops 表没有公司名称，从 userinfo 表读取作为备选
+                    string userCompanyName = GetStringValue(userRow["CompanyName"]);
+                    if (string.IsNullOrEmpty(CompanyName) && !string.IsNullOrEmpty(userCompanyName))
+                    {
+                        CompanyName = userCompanyName;
+                    }
+                    
+                    if (!string.IsNullOrEmpty(ContactPhone) && ContactPhone.Length >= 11)
+                    {
+                        ContactPhone = ContactPhone.Substring(0, 3) + "****" + ContactPhone.Substring(7);
+                    }
+                }
+            }
+            catch (Exception userEx)
+            {
+                System.Diagnostics.Debug.WriteLine("userinfo表读取异常: " + userEx.Message);
+            }
+
+            // 获取用户类型
+            int roseId = UserHelper.GetRoseId();
+            switch (roseId)
+            {
+                case 2:
+                    UserRoleName = "采购商";
+                    break;
+                case 3:
+                    UserRoleName = "供应商";
+                    break;
+                default:
+                    UserRoleName = "普通用户";
+                    break;
+            }
+
+            // 如果公司名称仍然为空，显示提示
+            if (string.IsNullOrEmpty(CompanyName))
+            {
+                CompanyName = "请完善公司信息";
+            }
+            
+            if (string.IsNullOrEmpty(CompanyDescription))
+            {
+                CompanyDescription = "暂无公司简介";
+            }
+            
             if (string.IsNullOrEmpty(ContactName))
             {
                 ContactName = "请完善联系人信息";
@@ -204,6 +260,7 @@ public partial class profile : System.Web.UI.Page
             ContactPhone = "请完善联系电话";
             ContactQQ = "请完善QQ号码";
             CompanyDescription = "暂无公司简介";
+            System.Diagnostics.Debug.WriteLine("LoadUserProfile异常: " + ex.Message);
         }
     }
 

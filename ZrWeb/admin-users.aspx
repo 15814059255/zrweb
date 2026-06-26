@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>用户管理 - 阻容网</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .admin-table-wrap { max-height: none !important; overflow-y: visible !important; }
+    </style>
 </head>
 <body class="admin-page">
     <div class="admin-app">
@@ -63,9 +66,16 @@
                         <h2>会员列表</h2>
                         <span class="admin-table-count">共 <%= TotalUsers %> 条记录</span>
                     </div>
-                    <div class="admin-search-actions">
-                        <input class="input admin-search" id="txtSearch" runat="server" placeholder="搜索用户名、手机号、联系人">
-                        <button class="btn" onclick="searchUsers()">搜索</button>
+                    <div class="admin-search-actions" style="display:flex; gap:10px; align-items:center;">
+                        <select class="input" id="selRole" runat="server" style="padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; background:#fff; font-size:13px; width:120px;">
+                            <option value="">全部类型</option>
+                            <option value="1">普通用户</option>
+                            <option value="2">采购商</option>
+                            <option value="3">供应商</option>
+                            <option value="disabled">已禁用用户</option>
+                        </select>
+                        <input class="input admin-search" id="txtSearch" runat="server" placeholder="搜索用户名、手机号、联系人" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; font-size:13px; width:260px;">
+                        <button class="btn" onclick="searchUsers()" style="padding:8px 20px; border-radius:8px; font-size:13px; font-weight:600;">搜索</button>
                     </div>
                 </div>
                 <div class="admin-table-wrap">
@@ -97,13 +107,13 @@
                                         <td><%# Eval("MobilePhone") %></td>
                                         <td><%# Convert.ToDateTime(Eval("CreateTime")).ToString("yyyy-MM-dd HH:mm") %></td>
                                         <td><span class="tag <%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "green" : "orange" %>"><%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "已审核" : "待审核" %></span></td>
-                                        <td><span class="tag <%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "green" : "red" %>"><%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "正常" : "已删除" %></span></td>
+                                        <td><span class="tag <%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "green" : "red" %>"><%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "正常" : "已禁用" %></span></td>
                                         <td>
                                             <button class="btn mini" onclick="checkUser(<%# Eval("UserID") %>, <%# Convert.ToInt32(Eval("IsCheck")) == 1 ? 0 : 1 %>)">
                                                 <%# Convert.ToInt32(Eval("IsCheck")) == 1 ? "取消审核" : "审核通过" %>
                                             </button>
                                             <button class="btn mini" onclick="toggleUserStatus(<%# Eval("UserID") %>, <%# Convert.ToInt32(Eval("SysStatus")) == 0 ? 1 : 0 %>)">
-                                                <%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "删除" : "恢复" %>
+                                                <%# Convert.ToInt32(Eval("SysStatus")) == 0 ? "禁用" : "恢复" %>
                                             </button>
                                         </td>
                                     </tr>
@@ -133,7 +143,11 @@
         
         function searchUsers() {
             var keyword = document.getElementById('<%= txtSearch.ClientID %>').value;
-            window.location.href = '/admin-users.aspx?keyword=' + encodeURIComponent(keyword);
+            var role = document.getElementById('<%= selRole.ClientID %>').value;
+            var url = '/admin-users.aspx';
+            if (keyword) url += '?keyword=' + encodeURIComponent(keyword);
+            if (role) url += (keyword ? '&' : '?') + 'role=' + role;
+            window.location.href = url;
         }
         
         function prevPage() {

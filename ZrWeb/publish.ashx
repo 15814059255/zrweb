@@ -5,8 +5,11 @@ using System.Web;
 using System.Web.SessionState;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 
 public class PublishHandler : IHttpHandler, IRequiresSessionState {
+    
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _publishRequests = new System.Collections.Concurrent.ConcurrentDictionary<string, DateTime>();
     
     public void ProcessRequest (HttpContext context) {
         try {
@@ -15,13 +18,42 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             string action = context.Request["action"];
             Log("Action: " + (action ?? "null"));
             
-            context.Response.Clear();
+            context.Response.ClearContent();
+            context.Response.ClearHeaders();
             context.Response.ContentType = "application/json";
-            context.Response.Charset = "utf-8";
-            context.Response.ContentEncoding = System.Text.Encoding.UTF8;
+            context.Response.Charset = "UTF-8";
             
             if (action == "publish_goods") {
-                HandlePublishGoods(context);
+                string requestId = context.Request["requestId"];
+                if (string.IsNullOrEmpty(requestId)) {
+                    WriteJson(context, "{\"success\":false,\"message\":\"请求参数错误\"}");
+                    return;
+                }
+                
+                if (_publishRequests.ContainsKey(requestId)) {
+                    Log("Duplicate request detected: " + requestId);
+                    WriteJson(context, "{\"success\":false,\"message\":\"请勿重复提交\"}");
+                    return;
+                }
+                
+                _publishRequests.TryAdd(requestId, DateTime.Now);
+                
+                if (context.Session != null && context.Session["IsPublishing"] != null && (bool)context.Session["IsPublishing"]) {
+                    WriteJson(context, "{\"success\":false,\"message\":\"正在发布中，请稍候\"}");
+                    return;
+                }
+                if (context.Session != null) {
+                    context.Session["IsPublishing"] = true;
+                }
+                try {
+                    HandlePublishGoods(context);
+                } finally {
+                    if (context.Session != null) {
+                        context.Session["IsPublishing"] = false;
+                    }
+                    CleanupOldRequests();
+                }
+                return;
             } else if (action == "submit_quote") {
                 HandleSubmitQuote(context);
             } else if (action == "test_connection") {
@@ -31,15 +63,28 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             } else if (action == "test_publish") {
                 TestPublish(context);
             } else {
-                context.Response.Write("{\"success\":false,\"message\":\"无效的操作\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"无效的操作\"}");
             }
+        } catch (System.Threading.ThreadAbortException) {
+            // 忽略 ThreadAbortException，这是 Response.End() 导致的正常行为
         } catch (Exception ex) {
             Log("Exception in ProcessRequest: " + ex.Message);
-            context.Response.Clear();
+            context.Response.ClearContent();
+            context.Response.ClearHeaders();
             context.Response.ContentType = "application/json";
-            context.Response.Charset = "utf-8";
-            context.Response.ContentEncoding = System.Text.Encoding.UTF8;
-            context.Response.Write("{\"success\":false,\"message\":\"服务器错误: " + ex.Message.Replace("\"", "\\\"").Replace("\r\n", " ") + "\"}");
+            context.Response.Charset = "UTF-8";
+            WriteJson(context, "{\"success\":false,\"message\":\"服务器错误: " + ex.Message.Replace("\"", "\\\"").Replace("\r\n", " ") + "\"}");
+        }
+    }
+    
+    private void WriteJson(HttpContext context, string json) {
+        try {
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+            context.Response.Flush();
+            context.Response.End();
+        } catch (System.Threading.ThreadAbortException) {
+            // Response.End 会抛出 ThreadAbortException，这是正常的
         }
     }
     
@@ -50,6 +95,16 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
                 writer.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             }
         } catch { }
+    }
+    
+    private void CleanupOldRequests() {
+        DateTime cutoff = DateTime.Now.AddMinutes(-5);
+        DateTime removedValue;
+        foreach (var kvp in _publishRequests) {
+            if (kvp.Value < cutoff) {
+                _publishRequests.TryRemove(kvp.Key, out removedValue);
+            }
+        }
     }
     
     private void HandlePublishGoods(HttpContext context) {
@@ -105,7 +160,7 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
                 brandParams = manufacturers;
             }
             
-            string validity = context.Request["validity"] ?? "1个月";
+            string validity = context.Request["validity"] ?? "30天";
             Log("validity: " + validity);
             
             int goodsStock = 0;
@@ -118,9 +173,15 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             }
             Log("goodsUnit: " + goodsUnit);
             
-            decimal shopPrice = 0;
-            decimal.TryParse(context.Request["shopPrice"], out shopPrice);
-            Log("shopPrice: " + shopPrice);
+            decimal? shopPrice = null;
+            string priceStr = context.Request["shopPrice"];
+            if (!string.IsNullOrEmpty(priceStr)) {
+                decimal price;
+                if (decimal.TryParse(priceStr, out price)) {
+                    shopPrice = price;
+                }
+            }
+            Log("shopPrice: " + (shopPrice.HasValue ? shopPrice.Value.ToString() : "null"));
             
             int isIncludingTax = 0;
             int.TryParse(context.Request["isIncludingTax"], out isIncludingTax);
@@ -135,7 +196,7 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             Log("Session null check: " + (context.Session == null));
             if (context.Session == null) {
                 Log("Session is null, returning error");
-                context.Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
                 return;
             }
 
@@ -144,7 +205,7 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             
             if (userId == 0) {
                 Log("userId is 0, returning error");
-                context.Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"请先登录\"}");
                 return;
             }
 
@@ -152,7 +213,7 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             Log("roseId: " + roseId);
             
             if (pubType == 1 && roseId == 2) {
-                context.Response.Write("{\"success\":false,\"message\":\"采购商只能发布采购需求，无法发布供应信息\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"采购商只能发布采购需求，无法发布供应信息\"}");
                 return;
             }
 
@@ -172,12 +233,12 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
 
             if (shopId == 0) {
                 Log("shopId is 0, returning error");
-                context.Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
                 return;
             }
 
             if (string.IsNullOrEmpty(goodsSn)) {
-                context.Response.Write("{\"success\":false,\"message\":\"请输入型号\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"请输入型号\"}");
                 return;
             }
 
@@ -193,23 +254,25 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
                     brand, capacity, resistance, precision, voltage, medium, power, tcr);
             } else {
                 success = service.PublishDemand(
-                    goodsSn, name, brandParams, goodsStock, goodsUnit, shopPrice, isIncludingTax, userId, shopId, validity,
+                    goodsSn, name, brandParams, goodsStock, goodsUnit, shopPrice.HasValue ? shopPrice.Value : 0m, isIncludingTax, userId, shopId, validity,
                     brand, capacity, resistance, precision, voltage, medium, power, tcr);
             }
             
             Log("Service call result: " + success);
             
             if (success) {
-                context.Response.Write("{\"success\":true,\"message\":\"发布成功\"}");
+                WriteJson(context, "{\"success\":true,\"message\":\"发布成功\"}");
             } else {
                 string debugInfo = "pubType=" + pubType + ", goodsSn=" + (goodsSn ?? "null") + ", shopId=" + shopId + ", userId=" + userId;
-                context.Response.Write("{\"success\":false,\"message\":\"数据库插入失败\",\"debug\":\"" + debugInfo + "\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"数据库插入失败\",\"debug\":\"" + debugInfo + "\"}");
             }
             Log("HandlePublishGoods completed");
+        } catch (System.Threading.ThreadAbortException) {
+            // Response.End() 会抛出此异常，这是正常行为，不需要处理
         } catch (Exception ex) {
             Log("Exception in HandlePublishGoods: " + ex.Message);
             string errorMsg = ex.Message.Replace("\"", "'").Replace("\r\n", " ");
-            context.Response.Write("{\"success\":false,\"message\":\"发布异常: " + errorMsg + "\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"发布异常: " + errorMsg + "\"}");
         }
     }
     
@@ -222,7 +285,6 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             }
         }
         catch {
-            // 忽略错误
         }
         return 0;
     }
@@ -236,14 +298,13 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             }
         }
         catch {
-            // 忽略错误
         }
         return 1;
     }
     
     private void HandleSubmitQuote(HttpContext context) {
         if (context.Session == null) {
-            context.Response.Write("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
             return;
         }
 
@@ -271,7 +332,13 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
 
         int fromUserId = UserHelper.GetUserId();
         if (fromUserId == 0) {
-            context.Response.Write("{\"success\":false,\"message\":\"请先登录\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"请先登录\"}");
+            return;
+        }
+
+        int fromRoseID = UserHelper.GetRoseId();
+        if (eqType == 2 && fromRoseID == 2) {
+            WriteJson(context, "{\"success\":false,\"message\":\"采购商身份不允许提交报价，请使用询价功能\"}");
             return;
         }
 
@@ -285,12 +352,24 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
         }
 
         if (fromShopId == 0) {
-            context.Response.Write("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
             return;
         }
 
         int toShopId = 0;
         int.TryParse(context.Request["toShopId"], out toShopId);
+
+        if (toShopId == 0)
+        {
+            WriteJson(context, "{\"success\":false,\"message\":\"无法获取目标店铺信息，请重试\"}");
+            return;
+        }
+
+        if (fromShopId > 0 && toShopId > 0 && fromShopId == toShopId)
+        {
+            WriteJson(context, "{\"success\":false,\"message\":\"不能对自己的店铺进行报价\"}");
+            return;
+        }
 
         string fromCompany = "";
         string fromContact = "";
@@ -356,15 +435,17 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
                 fromRemarks, toCompany, toUserId, fromUserId, brandName,
                 fromShopId, toShopId, eqType, sourceEqId, fromLot,
                 fromManufacturers, fromPackaging, fromGoodsDesc, validity);
+        } catch (System.Threading.ThreadAbortException) {
+            return;
         } catch (Exception ex) {
-            context.Response.Write("{\"success\":false,\"message\":\"提交异常: " + ex.Message.Replace("\"", "\\\"").Replace("\r\n", " ") + "\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"提交异常: " + ex.Message.Replace("\"", "\\\"").Replace("\r\n", " ") + "\"}");
             return;
         }
 
         if (success) {
-            context.Response.Write("{\"success\":true,\"message\":\"提交成功\"}");
+            WriteJson(context, "{\"success\":true,\"message\":\"提交成功\"}");
         } else {
-            context.Response.Write("{\"success\":false,\"message\":\"提交失败\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"提交失败\"}");
         }
     }
     
@@ -372,10 +453,11 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
         try {
             using (var conn = DbHelper.GetConnection()) {
                 conn.Open();
-                context.Response.Write("{\"success\":true,\"message\":\"数据库连接成功\"}");
+                WriteJson(context, "{\"success\":true,\"message\":\"数据库连接成功\"}");
             }
+        } catch (System.Threading.ThreadAbortException) {
         } catch (Exception ex) {
-            context.Response.Write("{\"success\":false,\"message\":\"数据库连接失败: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"数据库连接失败: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
     }
     
@@ -398,9 +480,10 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
                 if (i < dt.Rows.Count - 1) json += ",";
             }
             json += "]}";
-            context.Response.Write(json);
+            WriteJson(context, json);
+        } catch (System.Threading.ThreadAbortException) {
         } catch (Exception ex) {
-            context.Response.Write("{\"success\":false,\"message\":\"查询失败: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"查询失败: " + ex.Message.Replace("\"", "\\\"") + "\"}");
         }
     }
     
@@ -422,19 +505,20 @@ public class PublishHandler : IHttpHandler, IRequiresSessionState {
             
             GoodsService service = new GoodsService();
             bool success = service.PublishDemand(
-                "TEST-MODEL-X", "测试需求", "测试品牌", 1000, "Kpcs", 1.50m, 0, userId, shopId, "1个月",
+                "TEST-MODEL-X", "测试需求", "测试品牌", 1000, "Kpcs", 1.50m, 0, userId, shopId, "30天",
                 "测试品牌", "", "", "", "", "", "", "");
             
             Log("Test publish result: " + success);
             
             if (success) {
-                context.Response.Write("{\"success\":true,\"message\":\"测试发布成功\"}");
+                WriteJson(context, "{\"success\":true,\"message\":\"测试发布成功\"}");
             } else {
-                context.Response.Write("{\"success\":false,\"message\":\"测试发布失败\"}");
+                WriteJson(context, "{\"success\":false,\"message\":\"测试发布失败\"}");
             }
+        } catch (System.Threading.ThreadAbortException) {
         } catch (Exception ex) {
             Log("TestPublish exception: " + ex.Message);
-            context.Response.Write("{\"success\":false,\"message\":\"测试异常: " + ex.Message.Replace("\"", "'").Replace("\r\n", " ") + "\"}");
+            WriteJson(context, "{\"success\":false,\"message\":\"测试异常: " + ex.Message.Replace("\"", "'").Replace("\r\n", " ") + "\"}");
         }
     }
 

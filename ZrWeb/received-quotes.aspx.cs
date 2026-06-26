@@ -32,7 +32,21 @@ public partial class received_quotes : System.Web.UI.Page
                 if (page < 1) page = 1;
                 CurrentPage = page;
                 
-                int pageSize = 30;
+                int pageSize = 15;
+                
+                string filter = Request.QueryString["filter"] ?? "";
+                int readStatusFilter = -1;
+                if (filter == "unread")
+                {
+                    readStatusFilter = 0;
+                }
+                else if (filter == "read")
+                {
+                    readStatusFilter = 1;
+                }
+                
+                string keyword = Request.QueryString["keyword"] ?? "";
+                ViewState["Keyword"] = keyword;
                 
                 int userId = UserHelper.GetUserId();
                 
@@ -74,6 +88,8 @@ public partial class received_quotes : System.Web.UI.Page
                 dt.Columns.Add("SellerQQ", typeof(string));
                 dt.Columns.Add("IsNew", typeof(bool));
                 dt.Columns.Add("SellerInfoHiddenClass", typeof(string));
+                dt.Columns.Add("Batch", typeof(string));
+                dt.Columns.Add("IsViewed", typeof(bool));
 
                 if (shopId > 0)
                 {
@@ -82,7 +98,24 @@ public partial class received_quotes : System.Web.UI.Page
                         FROM enquiryquoteprice e
                         WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)";
                     
-                    object countObj = DbHelper.ExecuteScalar(countSql, DbHelper.CreateParameter("@shopId", shopId));
+                    System.Collections.Generic.List<System.Data.SqlClient.SqlParameter> countParams = new System.Collections.Generic.List<System.Data.SqlClient.SqlParameter>();
+                    countParams.Add(DbHelper.CreateParameter("@shopId", shopId));
+                    
+                    if (readStatusFilter >= 0)
+                    {
+                        countSql += " AND e.readStatus = @readStatus";
+                        countParams.Add(DbHelper.CreateParameter("@readStatus", readStatusFilter));
+                    }
+                    
+                    if (!string.IsNullOrEmpty(keyword))
+                    {
+                        string[] searchFields = new string[] { "e.goodsSn", "e.brandName", "e.fromCompany" };
+                        var searchCond = GoodsService.BuildParametricSearchCondition(keyword, searchFields, "ckw");
+                        countSql += searchCond.Item1;
+                        countParams.AddRange(searchCond.Item2);
+                    }
+                    
+                    object countObj = DbHelper.ExecuteScalar(countSql, countParams.ToArray());
                     if (countObj != null && countObj != DBNull.Value)
                     {
                         int.TryParse(countObj.ToString(), out TotalCount);
@@ -98,21 +131,38 @@ public partial class received_quotes : System.Web.UI.Page
                         
                         string sql = @"SELECT 
                             e.eqId, e.goodsId, e.goodsSn, e.fromQuantity, e.toQuantity, e.fromPrice,
-                            e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus,
+                            e.isIncludingTax, e.fromRemarks, e.createTime, e.readStatus, e.validity,
                             e.fromCompany, e.fromContact, e.fromTel, e.brandName, e.fromLot,
                             (SELECT TOP 1 Manufacturers FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Manufacturers,
                             (SELECT TOP 1 Packaging FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as Packaging,
                             (SELECT TOP 1 Lot FROM goods WHERE (goodsId = e.goodsId OR (e.goodsId = 0 AND goodsSn = e.goodsSn)) AND dataFlag = 1 ORDER BY createTime DESC) as GoodsLot,
                             (SELECT TOP 1 shopQQ FROM shops WHERE shopId = e.fromShopId AND dataFlag = 1) as SellerQQ
                             FROM enquiryquoteprice e
-                            WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
-                            ORDER BY e.createTime DESC
-                            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
-
-                        DataTable sourceDt = DbHelper.ExecuteQuery(sql, 
-                            DbHelper.CreateParameter("@shopId", shopId),
-                            DbHelper.CreateParameter("@offset", offset),
-                            DbHelper.CreateParameter("@pageSize", pageSize));
+                            WHERE e.toShopId = @shopId AND e.eqType = 2 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)";
+                    
+                        System.Collections.Generic.List<System.Data.SqlClient.SqlParameter> sqlParams = new System.Collections.Generic.List<System.Data.SqlClient.SqlParameter>();
+                        sqlParams.Add(DbHelper.CreateParameter("@shopId", shopId));
+                        
+                        if (readStatusFilter >= 0)
+                        {
+                            sql += " AND e.readStatus = @readStatus";
+                            sqlParams.Add(DbHelper.CreateParameter("@readStatus", readStatusFilter));
+                        }
+                        
+                        if (!string.IsNullOrEmpty(keyword))
+                        {
+                            string[] searchFields = new string[] { "e.goodsSn", "e.brandName", "e.fromCompany" };
+                            var searchCond = GoodsService.BuildParametricSearchCondition(keyword, searchFields, "qkw");
+                            sql += searchCond.Item1;
+                            sqlParams.AddRange(searchCond.Item2);
+                        }
+                        
+                        sql += " ORDER BY e.createTime DESC OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+                        
+                        sqlParams.Add(DbHelper.CreateParameter("@offset", offset));
+                        sqlParams.Add(DbHelper.CreateParameter("@pageSize", pageSize));
+                        
+                        DataTable sourceDt = DbHelper.ExecuteQuery(sql, sqlParams.ToArray());
 
                         if (sourceDt != null && sourceDt.Rows.Count > 0)
                         {
@@ -124,8 +174,8 @@ public partial class received_quotes : System.Web.UI.Page
                                 newRow["EqId"] = eqId;
                                 newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
                                 newRow["Model"] = GetStringValue(row["goodsSn"]);
-                                newRow["SellerName"] = GetStringValue(row["fromCompany"]);
-                                newRow["SellerContact"] = GetStringValue(row["fromContact"]);
+                                newRow["SellerName"] = DbHelper.FixAndCleanString(GetStringValue(row["fromCompany"]));
+                                newRow["SellerContact"] = DbHelper.FixAndCleanString(GetStringValue(row["fromContact"]));
                                 newRow["SellerQQ"] = GetStringValue(row["SellerQQ"]);
                                 newRow["QuoteTime"] = Convert.ToDateTime(row["createTime"]).ToString("yyyy-MM-dd HH:mm");
                                 newRow["Remarks"] = GetStringValue(row["fromRemarks"]);
@@ -135,10 +185,16 @@ public partial class received_quotes : System.Web.UI.Page
                                 bool isViewed = readStatus == 1;
                                 
                                 newRow["SellerInfoHiddenClass"] = isViewed ? "" : "seller-info-hidden";
+                                newRow["IsViewed"] = isViewed;
                                 
                                 // 是否新报价（24小时内且未查看）
                                 TimeSpan timeDiff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
                                 newRow["IsNew"] = !isViewed && timeDiff.TotalHours < 24;
+                                
+                                // 批次
+                                string fromLot = GetStringValue(row["fromLot"]);
+                                string goodsLot = GetStringValue(row["GoodsLot"]);
+                                newRow["Batch"] = !string.IsNullOrEmpty(fromLot) ? fromLot : (!string.IsNullOrEmpty(goodsLot) ? goodsLot : "-");
                                 
                                 // 备注显示HTML
                                 string remarks = GetStringValue(row["fromRemarks"]);
@@ -155,8 +211,6 @@ public partial class received_quotes : System.Web.UI.Page
                                 string brand = GetStringValue(row["brandName"]);
                                 string manufacturers = GetStringValue(row["Manufacturers"]);
                                 string packaging = GetStringValue(row["Packaging"]);
-                                string fromLot = GetStringValue(row["fromLot"]);
-                                string goodsLot = GetStringValue(row["GoodsLot"]);
                                 string displayLot = !string.IsNullOrEmpty(fromLot) ? fromLot : goodsLot;
                                 
                                 string finalBrand = "";
@@ -236,22 +290,33 @@ public partial class received_quotes : System.Web.UI.Page
                                 }
 
                                 // 有效期
-                                TimeSpan diff = DateTime.Now - Convert.ToDateTime(row["createTime"]);
-                                if (diff.TotalHours < 24)
+                                string validity = GetStringValue(row["validity"]);
+                                if (!string.IsNullOrEmpty(validity))
                                 {
-                                    newRow["Validity"] = "<24 小时";
-                                }
-                                else if (diff.TotalDays < 3)
-                                {
-                                    newRow["Validity"] = "72 小时";
-                                }
-                                else if (diff.TotalDays < 7)
-                                {
-                                    newRow["Validity"] = "7 天";
+                                    if (validity == "24小时") validity = "1天";
+                                    else if (validity == "1个月") validity = "30天";
+                                    newRow["Validity"] = validity;
                                 }
                                 else
                                 {
-                                    newRow["Validity"] = "长期";
+                                    DateTime createTime = Convert.ToDateTime(row["createTime"]);
+                                    TimeSpan diff = DateTime.Now - createTime;
+                                    if (diff.TotalHours < 24)
+                                    {
+                                        newRow["Validity"] = "<24 小时";
+                                    }
+                                    else if (diff.TotalDays < 3)
+                                    {
+                                        newRow["Validity"] = "72 小时";
+                                    }
+                                    else if (diff.TotalDays < 7)
+                                    {
+                                        newRow["Validity"] = "7 天";
+                                    }
+                                    else
+                                    {
+                                        newRow["Validity"] = "长期";
+                                    }
                                 }
 
                                 dt.Rows.Add(newRow);
