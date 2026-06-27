@@ -429,9 +429,32 @@ public partial class demand_detail : Page
 
     private void SetSEO()
     {
-        PageTitle = Title + " 采购需求 - 阻容网";
-        PageKeywords = Title + ",采购需求,电子元器件,阻容网,电阻电容";
-        PageDescription = "【采购】" + Title + " " + ParametersSummary + "，" + Quantity + "，期望价格" + PriceDisplay + "，有效期" + Validity + "，采购商：" + CompanyName;
+        string title = Model + " " + BrandRequirement + " " + Package + " - " + ParametersSummary;
+        string keywords = Model + "," + BrandRequirement + "," + Package + "," + Capacitance + "," + Resistance + "," + Tolerance + "," + Voltage + "," + Dielectric + ",采购需求,电子元器件,阻容网,电阻电容";
+        string description = Model + " " + BrandRequirement + " " + Package + " | " + ParametersSummary + " | " + Quantity + " | 期望价" + PriceDisplay;
+        
+        PageTitle = title;
+        PageKeywords = keywords;
+        PageDescription = description;
+        
+        litTitle.Text = "<title>" + HtmlEncode(title) + "</title>";
+        litKeywords.Text = "<meta name=\"keywords\" content=\"" + HtmlEncode(keywords) + "\">";
+        litDescription.Text = "<meta name=\"description\" content=\"" + HtmlEncode(description) + "\">";
+        litOgType.Text = "<meta property=\"og:type\" content=\"website\">";
+        litOgTitle.Text = "<meta property=\"og:title\" content=\"" + HtmlEncode(title) + "\">";
+        litOgDescription.Text = "<meta property=\"og:description\" content=\"" + HtmlEncode(description) + "\">";
+        litOgSiteName.Text = "<meta property=\"og:site_name\" content=\"阻容网\">";
+        litOgImage.Text = "<meta property=\"og:image\" content=\"https://www.zr.net.cn/assets/images/logo.png\">";
+        litTwitterCard.Text = "<meta name=\"twitter:card\" content=\"summary\">";
+        litTwitterTitle.Text = "<meta name=\"twitter:title\" content=\"" + HtmlEncode(title) + "\">";
+        litTwitterDescription.Text = "<meta name=\"twitter:description\" content=\"" + HtmlEncode(description) + "\">";
+        litTwitterImage.Text = "<meta name=\"twitter:image\" content=\"https://www.zr.net.cn/assets/images/logo.png\">";
+    }
+    
+    private string HtmlEncode(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("&", "&amp;");
     }
 
     private int GetIntValue(object value, int defaultValue)

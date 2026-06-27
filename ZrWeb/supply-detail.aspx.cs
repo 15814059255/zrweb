@@ -24,6 +24,7 @@ public partial class supply_detail : Page
     protected string Remarks = "";
     protected string Quantity = "";
     protected string Validity = "";
+    protected string BatchNo = "";
     protected string CompanyName = "";
     protected string CompanyAddress = "";
     protected string AuthStatus = "";
@@ -107,6 +108,12 @@ public partial class supply_detail : Page
                 string dielectric = GetStringValue(row["Dielectric"]);
                 string power = GetStringValue(row["Power"]);
                 string tempCoefficient = GetStringValue(row["TempCoefficient"]);
+                string batchNo = "";
+                if (row.Table.Columns.Contains("BatchNo") && row["BatchNo"] != DBNull.Value)
+                {
+                    batchNo = row["BatchNo"].ToString();
+                }
+                BatchNo = !string.IsNullOrEmpty(batchNo) ? batchNo : "2年内";
 
                 Model = !string.IsNullOrEmpty(goodsSn) ? goodsSn : (!string.IsNullOrEmpty(name) ? name : "电子元器件");
 
@@ -299,9 +306,32 @@ public partial class supply_detail : Page
         string brandKeywords = !string.IsNullOrEmpty(MainBrands) ? "," + MainBrands.Replace("|", ",") : "";
         string modelKeywords = !string.IsNullOrEmpty(AdvantageModels) ? "," + AdvantageModels.Replace("|", ",") : "";
         
-        PageTitle = Model + " " + Brand + " " + Package + " 供应商 - 阻容网";
-        PageKeywords = Model + "," + Brand + "," + Package + "," + Capacitance + "," + Resistance + "," + Tolerance + "," + Voltage + "," + Dielectric + ",贴片电容,贴片电阻,电子元器件,供应,采购,阻容网" + brandKeywords + modelKeywords;
-        PageDescription = "【供应】" + Model + " " + Brand + " " + ParametersSummary + "，报价" + PriceDisplay + "，" + Quantity + "，供应商：" + CompanyName + "（" + AuthStatus + "），主营：" + MainBrands.Replace("|", "、");
+        string title = Model + " " + Brand + " " + Package + " - " + ParametersSummary;
+        string keywords = Model + "," + Brand + "," + Package + "," + Capacitance + "," + Resistance + "," + Tolerance + "," + Voltage + "," + Dielectric + ",贴片电容,贴片电阻,电子元器件,供应,采购,阻容网" + brandKeywords + modelKeywords;
+        string description = Model + " " + Brand + " " + Package + " | " + ParametersSummary + " | 报价" + PriceDisplay + " | " + Quantity;
+        
+        PageTitle = title;
+        PageKeywords = keywords;
+        PageDescription = description;
+        
+        litTitle.Text = "<title>" + HtmlEncode(title) + "</title>";
+        litKeywords.Text = "<meta name=\"keywords\" content=\"" + HtmlEncode(keywords) + "\">";
+        litDescription.Text = "<meta name=\"description\" content=\"" + HtmlEncode(description) + "\">";
+        litOgType.Text = "<meta property=\"og:type\" content=\"website\">";
+        litOgTitle.Text = "<meta property=\"og:title\" content=\"" + HtmlEncode(title) + "\">";
+        litOgDescription.Text = "<meta property=\"og:description\" content=\"" + HtmlEncode(description) + "\">";
+        litOgSiteName.Text = "<meta property=\"og:site_name\" content=\"阻容网\">";
+        litOgImage.Text = "<meta property=\"og:image\" content=\"https://www.zr.net.cn/assets/images/logo.png\">";
+        litTwitterCard.Text = "<meta name=\"twitter:card\" content=\"summary\">";
+        litTwitterTitle.Text = "<meta name=\"twitter:title\" content=\"" + HtmlEncode(title) + "\">";
+        litTwitterDescription.Text = "<meta name=\"twitter:description\" content=\"" + HtmlEncode(description) + "\">";
+        litTwitterImage.Text = "<meta name=\"twitter:image\" content=\"https://www.zr.net.cn/assets/images/logo.png\">";
+    }
+    
+    private string HtmlEncode(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("&", "&amp;");
     }
 
     private int GetIntValue(object value, int defaultValue)

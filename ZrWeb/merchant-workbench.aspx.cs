@@ -71,6 +71,12 @@ public partial class merchant_workbench : System.Web.UI.Page
             return;
         }
 
+        if (Request["action"] == "update_goods_attr")
+        {
+            HandleUpdateGoodsAttr();
+            return;
+        }
+
         if (Request["action"] == "batch_publish")
         {
             HandleBatchPublish();
@@ -288,6 +294,54 @@ public partial class merchant_workbench : System.Web.UI.Page
         }
     }
 
+    private void HandleUpdateGoodsAttr()
+    {
+        try
+        {
+            string goodsIdStr = Request["goodsId"] ?? "";
+            int goodsId = 0;
+            if (!int.TryParse(goodsIdStr, out goodsId) || goodsId <= 0)
+            {
+                WriteJson("{\"success\":false,\"message\":\"无效的商品ID\"}");
+                return;
+            }
+
+            int userId = UserHelper.GetUserId();
+            if (userId == 0)
+            {
+                WriteJson("{\"success\":false,\"message\":\"请先登录\"}");
+                return;
+            }
+
+            string brand = Request["brand"] ?? "";
+            string packaging = Request["packaging"] ?? "";
+            string capacitance = Request["capacitance"] ?? "";
+            string resistance = Request["resistance"] ?? "";
+            string tolerance = Request["tolerance"] ?? "";
+            string voltage = Request["voltage"] ?? "";
+            string dielectric = Request["dielectric"] ?? "";
+            string power = Request["power"] ?? "";
+            string tempCoefficient = Request["tempCoefficient"] ?? "";
+
+            GoodsService service = new GoodsService();
+            service.UpdateGoodsParams(goodsId, brand, capacitance, resistance, tolerance, voltage, dielectric, power, tempCoefficient);
+            
+            if (!string.IsNullOrEmpty(packaging))
+            {
+                string sql = "UPDATE goods SET Packaging = @Packaging WHERE goodsId = @goodsId";
+                DbHelper.ExecuteNonQuery(sql, 
+                    DbHelper.CreateParameter("@Packaging", packaging),
+                    DbHelper.CreateParameter("@goodsId", goodsId));
+            }
+
+            WriteJson("{\"success\":true,\"message\":\"保存成功\"}");
+        }
+        catch (Exception ex)
+        {
+            WriteJson("{\"success\":false,\"message\":\"保存失败: " + ex.Message.Replace("\"", "\\\"") + "\"}");
+        }
+    }
+
     private void HandleBatchTakeOff()
     {
         try
@@ -443,6 +497,7 @@ public partial class merchant_workbench : System.Web.UI.Page
             decimal.TryParse(Request["price"], out price);
             int isIncludingTax = 0;
             int.TryParse(Request["isIncludingTax"], out isIncludingTax);
+            string batchNo = Request["batchNo"] ?? "";
 
             if (goodsId == 0)
             {
@@ -451,7 +506,7 @@ public partial class merchant_workbench : System.Web.UI.Page
             }
 
             GoodsService service = new GoodsService();
-            bool success = service.UpdateSupply(goodsId, quantity, unit, price, isIncludingTax);
+            bool success = service.UpdateSupply(goodsId, quantity, unit, price, isIncludingTax, batchNo);
 
             if (success)
             {
@@ -746,6 +801,17 @@ public partial class merchant_workbench : System.Web.UI.Page
             dt.Columns.Add("Price", typeof(string));
             dt.Columns.Add("IsTaxed", typeof(bool));
             dt.Columns.Add("RemainingTime", typeof(string));
+            dt.Columns.Add("PubSource", typeof(int));
+            dt.Columns.Add("Brand", typeof(string));
+            dt.Columns.Add("Packaging", typeof(string));
+            dt.Columns.Add("Capacitance", typeof(string));
+            dt.Columns.Add("Resistance", typeof(string));
+            dt.Columns.Add("Tolerance", typeof(string));
+            dt.Columns.Add("Voltage", typeof(string));
+            dt.Columns.Add("Dielectric", typeof(string));
+            dt.Columns.Add("Power", typeof(string));
+            dt.Columns.Add("TempCoefficient", typeof(string));
+            dt.Columns.Add("BatchNo", typeof(string));
         }
         else
         {

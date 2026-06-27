@@ -93,12 +93,12 @@
                                     <tr>
                                         <td>Q<%# Eval("eqId") %></td>
                                         <td><%# Eval("goodsSn") %></td>
-                                        <td><%# Eval("fromCompany") %></td>
-                                        <td><%# Eval("toCompany") %></td>
+                                        <td><%# Convert.ToInt32(Eval("eqType")) == 1 ? Eval("toCompany") : Eval("fromCompany") %></td>
+                                        <td><%# Convert.ToInt32(Eval("eqType")) == 1 ? Eval("fromCompany") : Eval("toCompany") %></td>
                                         <td>¥<%# Eval("fromPrice") %></td>
                                         <td><%# Eval("fromQuantity") %></td>
                                         <td><%# Convert.ToDateTime(Eval("createTime")).ToString("yyyy-MM-dd HH:mm") %></td>
-                                        <td><span class="tag green">正常</span></td>
+                                        <td><span class="tag <%# Convert.ToInt32(Eval("eqType")) == 1 ? "blue" : "green" %>"><%# Convert.ToInt32(Eval("eqType")) == 1 ? "询价" : "报价" %></span></td>
                                         <td><button class="btn mini" onclick="deleteQuote(<%# Eval("eqId") %>)">删除</button></td>
                                     </tr>
                                 </ItemTemplate>

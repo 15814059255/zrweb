@@ -691,3 +691,197 @@ Invalid column name 'TempCoefficient'.
 2026-06-27 11:58:07 - Action: submit_quote
 2026-06-27 15:15:58 - PublishHandler.ProcessRequest called
 2026-06-27 15:15:58 - Action: submit_quote
+2026-06-27 21:05:59 - PublishHandler.ProcessRequest called
+2026-06-27 21:05:59 - Action: publish_goods
+2026-06-27 21:05:59 - HandlePublishGoods started
+2026-06-27 21:05:59 - goodsSn: CL10B104KB8NNNC
+2026-06-27 21:05:59 - validity: 30天
+2026-06-27 21:05:59 - goodsStock: 4000
+2026-06-27 21:05:59 - goodsUnit: Kpcs
+2026-06-27 21:05:59 - shopPrice: 0
+2026-06-27 21:05:59 - isIncludingTax: 0
+2026-06-27 21:05:59 - pubType: 1
+2026-06-27 21:05:59 - Session null check: False
+2026-06-27 21:05:59 - userId: 10
+2026-06-27 21:05:59 - roseId: 3
+2026-06-27 21:05:59 - shopId from request: 48
+2026-06-27 21:05:59 - Calling service method with pubType=1
+2026-06-27 21:05:59 - Service call result: True
+2026-06-27 21:25:45 - PublishHandler.ProcessRequest called
+2026-06-27 21:25:45 - Action: publish_goods
+2026-06-27 21:25:45 - HandlePublishGoods started
+2026-06-27 21:25:45 - goodsSn: GJM1555C1H1R0WB01D
+2026-06-27 21:25:45 - validity: 30天
+2026-06-27 21:25:45 - goodsStock: 43
+2026-06-27 21:25:45 - goodsUnit: Kpcs
+2026-06-27 21:25:45 - shopPrice: 0
+2026-06-27 21:25:45 - isIncludingTax: 0
+2026-06-27 21:25:45 - pubType: 2
+2026-06-27 21:25:45 - Session null check: False
+2026-06-27 21:25:45 - userId: 10
+2026-06-27 21:25:45 - roseId: 3
+2026-06-27 21:25:45 - shopId from request: 48
+2026-06-27 21:25:45 - Calling service method with pubType=2
+2026-06-27 21:25:45 - Exception in HandlePublishGoods: PublishDemand failed: String or binary data would be truncated.
+The statement has been terminated. | Fallback also failed: String or binary data would be truncated.
+The statement has been terminated.
+2026-06-27 21:25:49 - PublishHandler.ProcessRequest called
+2026-06-27 21:25:49 - Action: publish_goods
+2026-06-27 21:25:49 - HandlePublishGoods started
+2026-06-27 21:25:49 - goodsSn: GJM1555C1H1R0WB01D
+2026-06-27 21:25:49 - validity: 30天
+2026-06-27 21:25:49 - goodsStock: 43
+2026-06-27 21:25:49 - goodsUnit: Kpcs
+2026-06-27 21:25:49 - shopPrice: 0
+2026-06-27 21:25:49 - isIncludingTax: 0
+2026-06-27 21:25:49 - pubType: 2
+2026-06-27 21:25:49 - Session null check: False
+2026-06-27 21:25:49 - userId: 10
+2026-06-27 21:25:50 - roseId: 3
+2026-06-27 21:25:50 - shopId from request: 48
+2026-06-27 21:25:50 - Calling service method with pubType=2
+2026-06-27 21:25:50 - Exception in HandlePublishGoods: PublishDemand failed: String or binary data would be truncated.
+The statement has been terminated. | Fallback also failed: String or binary data would be truncated.
+The statement has been terminated.
+2026-06-27 21:25:53 - PublishHandler.ProcessRequest called
+2026-06-27 21:25:53 - Action: publish_goods
+2026-06-27 21:25:53 - HandlePublishGoods started
+2026-06-27 21:25:53 - goodsSn: GJM1555C1H1R0WB01D
+2026-06-27 21:25:53 - validity: 30天
+2026-06-27 21:25:53 - goodsStock: 43
+2026-06-27 21:25:53 - goodsUnit: Kpcs
+2026-06-27 21:25:53 - shopPrice: 0
+2026-06-27 21:25:53 - isIncludingTax: 0
+2026-06-27 21:25:53 - pubType: 2
+2026-06-27 21:25:53 - Session null check: False
+2026-06-27 21:25:53 - userId: 10
+2026-06-27 21:25:53 - roseId: 3
+2026-06-27 21:25:53 - shopId from request: 48
+2026-06-27 21:25:53 - Calling service method with pubType=2
+2026-06-27 21:25:53 - Exception in HandlePublishGoods: PublishDemand failed: String or binary data would be truncated.
+The statement has been terminated. | Fallback also failed: String or binary data would be truncated.
+The statement has been terminated.
+2026-06-27 21:25:57 - PublishHandler.ProcessRequest called
+2026-06-27 21:25:57 - Action: publish_goods
+2026-06-27 21:25:57 - HandlePublishGoods started
+2026-06-27 21:25:57 - goodsSn: GJM1555C1H1R0WB01D
+2026-06-27 21:25:57 - validity: 30天
+2026-06-27 21:25:57 - goodsStock: 43
+2026-06-27 21:25:57 - goodsUnit: Kpcs
+2026-06-27 21:25:57 - shopPrice: 0
+2026-06-27 21:25:57 - isIncludingTax: 0
+2026-06-27 21:25:57 - pubType: 2
+2026-06-27 21:25:57 - Session null check: False
+2026-06-27 21:25:57 - userId: 10
+2026-06-27 21:25:57 - roseId: 3
+2026-06-27 21:25:57 - shopId from request: 48
+2026-06-27 21:25:57 - Calling service method with pubType=2
+2026-06-27 21:25:57 - Exception in HandlePublishGoods: PublishDemand failed: String or binary data would be truncated.
+The statement has been terminated. | Fallback also failed: String or binary data would be truncated.
+The statement has been terminated.
+2026-06-27 21:26:01 - PublishHandler.ProcessRequest called
+2026-06-27 21:26:01 - Action: publish_goods
+2026-06-27 21:26:01 - HandlePublishGoods started
+2026-06-27 21:26:01 - goodsSn: GJM1555C1H1R0WB01D
+2026-06-27 21:26:01 - validity: 30天
+2026-06-27 21:26:01 - goodsStock: 43
+2026-06-27 21:26:01 - goodsUnit: Kpcs
+2026-06-27 21:26:01 - shopPrice: 0
+2026-06-27 21:26:01 - isIncludingTax: 0
+2026-06-27 21:26:01 - pubType: 2
+2026-06-27 21:26:01 - Session null check: False
+2026-06-27 21:26:01 - userId: 10
+2026-06-27 21:26:01 - roseId: 3
+2026-06-27 21:26:01 - shopId from request: 48
+2026-06-27 21:26:01 - Calling service method with pubType=2
+2026-06-27 21:26:01 - Exception in HandlePublishGoods: PublishDemand failed: String or binary data would be truncated.
+The statement has been terminated. | Fallback also failed: String or binary data would be truncated.
+The statement has been terminated.
+2026-06-27 21:32:32 - PublishHandler.ProcessRequest called
+2026-06-27 21:32:32 - Action: publish_goods
+2026-06-27 21:32:32 - HandlePublishGoods started
+2026-06-27 21:32:32 - goodsSn: CL10B104KB8NNNC
+2026-06-27 21:32:32 - validity: 30天
+2026-06-27 21:32:32 - goodsStock: 4000
+2026-06-27 21:32:32 - goodsUnit: Kpcs
+2026-06-27 21:32:32 - shopPrice: 0
+2026-06-27 21:32:32 - isIncludingTax: 0
+2026-06-27 21:32:32 - pubType: 2
+2026-06-27 21:32:32 - Session null check: False
+2026-06-27 21:32:32 - userId: 10
+2026-06-27 21:32:32 - roseId: 3
+2026-06-27 21:32:32 - shopId from request: 48
+2026-06-27 21:32:32 - Calling service method with pubType=2
+2026-06-27 21:32:32 - Service call result: True
+2026-06-27 21:42:26 - PublishHandler.ProcessRequest called
+2026-06-27 21:42:26 - Action: publish_goods
+2026-06-27 21:42:26 - HandlePublishGoods started
+2026-06-27 21:42:26 - goodsSn: CC0603KRX5R8BB475
+2026-06-27 21:42:26 - validity: 30天
+2026-06-27 21:42:26 - goodsStock: 6666
+2026-06-27 21:42:26 - goodsUnit: Kpcs
+2026-06-27 21:42:26 - shopPrice: 0
+2026-06-27 21:42:26 - isIncludingTax: 0
+2026-06-27 21:42:26 - pubType: 1
+2026-06-27 21:42:26 - Session null check: False
+2026-06-27 21:42:26 - userId: 10
+2026-06-27 21:42:26 - roseId: 3
+2026-06-27 21:42:26 - shopId from request: 48
+2026-06-27 21:42:26 - Calling service method with pubType=1
+2026-06-27 21:42:26 - Service call result: True
+2026-06-27 21:43:05 - PublishHandler.ProcessRequest called
+2026-06-27 21:43:05 - Action: publish_goods
+2026-06-27 21:43:05 - HandlePublishGoods started
+2026-06-27 21:43:05 - goodsSn: CL05C1R0JB5NNNC
+2026-06-27 21:43:05 - validity: 7天
+2026-06-27 21:43:05 - goodsStock: 4000
+2026-06-27 21:43:05 - goodsUnit: Kpcs
+2026-06-27 21:43:05 - shopPrice: 0
+2026-06-27 21:43:05 - isIncludingTax: 0
+2026-06-27 21:43:05 - pubType: 1
+2026-06-27 21:43:05 - Session null check: False
+2026-06-27 21:43:05 - userId: 10
+2026-06-27 21:43:05 - roseId: 3
+2026-06-27 21:43:05 - shopId from request: 48
+2026-06-27 21:43:05 - Calling service method with pubType=1
+2026-06-27 21:43:05 - Service call result: True
+2026-06-27 21:58:18 - PublishHandler.ProcessRequest called
+2026-06-27 21:58:18 - Action: submit_quote
+2026-06-27 22:02:58 - PublishHandler.ProcessRequest called
+2026-06-27 22:02:58 - Action: submit_quote
+2026-06-27 22:09:57 - PublishHandler.ProcessRequest called
+2026-06-27 22:09:57 - Action: submit_quote
+2026-06-27 22:10:58 - PublishHandler.ProcessRequest called
+2026-06-27 22:10:58 - Action: submit_quote
+2026-06-27 22:11:58 - PublishHandler.ProcessRequest called
+2026-06-27 22:11:58 - Action: publish_goods
+2026-06-27 22:11:58 - HandlePublishGoods started
+2026-06-27 22:11:58 - goodsSn: CL05C1R0JB5NNNC
+2026-06-27 22:11:58 - validity: 30天
+2026-06-27 22:11:58 - goodsStock: 555
+2026-06-27 22:11:58 - goodsUnit: Kpcs
+2026-06-27 22:11:58 - shopPrice: 0
+2026-06-27 22:11:58 - isIncludingTax: 0
+2026-06-27 22:11:58 - pubType: 1
+2026-06-27 22:11:58 - Session null check: False
+2026-06-27 22:11:58 - userId: 10
+2026-06-27 22:11:58 - roseId: 3
+2026-06-27 22:11:58 - shopId from request: 48
+2026-06-27 22:11:58 - Calling service method with pubType=1
+2026-06-27 22:11:58 - Service call result: True
+2026-06-27 22:12:21 - PublishHandler.ProcessRequest called
+2026-06-27 22:12:21 - Action: publish_goods
+2026-06-27 22:12:21 - HandlePublishGoods started
+2026-06-27 22:12:21 - goodsSn: CL05C1R0JB5NNNC
+2026-06-27 22:12:21 - validity: 30天
+2026-06-27 22:12:21 - goodsStock: 666
+2026-06-27 22:12:21 - goodsUnit: Kpcs
+2026-06-27 22:12:21 - shopPrice: 0
+2026-06-27 22:12:21 - isIncludingTax: 0
+2026-06-27 22:12:21 - pubType: 2
+2026-06-27 22:12:21 - Session null check: False
+2026-06-27 22:12:21 - userId: 10
+2026-06-27 22:12:21 - roseId: 3
+2026-06-27 22:12:21 - shopId from request: 48
+2026-06-27 22:12:21 - Calling service method with pubType=2
+2026-06-27 22:12:21 - Service call result: True

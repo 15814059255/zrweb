@@ -29,6 +29,7 @@ public class GoodsService
                     "Dielectric NVARCHAR(30)",
                     "Power NVARCHAR(30)",
                     "TempCoefficient NVARCHAR(30)",
+                    "BatchNo NVARCHAR(20)",
                     "pubSource INT DEFAULT 0"
                 };
                 foreach (string field in fields)
@@ -78,7 +79,7 @@ public class GoodsService
             
             if (dt != null && dt.Rows.Count > 0)
             {
-                return ConvertToSupplyData(dt);
+                return ConvertToDemandData(dt);
             }
             
             return null;
@@ -126,11 +127,11 @@ public class GoodsService
     {
         try
         {
-            string sql = @"SELECT 
-                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
+            string sql = @"SELECT
+                goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit,
                 shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType, pubSource,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
-                FROM goods 
+                FROM goods
                 WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId";
 
             var parameters = new System.Collections.Generic.List<SqlParameter>();
@@ -331,7 +332,7 @@ public class GoodsService
         }
     }
     
-    private void UpdateGoodsParams(int goodsId, string brand, string capacitance, string resistance, 
+    public void UpdateGoodsParams(int goodsId, string brand, string capacitance, string resistance, 
         string tolerance, string voltage, string dielectric, string power, string tempCoefficient)
     {
         try
@@ -436,7 +437,7 @@ public class GoodsService
             
             if (dt != null && dt.Rows.Count > 0)
             {
-                return ConvertToDemandData(dt);
+                return ConvertToBuyerDemandData(dt);
             }
             
             return null;
@@ -476,7 +477,7 @@ public class GoodsService
         }
     }
 
-    private DataTable ConvertToDemandData(DataTable sourceTable)
+    private DataTable ConvertToBuyerDemandData(DataTable sourceTable)
     {
         DataTable dt = new DataTable();
         dt.Columns.Add("goodsId", typeof(int));
@@ -490,6 +491,16 @@ public class GoodsService
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("RemainingTime", typeof(string));
         dt.Columns.Add("PubSource", typeof(int));
+        dt.Columns.Add("Brand", typeof(string));
+        dt.Columns.Add("Packaging", typeof(string));
+        dt.Columns.Add("Capacitance", typeof(string));
+        dt.Columns.Add("Resistance", typeof(string));
+        dt.Columns.Add("Tolerance", typeof(string));
+        dt.Columns.Add("Voltage", typeof(string));
+        dt.Columns.Add("Dielectric", typeof(string));
+        dt.Columns.Add("Power", typeof(string));
+        dt.Columns.Add("TempCoefficient", typeof(string));
+        dt.Columns.Add("BatchNo", typeof(string));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -567,69 +578,24 @@ public class GoodsService
             }
             newRow["PubSource"] = pubSource;
 
-            dt.Rows.Add(newRow);
-        }
+            newRow["Brand"] = GetStringValue(row["Brand"]);
+            newRow["Packaging"] = GetStringValue(row["Packaging"]);
+            newRow["Capacitance"] = GetStringValue(row["Capacitance"]);
+            newRow["Resistance"] = GetStringValue(row["Resistance"]);
+            newRow["Tolerance"] = GetStringValue(row["Tolerance"]);
+            newRow["Voltage"] = GetStringValue(row["Voltage"]);
+            newRow["Dielectric"] = GetStringValue(row["Dielectric"]);
+            newRow["Power"] = GetStringValue(row["Power"]);
+            newRow["TempCoefficient"] = GetStringValue(row["TempCoefficient"]);
 
-        return dt;
-    }
-
-    private DataTable ConvertToExpiredDemandData(DataTable sourceTable)
-    {
-        DataTable dt = new DataTable();
-        dt.Columns.Add("goodsId", typeof(int));
-        dt.Columns.Add("Model", typeof(string));
-        dt.Columns.Add("BrandParams", typeof(string));
-        dt.Columns.Add("Quantity", typeof(string));
-        dt.Columns.Add("Unit", typeof(string));
-        dt.Columns.Add("Price", typeof(string));
-        dt.Columns.Add("IsTaxed", typeof(bool));
-        dt.Columns.Add("OfflineTime", typeof(string));
-
-        foreach (DataRow row in sourceTable.Rows)
-        {
-            DataRow newRow = dt.NewRow();
-            
-            int goodsId = GetIntValue(row["goodsId"], 0);
-            string goodsSn = GetStringValue(row["goodsSn"]);
-            string name = GetStringValue(row["Name"]);
-            string manufacturers = GetStringValue(row["Manufacturers"]);
-            int goodsStock = GetIntValue(row["goodsStock"], 0);
-            string goodsUnit = GetStringValue(row["goodsUnit"]);
-            decimal shopPrice = GetDecimalValue(row["shopPrice"], 0);
-            int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
-            DateTime updateTime = GetDateTimeValue(row["updateTime"], DateTime.Now);
-
-            newRow["goodsId"] = goodsId;
-
-            if (!string.IsNullOrEmpty(goodsSn))
+            if (sourceTable.Columns.Contains("BatchNo") && row["BatchNo"] != DBNull.Value && !string.IsNullOrEmpty(row["BatchNo"].ToString()))
             {
-                newRow["Model"] = goodsSn;
-            }
-            else if (!string.IsNullOrEmpty(name))
-            {
-                newRow["Model"] = name;
+                newRow["BatchNo"] = row["BatchNo"].ToString();
             }
             else
             {
-                newRow["Model"] = "未知型号";
+                newRow["BatchNo"] = "2年内";
             }
-
-            string brandParams = BuildBrandParams(row);
-            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
-                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
-
-            newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
-            newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
-            newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
-            newRow["IsTaxed"] = isIncludingTax == 1;
-            newRow["OfflineTime"] = updateTime.ToString("yyyy-MM-dd HH:mm");
-            
-            int pubSource = 0;
-            if (sourceTable.Columns.Contains("pubSource"))
-            {
-                pubSource = GetIntValue(row["pubSource"], 0);
-            }
-            newRow["PubSource"] = pubSource;
 
             dt.Rows.Add(newRow);
         }
@@ -637,7 +603,7 @@ public class GoodsService
         return dt;
     }
 
-    private DataTable ConvertToSupplyData(DataTable sourceTable)
+    private DataTable ConvertToDemandData(DataTable sourceTable)
     {
         DataTable dt = new DataTable();
         dt.Columns.Add("ItemType", typeof(string));
@@ -823,6 +789,16 @@ public class GoodsService
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("RemainingTime", typeof(string));
         dt.Columns.Add("PubSource", typeof(int));
+        dt.Columns.Add("Brand", typeof(string));
+        dt.Columns.Add("Packaging", typeof(string));
+        dt.Columns.Add("Capacitance", typeof(string));
+        dt.Columns.Add("Resistance", typeof(string));
+        dt.Columns.Add("Tolerance", typeof(string));
+        dt.Columns.Add("Voltage", typeof(string));
+        dt.Columns.Add("Dielectric", typeof(string));
+        dt.Columns.Add("Power", typeof(string));
+        dt.Columns.Add("TempCoefficient", typeof(string));
+        dt.Columns.Add("BatchNo", typeof(string));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -899,6 +875,25 @@ public class GoodsService
             }
             newRow["PubSource"] = pubSource;
 
+            newRow["Brand"] = GetStringValue(row["Brand"]);
+            newRow["Packaging"] = GetStringValue(row["Packaging"]);
+            newRow["Capacitance"] = GetStringValue(row["Capacitance"]);
+            newRow["Resistance"] = GetStringValue(row["Resistance"]);
+            newRow["Tolerance"] = GetStringValue(row["Tolerance"]);
+            newRow["Voltage"] = GetStringValue(row["Voltage"]);
+            newRow["Dielectric"] = GetStringValue(row["Dielectric"]);
+            newRow["Power"] = GetStringValue(row["Power"]);
+            newRow["TempCoefficient"] = GetStringValue(row["TempCoefficient"]);
+            // 安全处理 BatchNo 字段（如果不存在或为 DBNull，则使用默认值"2年内"）
+            if (sourceTable.Columns.Contains("BatchNo") && row["BatchNo"] != DBNull.Value && !string.IsNullOrEmpty(row["BatchNo"].ToString()))
+            {
+                newRow["BatchNo"] = row["BatchNo"].ToString();
+            }
+            else
+            {
+                newRow["BatchNo"] = "2年内";
+            }
+
             dt.Rows.Add(newRow);
         }
 
@@ -917,6 +912,15 @@ public class GoodsService
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("OfflineTime", typeof(string));
         dt.Columns.Add("PubSource", typeof(int));
+        dt.Columns.Add("Brand", typeof(string));
+        dt.Columns.Add("Packaging", typeof(string));
+        dt.Columns.Add("Capacitance", typeof(string));
+        dt.Columns.Add("Resistance", typeof(string));
+        dt.Columns.Add("Tolerance", typeof(string));
+        dt.Columns.Add("Voltage", typeof(string));
+        dt.Columns.Add("Dielectric", typeof(string));
+        dt.Columns.Add("Power", typeof(string));
+        dt.Columns.Add("TempCoefficient", typeof(string));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -962,6 +966,109 @@ public class GoodsService
                 pubSource = GetIntValue(row["pubSource"], 0);
             }
             newRow["PubSource"] = pubSource;
+
+            newRow["Brand"] = GetStringValue(row["Brand"]);
+            newRow["Packaging"] = GetStringValue(row["Packaging"]);
+            newRow["Capacitance"] = GetStringValue(row["Capacitance"]);
+            newRow["Resistance"] = GetStringValue(row["Resistance"]);
+            newRow["Tolerance"] = GetStringValue(row["Tolerance"]);
+            newRow["Voltage"] = GetStringValue(row["Voltage"]);
+            newRow["Dielectric"] = GetStringValue(row["Dielectric"]);
+            newRow["Power"] = GetStringValue(row["Power"]);
+            newRow["TempCoefficient"] = GetStringValue(row["TempCoefficient"]);
+
+            dt.Rows.Add(newRow);
+        }
+
+        return dt;
+    }
+
+    private DataTable ConvertToExpiredDemandData(DataTable sourceTable)
+    {
+        DataTable dt = new DataTable();
+        dt.Columns.Add("GoodsId", typeof(int));
+        dt.Columns.Add("Model", typeof(string));
+        dt.Columns.Add("BrandParams", typeof(string));
+        dt.Columns.Add("Quantity", typeof(string));
+        dt.Columns.Add("Unit", typeof(string));
+        dt.Columns.Add("Price", typeof(string));
+        dt.Columns.Add("IsTaxed", typeof(bool));
+        dt.Columns.Add("OfflineTime", typeof(string));
+        dt.Columns.Add("PubSource", typeof(int));
+        dt.Columns.Add("Brand", typeof(string));
+        dt.Columns.Add("Packaging", typeof(string));
+        dt.Columns.Add("Capacitance", typeof(string));
+        dt.Columns.Add("Resistance", typeof(string));
+        dt.Columns.Add("Tolerance", typeof(string));
+        dt.Columns.Add("Voltage", typeof(string));
+        dt.Columns.Add("Dielectric", typeof(string));
+        dt.Columns.Add("Power", typeof(string));
+        dt.Columns.Add("TempCoefficient", typeof(string));
+        dt.Columns.Add("BatchNo", typeof(string));
+
+        foreach (DataRow row in sourceTable.Rows)
+        {
+            DataRow newRow = dt.NewRow();
+            
+            int goodsId = GetIntValue(row["goodsId"], 0);
+            newRow["GoodsId"] = goodsId;
+            string goodsSn = GetStringValue(row["goodsSn"]);
+            string name = GetStringValue(row["Name"]);
+            string manufacturers = GetStringValue(row["Manufacturers"]);
+            int goodsStock = GetIntValue(row["goodsStock"], 0);
+            string goodsUnit = GetStringValue(row["goodsUnit"]);
+            decimal shopPrice = GetDecimalValue(row["shopPrice"], 0);
+            int isIncludingTax = GetIntValue(row["isIncludingTax"], 0);
+            DateTime updateTime = GetDateTimeValue(row["updateTime"], DateTime.Now);
+
+            if (!string.IsNullOrEmpty(goodsSn))
+            {
+                newRow["Model"] = goodsSn;
+            }
+            else if (!string.IsNullOrEmpty(name))
+            {
+                newRow["Model"] = name;
+            }
+            else
+            {
+                newRow["Model"] = "未知型号";
+            }
+
+            string brandParams = BuildBrandParams(row);
+            newRow["BrandParams"] = !string.IsNullOrEmpty(brandParams) ? brandParams : 
+                (!string.IsNullOrEmpty(manufacturers) ? manufacturers : "品牌不限");
+
+            newRow["Quantity"] = goodsStock > 0 ? goodsStock.ToString() : "0";
+            newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
+            newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
+            newRow["IsTaxed"] = isIncludingTax == 1;
+            newRow["OfflineTime"] = updateTime.ToString("yyyy-MM-dd HH:mm");
+            
+            int pubSource = 0;
+            if (sourceTable.Columns.Contains("pubSource"))
+            {
+                pubSource = GetIntValue(row["pubSource"], 0);
+            }
+            newRow["PubSource"] = pubSource;
+
+            newRow["Brand"] = GetStringValue(row["Brand"]);
+            newRow["Packaging"] = GetStringValue(row["Packaging"]);
+            newRow["Capacitance"] = GetStringValue(row["Capacitance"]);
+            newRow["Resistance"] = GetStringValue(row["Resistance"]);
+            newRow["Tolerance"] = GetStringValue(row["Tolerance"]);
+            newRow["Voltage"] = GetStringValue(row["Voltage"]);
+            newRow["Dielectric"] = GetStringValue(row["Dielectric"]);
+            newRow["Power"] = GetStringValue(row["Power"]);
+            newRow["TempCoefficient"] = GetStringValue(row["TempCoefficient"]);
+
+            if (sourceTable.Columns.Contains("BatchNo") && row["BatchNo"] != DBNull.Value && !string.IsNullOrEmpty(row["BatchNo"].ToString()))
+            {
+                newRow["BatchNo"] = row["BatchNo"].ToString();
+            }
+            else
+            {
+                newRow["BatchNo"] = "2年内";
+            }
 
             dt.Rows.Add(newRow);
         }
@@ -1031,17 +1138,15 @@ public class GoodsService
     public bool PublishDemand(string goodsSn, string name, string manufacturers, int quantity, string unit, decimal price, int isIncludingTax, int userId, int shopId, string validity = "30天",
         string brand = "", string capacitance = "", string resistance = "", 
         string tolerance = "", string voltage = "", string dielectric = "", 
-        string power = "", string tempCoefficient = "")
+        string power = "", string tempCoefficient = "", string batchNo = "2年内")
     {
         try
         {
             EnsureGoodsFields();
             DateTime validityDate = CalculateExpireTime(validity);
-            
-            string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId,
-                Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient)
-                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId,
-                @Brand, @Capacitance, @Resistance, @Tolerance, @Voltage, @Dielectric, @Power, @TempCoefficient)";
+
+            string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId)
+                VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@goodsSn", goodsSn ?? ""),
@@ -1052,19 +1157,55 @@ public class GoodsService
                 new SqlParameter("@price", price),
                 new SqlParameter("@isIncludingTax", isIncludingTax),
                 new SqlParameter("@shopId", shopId),
-                new SqlParameter("@validityDate", validityDate),
-                new SqlParameter("@Brand", string.IsNullOrEmpty(brand) ? (object)DBNull.Value : brand),
-                new SqlParameter("@Capacitance", string.IsNullOrEmpty(capacitance) ? (object)DBNull.Value : capacitance),
-                new SqlParameter("@Resistance", string.IsNullOrEmpty(resistance) ? (object)DBNull.Value : resistance),
-                new SqlParameter("@Tolerance", string.IsNullOrEmpty(tolerance) ? (object)DBNull.Value : tolerance),
-                new SqlParameter("@Voltage", string.IsNullOrEmpty(voltage) ? (object)DBNull.Value : voltage),
-                new SqlParameter("@Dielectric", string.IsNullOrEmpty(dielectric) ? (object)DBNull.Value : dielectric),
-                new SqlParameter("@Power", string.IsNullOrEmpty(power) ? (object)DBNull.Value : power),
-                new SqlParameter("@TempCoefficient", string.IsNullOrEmpty(tempCoefficient) ? (object)DBNull.Value : tempCoefficient)
+                new SqlParameter("@validityDate", validityDate)
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
-            return result > 0;
+            if (result > 0)
+            {
+                int insertedId = 0;
+                try
+                {
+                    string idSql = "SELECT TOP 1 goodsId FROM goods WHERE goodsSn = @goodsSn AND shopId = @shopId AND dataFlag = 1 AND pubType = 2 ORDER BY createTime DESC";
+                    object idResult = DbHelper.ExecuteScalar(idSql,
+                        DbHelper.CreateParameter("@goodsSn", goodsSn ?? ""),
+                        DbHelper.CreateParameter("@shopId", shopId));
+                    if (idResult != null && idResult != DBNull.Value)
+                    {
+                        insertedId = Convert.ToInt32(idResult);
+                        if (insertedId > 0)
+                        {
+                            try
+                            {
+                                UpdateGoodsParams(insertedId, brand, capacitance, resistance, tolerance, voltage, dielectric, power, tempCoefficient);
+                            }
+                            catch
+                            {
+                            }
+                            try
+                            {
+                                string checkBatchSql = "SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'BatchNo'";
+                                object batchCheck = DbHelper.ExecuteScalar(checkBatchSql);
+                                if (batchCheck != null && Convert.ToInt32(batchCheck) > 0)
+                                {
+                                    string updateBatchSql = "UPDATE goods SET BatchNo = @BatchNo WHERE goodsId = @goodsId";
+                                    DbHelper.ExecuteNonQuery(updateBatchSql,
+                                        DbHelper.CreateParameter("@BatchNo", string.IsNullOrEmpty(batchNo) ? "2年内" : batchNo),
+                                        DbHelper.CreateParameter("@goodsId", insertedId));
+                                }
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
+                return true;
+            }
+            return false;
         }
         catch (Exception ex)
         {
@@ -1097,12 +1238,17 @@ public class GoodsService
     }
 
     /// <summary>
-    /// 更新需求信息（数量、单位、价格、税赋），不影响历史交互记录
+    /// 更新需求信息（数量、单位、价格、税赋、批次要求），不影响历史交互记录
     /// </summary>
-    public bool UpdateDemand(int goodsId, int quantity, string unit, decimal price, int isIncludingTax)
+    public bool UpdateDemand(int goodsId, int quantity, string unit, decimal price, int isIncludingTax, string batchNo = "")
     {
         try
         {
+            if (string.IsNullOrEmpty(batchNo))
+            {
+                batchNo = "2年内";
+            }
+
             string sql = @"UPDATE goods 
                 SET goodsStock = @quantity, 
                     goodsUnit = @unit, 
@@ -1110,12 +1256,40 @@ public class GoodsService
                     isIncludingTax = @isIncludingTax, 
                     updateTime = GETDATE() 
                 WHERE goodsId = @goodsId";
-            int result = DbHelper.ExecuteNonQuery(sql, 
-                DbHelper.CreateParameter("@goodsId", goodsId),
-                DbHelper.CreateParameter("@quantity", quantity),
-                DbHelper.CreateParameter("@unit", unit),
-                DbHelper.CreateParameter("@price", price),
-                DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
+
+            try
+            {
+                string checkSql = "SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'BatchNo'";
+                object checkResult = DbHelper.ExecuteScalar(checkSql);
+                if (checkResult != null && Convert.ToInt32(checkResult) > 0)
+                {
+                    sql = @"UPDATE goods
+                        SET goodsStock = @quantity,
+                            goodsUnit = @unit,
+                            shopPrice = @price,
+                            isIncludingTax = @isIncludingTax,
+                            batchNo = @batchNo,
+                            updateTime = GETDATE()
+                        WHERE goodsId = @goodsId";
+                }
+            }
+            catch
+            {
+            }
+
+            var parameters = new System.Collections.Generic.List<SqlParameter>();
+            parameters.Add(DbHelper.CreateParameter("@goodsId", goodsId));
+            parameters.Add(DbHelper.CreateParameter("@quantity", quantity));
+            parameters.Add(DbHelper.CreateParameter("@unit", unit));
+            parameters.Add(DbHelper.CreateParameter("@price", price));
+            parameters.Add(DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
+
+            if (sql.Contains("@batchNo"))
+            {
+                parameters.Add(DbHelper.CreateParameter("@batchNo", batchNo));
+            }
+
+            int result = DbHelper.ExecuteNonQuery(sql, parameters.ToArray());
             return result > 0;
         }
         catch (Exception)
@@ -1127,24 +1301,60 @@ public class GoodsService
     /// <summary>
     /// 更新供应信息（数量、单位、价格、税赋），不影响历史交互记录
     /// </summary>
-    public bool UpdateSupply(int goodsId, int quantity, string unit, decimal price, int isIncludingTax)
+    public bool UpdateSupply(int goodsId, int quantity, string unit, decimal price, int isIncludingTax, string batchNo = "")
     {
         try
         {
-            string sql = @"UPDATE goods 
-                SET goodsStock = @quantity, 
-                    goodsUnit = @unit, 
-                    shopPrice = @price, 
-                    isIncludingTax = @isIncludingTax, 
-                    updateTime = GETDATE() 
+            // 如果 batchNo 为空，使用默认值"2年内"
+            if (string.IsNullOrEmpty(batchNo))
+            {
+                batchNo = "2年内";
+            }
+
+            string sql = @"UPDATE goods
+                SET goodsStock = @quantity,
+                    goodsUnit = @unit,
+                    shopPrice = @price,
+                    isIncludingTax = @isIncludingTax,
+                    updateTime = GETDATE()
                 WHERE goodsId = @goodsId";
-            int result = DbHelper.ExecuteNonQuery(sql, 
-                DbHelper.CreateParameter("@goodsId", goodsId),
-                DbHelper.CreateParameter("@quantity", quantity),
-                DbHelper.CreateParameter("@unit", unit),
-                DbHelper.CreateParameter("@price", price),
-                DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
-            return result > 0;
+
+            // 只有当 BatchNo 列存在时才更新
+            try
+            {
+                string checkSql = "SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'BatchNo'";
+                object result = DbHelper.ExecuteScalar(checkSql);
+                if (result != null && Convert.ToInt32(result) > 0)
+                {
+                    sql = @"UPDATE goods
+                        SET goodsStock = @quantity,
+                            goodsUnit = @unit,
+                            shopPrice = @price,
+                            isIncludingTax = @isIncludingTax,
+                            batchNo = @batchNo,
+                            updateTime = GETDATE()
+                        WHERE goodsId = @goodsId";
+                }
+            }
+            catch
+            {
+                // 忽略错误，继续使用不包含 batchNo 的更新语句
+            }
+
+            var parameters = new System.Collections.Generic.List<SqlParameter>();
+            parameters.Add(DbHelper.CreateParameter("@goodsId", goodsId));
+            parameters.Add(DbHelper.CreateParameter("@quantity", quantity));
+            parameters.Add(DbHelper.CreateParameter("@unit", unit));
+            parameters.Add(DbHelper.CreateParameter("@price", price));
+            parameters.Add(DbHelper.CreateParameter("@isIncludingTax", isIncludingTax));
+
+            if (sql.Contains("@batchNo"))
+            {
+                parameters.Add(DbHelper.CreateParameter("@batchNo", batchNo));
+            }
+
+            int resultCount = DbHelper.ExecuteNonQuery(sql, parameters.ToArray());
+            return resultCount > 0;
         }
         catch (Exception)
         {
@@ -1339,7 +1549,7 @@ public class GoodsService
             
             if (dt != null && dt.Rows.Count > 0)
             {
-                return ConvertToSupplyData(dt);
+                return ConvertToDemandData(dt);
             }
             
             return null;

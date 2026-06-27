@@ -61,7 +61,7 @@ public partial class admin_quotes : System.Web.UI.Page
             }
 
             string countSql = "SELECT COUNT(*) FROM enquiryquoteprice WHERE dataFlag = 1";
-            string listSql = "SELECT eqId, goodsSn, fromCompany, toCompany, fromPrice, fromQuantity, createTime FROM enquiryquoteprice WHERE dataFlag = 1";
+            string listSql = "SELECT eqId, goodsSn, fromCompany, toCompany, fromPrice, fromQuantity, createTime, eqType FROM enquiryquoteprice WHERE dataFlag = 1";
             
             SqlParameter[] countParams = null;
             

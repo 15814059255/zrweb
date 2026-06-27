@@ -67,9 +67,11 @@ public partial class received_inquiries : System.Web.UI.Page
                 e.fromCompany, e.fromContact, e.fromTel, e.brandName, e.fromShopId, e.fromLot,
                 g.Manufacturers, g.Packaging, g.goodsDesc, g.goodsUnit, g.shopPrice, g.Lot,
                 g.isSale, g.goodsStatus, g.dataFlag as GoodsDataFlag,
+                ISNULL(s.shopCompany, s.shopName) as BuyerCompanyName,
                 CASE WHEN EXISTS (SELECT 1 FROM enquiryquoteprice eq2 WHERE eq2.sourceEqId = e.eqId AND eq2.eqType = 2 AND eq2.dataFlag = 1) THEN 1 ELSE 0 END as HasQuoteReply
                 FROM enquiryquoteprice e
                 LEFT JOIN goods g ON e.goodsId = g.goodsId
+                LEFT JOIN shops s ON e.fromShopId = s.shopId AND s.dataFlag = 1
                 WHERE e.toShopId = @shopId AND e.eqType = 1 AND e.dataFlag = 1 AND (e.toDataFlag IS NULL OR e.toDataFlag = 1)
                 ORDER BY e.createTime DESC";
 
@@ -86,7 +88,11 @@ public partial class received_inquiries : System.Web.UI.Page
                     newRow["EqId"] = GetIntValue(row["eqId"], 0);
                     newRow["GoodsId"] = GetIntValue(row["goodsId"], 0);
                     newRow["Model"] = GetStringValue(row["goodsSn"]);
-                    string buyerName = DbHelper.FixAndCleanString(GetStringValue(row["fromCompany"]));
+                    string buyerName = DbHelper.FixAndCleanString(GetStringValue(row["BuyerCompanyName"]));
+                    if (string.IsNullOrEmpty(buyerName))
+                    {
+                        buyerName = DbHelper.FixAndCleanString(GetStringValue(row["fromCompany"]));
+                    }
                     if (string.IsNullOrEmpty(buyerName))
                     {
                         buyerName = DbHelper.FixAndCleanString(GetStringValue(row["fromContact"]));

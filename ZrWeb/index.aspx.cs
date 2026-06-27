@@ -9,9 +9,9 @@ public partial class index : Page
 {
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _publishRequests = new System.Collections.Concurrent.ConcurrentDictionary<string, DateTime>();
     
-    protected string PageTitle = ConfigurationManager.AppSettings["SiteTitle"] ?? "首页 / 供需广场 - 电子元器件 B2B 平台";
-    protected string PageKeywords = ConfigurationManager.AppSettings["SiteKeywords"] ?? "阻容网,电子元器件,B2B,贴片电容,贴片电阻,供需撮合";
-    protected string PageDescription = ConfigurationManager.AppSettings["SiteDescription"] ?? "阻容网是专业的电子元器件B2B交易平台，提供贴片电容、贴片电阻等被动元件的供需撮合服务。";
+    protected string PageTitle = ConfigurationManager.AppSettings["SiteTitle"] ?? "首页 / 供需广场 - 电子元器件平台";
+    protected string PageKeywords = ConfigurationManager.AppSettings["SiteKeywords"] ?? "阻容网,电子元器件,贴片电容,贴片电阻,供需撮合";
+    protected string PageDescription = ConfigurationManager.AppSettings["SiteDescription"] ?? "阻容网是专业的电子元器件交易平台，提供贴片电容、贴片电阻等被动元件的供需撮合服务。";
     protected bool HasData = false;
     protected int CurrentPage = 1;
     protected int TotalPages = 1;

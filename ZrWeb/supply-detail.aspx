@@ -8,18 +8,18 @@
 <head runat="server">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= PageTitle %></title>
-    <meta name="keywords" content="<%= PageKeywords %>">
-    <meta name="description" content="<%= PageDescription %>">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="<%= PageTitle %>">
-    <meta property="og:description" content="<%= PageDescription %>">
-    <meta property="og:site_name" content="阻容网">
-    <meta property="og:image" content="https://www.zr.net.cn/assets/images/logo.png">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="<%= PageTitle %>">
-    <meta name="twitter:description" content="<%= PageDescription %>">
-    <meta name="twitter:image" content="https://www.zr.net.cn/assets/images/logo.png">
+    <asp:Literal ID="litTitle" runat="server"></asp:Literal>
+    <asp:Literal ID="litKeywords" runat="server"></asp:Literal>
+    <asp:Literal ID="litDescription" runat="server"></asp:Literal>
+    <asp:Literal ID="litOgType" runat="server"></asp:Literal>
+    <asp:Literal ID="litOgTitle" runat="server"></asp:Literal>
+    <asp:Literal ID="litOgDescription" runat="server"></asp:Literal>
+    <asp:Literal ID="litOgSiteName" runat="server"></asp:Literal>
+    <asp:Literal ID="litOgImage" runat="server"></asp:Literal>
+    <asp:Literal ID="litTwitterCard" runat="server"></asp:Literal>
+    <asp:Literal ID="litTwitterTitle" runat="server"></asp:Literal>
+    <asp:Literal ID="litTwitterDescription" runat="server"></asp:Literal>
+    <asp:Literal ID="litTwitterImage" runat="server"></asp:Literal>
     <link rel="stylesheet" href="/assets/css/styles.css">
     <style>
         .detail-hero-inner {
@@ -150,6 +150,10 @@
                                 <span class="spec-value"><%= TempCoefficient %></span>
                             </div>
                             <% } %>
+                            <div class="spec-row">
+                                <span class="spec-label">批次</span>
+                                <span class="spec-value"><%= BatchNo %></span>
+                            </div>
                             <div class="spec-row">
                                 <span class="spec-label">数量</span>
                                 <span class="spec-value"><%= Quantity %></span>
