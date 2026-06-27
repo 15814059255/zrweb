@@ -97,9 +97,12 @@
             </div>
             <div class="modal-body">
                 <form class="feedback-form" data-feedback-form>
-                    <label>您的称呼 <em>*</em><input class="input" data-feedback-name required placeholder="如 张先生 / 李小姐"></label>
-                    <label>联系方式 <em>*</em><input class="input" data-feedback-contact required placeholder="手机 / 微信 / 邹箱，便于回复"></label>
-                    <label class="feedback-full">留言或建议<textarea class="input" data-feedback-content placeholder="请填写您遇到的问题、改进建议或合作需求"></textarea></label>
+                    <label for="feedbackName">您的称呼 <em>*</em></label>
+                    <input id="feedbackName" class="input" data-feedback-name required placeholder="如 张先生 / 李小姐">
+                    <label for="feedbackContact">联系方式 <em>*</em></label>
+                    <input id="feedbackContact" class="input" data-feedback-contact required placeholder="手机 / 微信 / 邮箱，便于回复">
+                    <label class="feedback-full" for="feedbackContent">留言或建议</label>
+                    <textarea id="feedbackContent" class="input" data-feedback-content placeholder="请填写您遇到的问题、改进建议或合作需求"></textarea>
                     <div class="actions feedback-actions">
                         <button class="btn primary" type="button" data-feedback-submit>提交留言</button>
                         <button class="btn soft" type="button" data-feedback-close>取消</button>
@@ -111,71 +114,5 @@
     
     <!-- 底部 -->
     <uc1:bottom runat="server" ID="bottom" />
-    
-    <script>
-        (function() {
-            var modal = document.getElementById('feedbackModal');
-            var openBtn = document.querySelector('[data-feedback-open]');
-            var closeBtns = document.querySelectorAll('[data-feedback-close]');
-            var submitBtn = document.querySelector('[data-feedback-submit]');
-            var form = document.querySelector('[data-feedback-form]');
-            
-            openBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                modal.removeAttribute('hidden');
-            });
-            
-            closeBtns.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    modal.setAttribute('hidden', '');
-                });
-            });
-            
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.setAttribute('hidden', '');
-                }
-            });
-            
-            submitBtn.addEventListener('click', function() {
-                var name = document.querySelector('[data-feedback-name]').value.trim();
-                var contact = document.querySelector('[data-feedback-contact]').value.trim();
-                var content = document.querySelector('[data-feedback-content]').value.trim();
-                
-                if (!name) {
-                    alert('请填写您的称呼');
-                    return;
-                }
-                if (!contact) {
-                    alert('请填写联系方式');
-                    return;
-                }
-                
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '/about-us.aspx', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        try {
-                            var result = JSON.parse(xhr.responseText);
-                            if (result.success) {
-                                alert('留言提交成功！感谢您的反馈。');
-                                form.reset();
-                                modal.setAttribute('hidden', '');
-                            } else {
-                                alert('提交失败: ' + (result.message || '未知错误'));
-                            }
-                        } catch (e) {
-                            alert('提交失败: 服务器响应异常');
-                        }
-                    }
-                };
-                
-                xhr.send('action=submitFeedback&name=' + encodeURIComponent(name) + 
-                         '&contact=' + encodeURIComponent(contact) + 
-                         '&content=' + encodeURIComponent(content));
-            });
-        })();
-    </script>
 </body>
 </html>

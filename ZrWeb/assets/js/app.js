@@ -498,29 +498,62 @@ document.querySelectorAll('[data-feedback-close]').forEach((btn) => {
 document.querySelectorAll('[data-feedback-submit]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const modal = document.getElementById('feedbackModal');
-    const form = modal?.querySelector('[data-feedback-form]');
-    const name = form?.querySelector('[data-feedback-name]');
-    const contact = form?.querySelector('[data-feedback-contact]');
-    const content = form?.querySelector('[data-feedback-content]');
-    if (!name?.value.trim()) {
-      markInteractionInputError(name);
+    const form = document.querySelector('[data-feedback-form]');
+    const nameInput = document.getElementById('feedbackName');
+    const contactInput = document.getElementById('feedbackContact');
+    const contentInput = document.getElementById('feedbackContent');
+    
+    console.log('Feedback submit clicked');
+    console.log('modal:', modal);
+    console.log('form:', form);
+    console.log('nameInput:', nameInput);
+    console.log('nameInput value:', nameInput ? nameInput.value : 'null');
+    
+    const name = nameInput ? nameInput.value.trim() : '';
+    const contact = contactInput ? contactInput.value.trim() : '';
+    const content = contentInput ? contentInput.value.trim() : '';
+    
+    if (!name) {
+      alert('请填写您的称呼');
+      nameInput && nameInput.focus();
       return;
     }
-    if (!contact?.value.trim()) {
-      markInteractionInputError(contact);
+    if (!contact) {
+      alert('请填写联系方式');
+      contactInput && contactInput.focus();
       return;
     }
-    if (!content?.value.trim()) {
-      markInteractionInputError(content);
-      return;
-    }
-    form?.reset();
-    modal?.setAttribute('hidden', '');
-    const toast = document.createElement('div');
-    toast.className = 'publish-toast';
-    toast.textContent = '留言已提交，我们会尽快处理';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1400);
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/about-us.aspx', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        console.log('XHR response status:', xhr.status);
+        console.log('XHR response text:', xhr.responseText);
+        try {
+          const result = JSON.parse(xhr.responseText);
+          console.log('Parsed result:', result);
+          if (result.success) {
+            form?.reset();
+            modal?.setAttribute('hidden', '');
+            const toast = document.createElement('div');
+            toast.className = 'publish-toast';
+            toast.textContent = '留言已提交，我们会尽快处理';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1400);
+          } else {
+            alert('提交失败: ' + (result.message || '未知错误'));
+          }
+        } catch (e) {
+          console.error('JSON parse error:', e);
+          alert('提交失败: 服务器响应异常\n响应内容: ' + xhr.responseText.substring(0, 500));
+        }
+      }
+    };
+    xhr.send('action=submitFeedback&name=' + encodeURIComponent(name) + 
+             '&contact=' + encodeURIComponent(contact) + 
+             '&content=' + encodeURIComponent(content));
   });
 });
 document.querySelectorAll('[data-quick-import-open]').forEach((btn) => {
@@ -951,6 +984,215 @@ document.querySelector('[data-login-submit]')?.addEventListener('click', () => {
 
 const QUICK_IMPORT_PAGE_SIZE = 30;
 
+// 品牌代码映射
+const PART_BRAND_CODES = {
+  'GRM': 'Murata', 'GCM': 'Murata', 'LQW': 'Murata', 'GR4': 'Murata',
+  'GR5': 'Murata', 'GC0': 'Murata', 'GCJ': 'Murata',
+  'CL': 'Samsung', 'CL10': 'Samsung', 'CL21': 'Samsung', 'CL31': 'Samsung',
+  'CC': 'Yageo', 'CC03': 'Yageo', 'CC06': 'Yageo', 'RC': 'Yageo',
+  'VJ': 'Vishay', 'VJ08': 'Vishay', 'VJ12': 'Vishay', 'VJ21': 'Vishay',
+  'C0': 'Kemet', 'C0201': 'Kemet', 'C0402': 'Kemet', 'C0603': 'Kemet'
+};
+
+// 封装尺寸映射
+const PART_PACKAGE_SIZES = {
+  '01005': '0402', '0201': '0603', '0402': '1005',
+  '0603': '1608', '0805': '2012', '1206': '3216',
+  '1210': '3225', '1808': '4520', '1812': '4532',
+  '2010': '5025', '2512': '6432'
+};
+
+// 精度代码映射
+const PART_TOLERANCE_CODES = {
+  'C': '±0.25pF', 'D': '±0.5pF', 'F': '±1pF', 'G': '±2%',
+  'J': '±5%', 'K': '±10%', 'M': '±20%', 'Z': '+80/-20%'
+};
+
+// 电压代码映射
+const PART_VOLTAGE_CODES = {
+  'R': '6.3V', 'S': '6.3V', 'A': '6.3V', '6': '6.3V', '8': '6.3V',
+  '0': '10V', '1': '16V', '2': '25V', '3': '35V', '4': '50V',
+  '5': '63V', '7': '250V', '8': '500V', '9': '100V'
+};
+
+// 介质材料映射
+const PART_DIELECTRIC_CODES = {
+  'R': 'X7R', '7': 'X7R', '5': 'X5R', '4': 'X7S',
+  '8': 'X6S', '9': 'Y5V', 'U': 'Y5V', 'N': 'C0G/NPO',
+  'Q': 'C0G/NPO', 'E': 'X8R', 'P': 'X5P', 'W': 'X7W'
+};
+
+// 解码三位数字容值
+function decodeCapacitance(code) {
+  if (!code || code.length < 3) return code;
+  const digits = code.substring(0, 3);
+  if (!/^\d{3}$/.test(digits)) return code;
+  const mantissa = parseInt(digits.substring(0, 2));
+  const exponent = parseInt(digits.substring(2, 3));
+  const pfValue = mantissa * Math.pow(10, exponent);
+  if (pfValue >= 1000000) {
+    const ufValue = pfValue / 1000000;
+    return ufValue + 'uF';
+  } else if (pfValue >= 1000) {
+    const nfValue = pfValue / 1000;
+    return nfValue + 'nF';
+  }
+  return pfValue + 'pF';
+}
+
+// 解析元器件型号
+function parsePartNumber(partNumber) {
+  const result = {
+    original: partNumber,
+    brand: '',
+    packaging: '',
+    capacitance: '',
+    resistance: '',
+    tolerance: '',
+    voltage: '',
+    dielectric: '',
+    power: '',
+    tempCoefficient: '',
+    isParsed: false
+  };
+  
+  if (!partNumber) return result;
+  
+  // 使用和单条发布一样的规则库进行解析
+  if (window.PART_NUMBER_RULES && window.PART_NUMBER_FIELD_MAP) {
+    const results = [];
+    for (const [pKey, pnr] of Object.entries(window.PART_NUMBER_RULES)) {
+      for (const r of pnr.rules) {
+        if (!r.regex) continue;
+        try {
+          const re = new RegExp(r.regex);
+          const m = partNumber.match(re);
+          if (m) {
+            let parsed = null;
+            if (r.parser) {
+              try { parsed = r.parser(partNumber); } catch (e) { parsed = null; }
+            }
+            results.push({ cat: pnr.cat, rule: r, parsed, match: m, brandIds: pnr.brandIds });
+          }
+        } catch (e) {}
+      }
+    }
+    
+    if (results.length > 0) {
+      const best = results[0];
+      result.isParsed = true;
+      
+      // 品牌
+      if (best.brandIds && best.brandIds.length > 0 && window.PART_NUMBER_BRAND_MAP) {
+        result.brand = window.PART_NUMBER_BRAND_MAP[best.brandIds[0]] || best.brandIds[0];
+      }
+      
+      // 解析字段
+      if (best.parsed && best.parsed.length > 0) {
+        best.parsed.forEach(f => {
+          const attrName = window.PART_NUMBER_FIELD_MAP[f.name] || f.name;
+          const value = f.meaning || f.code;
+          
+          switch (attrName) {
+            case '封装':
+              result.packaging = value;
+              break;
+            case '容值':
+              result.capacitance = value;
+              break;
+            case '阻值':
+              result.resistance = value;
+              break;
+            case '精度':
+              result.tolerance = value;
+              break;
+            case '耐压':
+              result.voltage = value;
+              break;
+            case '介质':
+              result.dielectric = value;
+              break;
+            case '功率':
+              result.power = value;
+              break;
+            case '温漂':
+              result.tempCoefficient = value;
+              break;
+          }
+        });
+      }
+      
+      return result;
+    }
+  }
+  
+  // 备用：简单解析逻辑（仅在规则库不可用时使用）
+  const upper = partNumber.toUpperCase();
+  
+  // 提取品牌
+  if (typeof PART_BRAND_CODES !== 'undefined') {
+    const sortedCodes = Object.keys(PART_BRAND_CODES).sort((a, b) => b.length - a.length);
+    for (const code of sortedCodes) {
+      if (upper.startsWith(code)) {
+        result.brand = PART_BRAND_CODES[code];
+        result.isParsed = true;
+        break;
+      }
+    }
+  }
+  
+  // 匹配封装尺寸
+  if (typeof PART_PACKAGE_SIZES !== 'undefined') {
+    for (const size of Object.keys(PART_PACKAGE_SIZES)) {
+      if (upper.includes(size)) {
+        result.packaging = PART_PACKAGE_SIZES[size];
+        result.isParsed = true;
+        break;
+      }
+    }
+  }
+  
+  // 提取容值
+  if (typeof decodeCapacitance !== 'undefined') {
+    const capMatch = upper.match(/(\d{3})[KRMAJ]\d{2}/);
+    if (capMatch) {
+      result.capacitance = decodeCapacitance(capMatch[1]);
+      result.isParsed = true;
+    }
+  }
+  
+  // 提取精度
+  if (typeof PART_TOLERANCE_CODES !== 'undefined') {
+    const tolMatch = upper.match(/\d{3}([CDFGJKMCZ])\d/);
+    if (tolMatch && PART_TOLERANCE_CODES[tolMatch[1]]) {
+      result.tolerance = PART_TOLERANCE_CODES[tolMatch[1]];
+      result.isParsed = true;
+    }
+  }
+  
+  // 提取电压
+  if (typeof PART_VOLTAGE_CODES !== 'undefined') {
+    const voltMatch = upper.match(/\d{3}[KRMAJ](\d)/);
+    if (voltMatch && PART_VOLTAGE_CODES[voltMatch[1]]) {
+      result.voltage = PART_VOLTAGE_CODES[voltMatch[1]];
+      result.isParsed = true;
+    }
+  }
+  
+  // 提取介质
+  if (typeof PART_DIELECTRIC_CODES !== 'undefined') {
+    for (const code of Object.keys(PART_DIELECTRIC_CODES)) {
+      if (upper.includes(code)) {
+        result.dielectric = PART_DIELECTRIC_CODES[code];
+        result.isParsed = true;
+        break;
+      }
+    }
+  }
+  
+  return result;
+}
+
 function quickParseLine(line) {
   const parts = line.trim().split(/\s+/);
   const model = parts[0] || 'GRM188R71H104KA93D';
@@ -961,14 +1203,57 @@ function quickParseLine(line) {
   const qty = qtyMatch?.[1] || '850';
   const unit = (qtyMatch?.[2] || 'Kpcs').replace(/^K$/i, 'Kpcs');
   const price = (priceRaw.match(/\d+(?:\.\d+)?/) || [''])[0];
-  return { model, qty, unit, price };
+  
+  // 解析型号参数
+  const parsed = parsePartNumber(model);
+  
+  return { model, qty, unit, price, parsed };
 }
 
 function quickPreviewRow(item, isTaxed = true) {
   const options = ['Kpcs', 'Pcs', '盘', '卷', '件'].map((unitOption) => `<option${unitOption.toLowerCase() === item.unit.toLowerCase() ? ' selected' : ''}>${unitOption}</option>`).join('');
   const taxClass = isTaxed ? 'is-taxed' : 'is-untaxed';
   const taxText = isTaxed ? '含税' : '未税';
-  return `<tr class="inventory-item"><td><span class="tag orange">核对中</span></td><td><strong>${item.model}</strong></td><td>自动解析 · 待核对参数</td><td><input class="qty-input" value="${item.qty}"></td><td><select class="unit-select">${options}</select></td><td><label class="price-field ${taxClass}"><input class="price-input" min="0.0001" step="0.0001" placeholder="如 0.0001" value="${item.price}"><span>${taxText}</span></label></td></tr>`;
+  
+  // 构建解析参数显示（显示所有解析出来的字段）
+  let paramsText = '';
+  if (item.parsed) {
+    const params = [];
+    if (item.parsed.brand) params.push(item.parsed.brand);
+    if (item.parsed.packaging) params.push(item.parsed.packaging);
+    if (item.parsed.capacitance) params.push(item.parsed.capacitance);
+    if (item.parsed.resistance) params.push(item.parsed.resistance);
+    if (item.parsed.tolerance) params.push(item.parsed.tolerance);
+    if (item.parsed.voltage) params.push(item.parsed.voltage);
+    if (item.parsed.dielectric) params.push(item.parsed.dielectric);
+    if (item.parsed.power) params.push(item.parsed.power);
+    if (item.parsed.tempCoefficient) params.push(item.parsed.tempCoefficient);
+    if (params.length > 0) {
+      paramsText = params.join(' · ');
+    }
+  }
+  
+  // 根据解析状态显示不同标签
+  const statusTag = item.parsed && item.parsed.isParsed ? '<span class="tag green">已解析</span>' : '<span class="tag orange">待核对</span>';
+  
+  return `<tr class="inventory-item"><td>${statusTag}</td><td><strong>${item.model}</strong></td><td>${paramsText || '<span style="color:#999">解析中...</span>'}</td><td><input class="qty-input" value="${item.qty}"></td><td><select class="unit-select">${options}</select></td><td><label class="price-field ${taxClass}"><input class="price-input" min="0.0001" step="0.0001" placeholder="如 0.0001" value="${item.price}"><span>${taxText}</span></label></td></tr>`;
+}
+
+function saveCurrentQuickImportPage(modal) {
+  const rows = modal._quickImportRows || [];
+  const page = modal._quickImportPage || 1;
+  const start = (page - 1) * QUICK_IMPORT_PAGE_SIZE;
+  const bodyRows = modal.querySelectorAll('[data-quick-preview-body] tr.inventory-item');
+  bodyRows.forEach((row, i) => {
+    const idx = start + i;
+    if (!rows[idx]) return;
+    const qtyInput = row.querySelector('.qty-input');
+    const unitSelect = row.querySelector('.unit-select');
+    const priceInput = row.querySelector('.price-input');
+    if (qtyInput) rows[idx].qty = qtyInput.value;
+    if (unitSelect) rows[idx].unit = unitSelect.value;
+    if (priceInput) rows[idx].price = priceInput.value;
+  });
 }
 
 function renderQuickImportPage(modal) {
@@ -1028,10 +1313,12 @@ document.addEventListener('click', (event) => {
   const modal = event.target.closest('#quickImportModal');
   if (!modal) return;
   if (prev) {
+    saveCurrentQuickImportPage(modal);
     modal._quickImportPage = Math.max(1, (modal._quickImportPage || 1) - 1);
     renderQuickImportPage(modal);
   }
   if (next) {
+    saveCurrentQuickImportPage(modal);
     const rows = modal._quickImportRows || [];
     const pageCount = Math.max(1, Math.ceil(rows.length / QUICK_IMPORT_PAGE_SIZE));
     modal._quickImportPage = Math.min(pageCount, (modal._quickImportPage || 1) + 1);
@@ -1046,18 +1333,67 @@ document.addEventListener('click', (event) => {
     quickKind.classList.add('active');
   }
   if (confirm) {
-    const toast = document.createElement('div');
-    toast.className = 'publish-toast';
-    toast.textContent = '已经成功发布！';
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.remove();
-      modal.setAttribute('hidden', '');
-      modal.querySelector('[data-quick-paste-panel]')?.removeAttribute('hidden');
-      modal.querySelector('[data-quick-preview-panel]')?.setAttribute('hidden', '');
-      const count = modal.querySelector('[data-quick-import-count]');
-      if (count) count.textContent = '';
-    }, 2000);
+    saveCurrentQuickImportPage(modal);
+    const rows = modal._quickImportRows || [];
+    const isTaxed = modal.querySelector('[data-quick-tax-master]')?.getAttribute('aria-pressed') !== 'false';
+    const pubType = modal.querySelector('[data-quick-kind].active')?.dataset.quickKind === 'demand' ? 2 : 1;
+    const submitData = [];
+    rows.forEach((item) => {
+      const parsed = item.parsed || {};
+      submitData.push({
+        goodsSn: item.model,
+        'attr_品牌': parsed.brand || '',
+        'attr_封装': parsed.packaging || '',
+        'attr_容值': parsed.capacitance || '',
+        'attr_阻值': parsed.resistance || '',
+        'attr_精度': parsed.tolerance || '',
+        'attr_耐压': parsed.voltage || '',
+        'attr_功率': parsed.power || '',
+        'attr_介质': parsed.dielectric || '',
+        'attr_温漂': parsed.tempCoefficient || '',
+        goodsStock: parseInt(item.qty || '0') || 0,
+        goodsUnit: item.unit || 'Kpcs',
+        shopPrice: item.price || '',
+        isIncludingTax: isTaxed ? 1 : 0,
+        pubType: pubType,
+        validity: '3天'
+      });
+    });
+    if (!submitData.length) {
+      ZrToast.error('没有可发布的数据');
+      return;
+    }
+    confirm.disabled = true;
+    confirm.textContent = '发布中...';
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/merchant-workbench.aspx', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        confirm.disabled = false;
+        confirm.textContent = '确定';
+        try {
+          const result = JSON.parse(xhr.responseText);
+          if (result.success) {
+            ZrToast.success(result.message, 2500);
+            setTimeout(() => {
+              modal.setAttribute('hidden', '');
+              modal.querySelector('[data-quick-paste-panel]')?.removeAttribute('hidden');
+              modal.querySelector('[data-quick-preview-panel]')?.setAttribute('hidden', '');
+              const count = modal.querySelector('[data-quick-import-count]');
+              if (count) count.textContent = '';
+              modal._quickImportRows = [];
+            }, 1500);
+          } else {
+            ZrToast.error(result.message || '发布失败', 3000);
+          }
+        } catch (e) {
+          console.error('JSON parse error:', e);
+          ZrToast.error('发布失败: 服务器响应异常', 3000);
+        }
+      }
+    };
+    xhr.send('action=batch_publish&pubType=' + pubType + '&data=' + encodeURIComponent(JSON.stringify(submitData)));
   }
 });
 
@@ -1377,7 +1713,8 @@ document.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
         if (result.success) {
           resetQuickPublishForm(form);
           modal?.setAttribute('hidden', '');
-          if (window.location.pathname.includes('buyer-workbench') || window.location.pathname.includes('merchant-workbench')) {
+          const path = window.location.pathname.toLowerCase();
+          if (path.includes('buyer-workbench') || path.includes('merchant-workbench')) {
             window.location.reload();
           }
         }
@@ -2853,16 +3190,231 @@ document.querySelectorAll('[data-toggle-stock]').forEach((btn) => {
   });
 });
 
+// 全选当前页（只操作可见的数据）
 document.querySelectorAll('[data-select-all]').forEach((checkbox) => {
   checkbox.addEventListener('change', () => {
     const panel = checkbox.closest('.panel');
     if (!panel) return;
-    panel.querySelectorAll('.inventory-item input[type="checkbox"]').forEach((itemCheckbox) => {
-      itemCheckbox.checked = checkbox.checked;
+    const isChecked = checkbox.checked;
+    // 只操作当前可见的（未被隐藏的）数据
+    panel.querySelectorAll('.inventory-item:not([hidden]) input[type="checkbox"]').forEach((itemCheckbox) => {
+      itemCheckbox.checked = isChecked;
     });
     panel.querySelectorAll('[data-select-all]').forEach((otherCheckbox) => {
-      otherCheckbox.checked = checkbox.checked;
+      otherCheckbox.checked = isChecked;
     });
+  });
+});
+
+// ====== merchant-workbench 库存分页逻辑 ======
+(function() {
+  const pagination = document.querySelector('[data-inventory-pagination]');
+  if (!pagination) return;
+  
+  const pageSize = parseInt(pagination.getAttribute('data-page-size')) || 25;
+  const panel = pagination.closest('.panel');
+  const items = panel ? [...panel.querySelectorAll('tr.inventory-item')] : [];
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  
+  // 从页面获取当前页码
+  const pageDisplay = pagination.querySelector('[data-page-current]');
+  let currentPage = pageDisplay ? parseInt(pageDisplay.textContent) || 1 : 1;
+  currentPage = Math.min(Math.max(1, currentPage), totalPages);
+  
+  const pageCurrent = pagination.querySelector('[data-page-current]');
+  const pageTotal = pagination.querySelector('[data-page-total]');
+  const prevBtn = pagination.querySelector('[data-page-prev]');
+  const nextBtn = pagination.querySelector('[data-page-next]');
+  
+  function updatePagination() {
+    // 更新页面显示
+    if (pageCurrent) pageCurrent.textContent = currentPage;
+    if (pageTotal) pageTotal.textContent = totalPages;
+    
+    // 更新按钮状态
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+    
+    // 显示/隐藏行
+    items.forEach((item, index) => {
+      item.hidden = index < (currentPage - 1) * pageSize || index >= currentPage * pageSize;
+    });
+  }
+  
+  // 上一页
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+        // 取消全选
+        panel.querySelectorAll('[data-select-all]').forEach(cb => cb.checked = false);
+      }
+    });
+  }
+  
+  // 下一页
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+        // 取消全选
+        panel.querySelectorAll('[data-select-all]').forEach(cb => cb.checked = false);
+      }
+    });
+  }
+  
+  // 初始分页
+  updatePagination();
+})();
+
+// 批量下架 - 只下架当前页勾选的数据（只操作可见的数据）
+document.querySelectorAll('[data-batch-takeoff]').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const panel = btn.closest('.panel');
+    if (!panel) return;
+    // 只获取当前可见的（未被隐藏的）勾选数据
+    const checkedItems = panel.querySelectorAll('.inventory-item:not([hidden]) input[type="checkbox"]:checked');
+    if (checkedItems.length === 0) {
+      ZrToast.warning('请先勾选要下架的商品');
+      return;
+    }
+    
+    const goodsIds = [...checkedItems].map(cb => {
+      const item = cb.closest('.inventory-item');
+      return item?.dataset?.goodsId;
+    }).filter(id => id && id !== 'undefined');
+    
+    if (goodsIds.length === 0) {
+      ZrToast.error('无法获取商品ID，请刷新页面后重试');
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = '下架中...';
+    
+    try {
+      const formData = new FormData();
+      formData.append('action', 'batch_take_off');
+      formData.append('goodsIds', goodsIds.join(','));
+      
+      const response = await fetch('/merchant-workbench.aspx', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // 更新页面状态
+        goodsIds.forEach(goodsId => {
+          const item = panel.querySelector(`.inventory-item:not([hidden])[data-goods-id="${goodsId}"]`);
+          if (item) {
+            item.classList.add('is-offline');
+            const tag = item.querySelector('.tag');
+            if (tag) {
+              tag.textContent = '已下架';
+              tag.classList.remove('blue');
+              tag.classList.add('orange');
+            }
+            // 取消选中
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox) checkbox.checked = false;
+          }
+        });
+        
+        // 取消全选
+        panel.querySelectorAll('[data-select-all]').forEach(cb => cb.checked = false);
+        
+        ZrToast.success(`已成功下架 ${result.successCount || goodsIds.length} 个商品`);
+        if (result.failCount > 0) {
+          ZrToast.error(`${result.failCount} 个商品下架失败`);
+        }
+      } else {
+        ZrToast.error(result.message || '批量下架失败');
+      }
+    } catch (e) {
+      console.error('批量下架异常:', e);
+      ZrToast.error('网络错误，请重试');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '批量下架';
+    }
+  });
+});
+
+// 批量重新上架 - 只上架当前页勾选的数据（只操作可见的数据）
+document.querySelectorAll('[data-batch-restock]').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const panel = btn.closest('.panel');
+    if (!panel) return;
+    // 只获取当前可见的（未被隐藏的）勾选数据
+    const checkedItems = panel.querySelectorAll('.inventory-item:not([hidden]) input[type="checkbox"]:checked');
+    if (checkedItems.length === 0) {
+      ZrToast.warning('请先勾选要上架的商品');
+      return;
+    }
+    
+    const goodsIds = [...checkedItems].map(cb => {
+      const item = cb.closest('.inventory-item');
+      return item?.dataset?.goodsId;
+    }).filter(id => id && id !== 'undefined');
+    
+    if (goodsIds.length === 0) {
+      ZrToast.error('无法获取商品ID，请刷新页面后重试');
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = '上架中...';
+    
+    try {
+      const formData = new FormData();
+      formData.append('action', 'batch_restock');
+      formData.append('goodsIds', goodsIds.join(','));
+      
+      const response = await fetch('/merchant-workbench.aspx', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // 更新页面状态
+        goodsIds.forEach(goodsId => {
+          const item = panel.querySelector(`.inventory-item:not([hidden])[data-goods-id="${goodsId}"]`);
+          if (item) {
+            item.classList.remove('is-offline');
+            const tag = item.querySelector('.tag');
+            if (tag) {
+              tag.textContent = '供应';
+              tag.classList.remove('orange');
+              tag.classList.add('blue');
+            }
+            // 取消选中
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox) checkbox.checked = false;
+          }
+        });
+        
+        // 取消全选
+        panel.querySelectorAll('[data-select-all]').forEach(cb => cb.checked = false);
+        
+        ZrToast.success(`已成功上架 ${result.successCount || goodsIds.length} 个商品`);
+        if (result.failCount > 0) {
+          ZrToast.error(`${result.failCount} 个商品上架失败`);
+        }
+      } else {
+        ZrToast.error(result.message || '批量上架失败');
+      }
+    } catch (e) {
+      console.error('批量上架异常:', e);
+      ZrToast.error('网络错误，请重试');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '批量重新上架';
+    }
   });
 });
 

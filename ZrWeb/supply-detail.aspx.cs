@@ -299,9 +299,9 @@ public partial class supply_detail : Page
         string brandKeywords = !string.IsNullOrEmpty(MainBrands) ? "," + MainBrands.Replace("|", ",") : "";
         string modelKeywords = !string.IsNullOrEmpty(AdvantageModels) ? "," + AdvantageModels.Replace("|", ",") : "";
         
-        PageTitle = Model + " " + Brand + " " + Package + " 供应详情 - 阻容网";
+        PageTitle = Model + " " + Brand + " " + Package + " 供应商 - 阻容网";
         PageKeywords = Model + "," + Brand + "," + Package + "," + Capacitance + "," + Resistance + "," + Tolerance + "," + Voltage + "," + Dielectric + ",贴片电容,贴片电阻,电子元器件,供应,采购,阻容网" + brandKeywords + modelKeywords;
-        PageDescription = Model + " (" + Brand + " " + Package + " " + ParametersSummary + ") 供应信息，" + Quantity + "，有效期" + Validity + "，供应商：" + CompanyName + "。主营品牌：" + MainBrands.Replace("|", "、") + "。优势型号：" + AdvantageModels.Replace("|", "、");
+        PageDescription = "【供应】" + Model + " " + Brand + " " + ParametersSummary + "，报价" + PriceDisplay + "，" + Quantity + "，供应商：" + CompanyName + "（" + AuthStatus + "），主营：" + MainBrands.Replace("|", "、");
     }
 
     private int GetIntValue(object value, int defaultValue)

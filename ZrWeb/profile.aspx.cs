@@ -333,6 +333,21 @@ public partial class profile : System.Web.UI.Page
 
             string companyName = Request["companyName"] ?? "";
 
+            // 如果 companyName 为空（可能是因为字段是 disabled 状态），从数据库读取原值
+            if (string.IsNullOrEmpty(companyName))
+            {
+                try
+                {
+                    DataTable dt = DbHelper.ExecuteQuery("SELECT CompanyName FROM [dbo].[userinfo] WHERE UserID = @userId",
+                        DbHelper.CreateParameter("@userId", userId));
+                    if (dt != null && dt.Rows.Count > 0)
+                    {
+                        companyName = GetStringValue(dt.Rows[0]["CompanyName"]);
+                    }
+                }
+                catch { }
+            }
+
             // 保存联系人信息和地址信息（手机号不可修改）
             try
             {
@@ -416,7 +431,7 @@ public partial class profile : System.Web.UI.Page
                 }
 
                 // 保存公司信息到 shops 表
-                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId, shopImg, shopQQ FROM [dbo].[shops] WHERE userId = @userId AND dataFlag = 1",
+                DataTable shopDt = DbHelper.ExecuteQuery("SELECT shopId, shopImg, shopQQ, shopCompany FROM [dbo].[shops] WHERE userId = @userId AND dataFlag = 1",
                     DbHelper.CreateParameter("@userId", userId));
 
                 if (shopDt != null && shopDt.Rows.Count > 0)
@@ -425,6 +440,13 @@ public partial class profile : System.Web.UI.Page
                     
                     string existingLicense = GetStringValue(shopDt.Rows[0]["shopImg"]);
                     string existingIdCard = GetStringValue(shopDt.Rows[0]["shopQQ"]);
+                    
+                    // 如果 companyName 为空，从 shops 表读取原值
+                    string existingCompany = GetStringValue(shopDt.Rows[0]["shopCompany"]);
+                    if (string.IsNullOrEmpty(companyName))
+                    {
+                        companyName = existingCompany;
+                    }
                     
                     if (!isCertified && !string.IsNullOrEmpty(businessLicensePath))
                     {

@@ -31,7 +31,7 @@
             <section class="panel site-ad-panel workbench-ad-panel" hidden>
                 <a class="search-ad-card" href="received-quotes.html" data-ad-slot="BW-S01"><b>白银广告 BW-S01</b><span>采购工作台轻提示位，适合报价服务、会员权益和工具提醒。</span></a>
             </section>
-            <section class="panel buyer-demand-panel" id="demandPanel" style="margin-top:18px"><div class="section-title"><div><h2>我的需求信息</h2></div><div class="actions"><button class="btn primary buyer-publish-btn" type="button" data-publish-open data-publish-default="demand" data-publish-lock-kind="demand">发布采购</button></div></div>
+            <section class="panel buyer-demand-panel" id="demandPanel" style="margin-top:18px"><div class="section-title"><div><h2>我的需求信息</h2></div><div class="actions"><button class="btn soft" type="button" data-quick-import-open>快捷发布</button><button class="btn primary buyer-publish-btn" type="button" data-publish-open data-publish-default="demand" data-publish-lock-kind="demand">发布采购</button></div></div>
                 <div class="table-wrap">
                     <table class="table inventory-table">
                         <thead><tr><th></th><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th>期望价</th><th>税赋</th><th>剩余时间</th><th>操作</th></tr></thead>
@@ -54,7 +54,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all></label><button class="btn mini" data-ui-toast="已批量下架选中库存">批量下架</button></div><button class="btn" disabled>上一页</button><span>第 <%= CurrentPage %> / <%= TotalPages %> 页</span><span class="page-size">每页 50 条</span><button class="btn">下一页</button></div></section>
+                <div class="pagination" data-demand-pagination data-page-size="25"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all-demand></label><button class="btn mini" data-batch-takeoff>批量下架</button></div><button class="btn" disabled data-page-prev>上一页</button><span>第 <span data-page-current><%= CurrentPage %></span> / <span data-page-total><%= TotalPages %></span> 页</span><span class="page-size">每页 25 条</span><button class="btn" data-page-next>下一页</button></div></section>
             <section class="panel expired-panel" id="expiredPanel" hidden style="margin-top:18px">
                 <div class="section-title"><div><h2>到期信息 · 已下架</h2></div><div class="actions"><button class="btn" onclick="toggleExpiredPanelWithBtn(this)" data-toggle-expired>收起</button><button class="btn" onclick="batchRestockDemand(this)" data-ui-toast="已批量重新上架选中库存">批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
                 <div class="table-wrap">
@@ -119,6 +119,104 @@
     </div>
     <uc1:bottom runat="server" ID="bottom" />
     <script>
+        var demandCurrentPage = 1;
+        var demandPageSize = 25;
+
+        function updateDemandPagination() {
+            var panel = document.getElementById('demandPanel');
+            if (!panel) return;
+
+            var items = panel.querySelectorAll('tbody tr.inventory-item');
+            var totalItems = items.length;
+            var totalPages = Math.max(1, Math.ceil(totalItems / demandPageSize));
+
+            items.forEach(function(item, index) {
+                item.hidden = index < (demandCurrentPage - 1) * demandPageSize || index >= demandCurrentPage * demandPageSize;
+            });
+
+            var prevBtn = panel.querySelector('[data-page-prev]');
+            var nextBtn = panel.querySelector('[data-page-next]');
+            var currentSpan = panel.querySelector('[data-page-current]');
+            var totalSpan = panel.querySelector('[data-page-total]');
+
+            if (prevBtn) prevBtn.disabled = demandCurrentPage <= 1;
+            if (nextBtn) nextBtn.disabled = demandCurrentPage >= totalPages;
+            if (currentSpan) currentSpan.textContent = demandCurrentPage;
+            if (totalSpan) totalSpan.textContent = totalPages;
+
+            var selectAll = panel.querySelector('[data-select-all-demand]');
+            if (selectAll) selectAll.checked = false;
+        }
+
+        function goToDemandPage(page) {
+            var panel = document.getElementById('demandPanel');
+            if (!panel) return;
+
+            var items = panel.querySelectorAll('tbody tr.inventory-item');
+            var totalItems = items.length;
+            var totalPages = Math.max(1, Math.ceil(totalItems / demandPageSize));
+
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            demandCurrentPage = page;
+            updateDemandPagination();
+        }
+
+        function batchTakeOffDemand(btn) {
+            var panel = document.getElementById('demandPanel');
+            if (!panel) return;
+
+            var checkedItems = panel.querySelectorAll('tbody tr.inventory-item:not([hidden]) input[type="checkbox"]:checked');
+            if (checkedItems.length === 0) {
+                Toast.warning('请先选择要下架的需求');
+                return;
+            }
+
+            var goodsIds = [];
+            checkedItems.forEach(function(checkbox) {
+                var row = checkbox.closest('tr');
+                if (row && row.dataset.goodsId) {
+                    goodsIds.push(row.dataset.goodsId);
+                }
+            });
+
+            if (goodsIds.length === 0) {
+                Toast.warning('未找到有效的需求ID');
+                return;
+            }
+
+            ConfirmDialog.show('确定要批量下架选中的 ' + goodsIds.length + ' 条需求吗？', function() {
+                btn.disabled = true;
+                btn.textContent = '下架中...';
+
+                var formData = new FormData();
+                formData.append('action', 'batch_take_off');
+                formData.append('goodsIds', goodsIds.join(','));
+
+                fetch('buyer-workbench.aspx', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        Toast.success('批量下架成功！');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        Toast.error('批量下架失败：' + data.message);
+                    }
+                })
+                .catch(function(error) {
+                    Toast.error('批量下架异常：' + error);
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = '批量下架';
+                });
+            });
+        }
+
         // 全局函数：切换到期面板显示
         function toggleExpiredPanel() {
             var expiredPanel = document.getElementById('expiredPanel');
@@ -285,9 +383,29 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                // 监听需求列表输入变化，触发时显示确定按钮
+                updateDemandPagination();
+
                 var demandPanel = document.getElementById('demandPanel');
                 if (demandPanel) {
+                    var selectAllDemand = demandPanel.querySelector('[data-select-all-demand]');
+                    if (selectAllDemand) {
+                        selectAllDemand.addEventListener('change', function() {
+                            demandPanel.querySelectorAll('tbody tr.inventory-item:not([hidden]) input[type="checkbox"]').forEach(function(cb) {
+                                cb.checked = selectAllDemand.checked;
+                            });
+                        });
+                    }
+
+                    var prevBtn = demandPanel.querySelector('[data-page-prev]');
+                    var nextBtn = demandPanel.querySelector('[data-page-next]');
+                    if (prevBtn) prevBtn.addEventListener('click', function() { goToDemandPage(demandCurrentPage - 1); });
+                    if (nextBtn) nextBtn.addEventListener('click', function() { goToDemandPage(demandCurrentPage + 1); });
+
+                    var batchTakeOffBtn = demandPanel.querySelector('[data-batch-takeoff]');
+                    if (batchTakeOffBtn) {
+                        batchTakeOffBtn.addEventListener('click', function() { batchTakeOffDemand(this); });
+                    }
+
                     demandPanel.querySelectorAll('tbody tr.inventory-item').forEach(function(row) {
                         var qtyInput = row.querySelector('.qty-input');
                         var unitSelect = row.querySelector('.unit-select');
@@ -348,24 +466,45 @@
                 }
 
                 // 发布确认
-                var pagePublishBtn = document.querySelector('[data-page-publish-confirm]');
-                if (pagePublishBtn) {
-                    pagePublishBtn.addEventListener('click', function() {
+                var publishConfirmBtn = document.querySelector('[data-publish-confirm]');
+                if (publishConfirmBtn) {
+                    publishConfirmBtn.addEventListener('click', function() {
+                        if (publishConfirmBtn.dataset.publishing === 'true') return;
+                        publishConfirmBtn.dataset.publishing = 'true';
+
+                        var validityButtons = publishModal.querySelectorAll('[data-validity]');
+                        var selectedValidity = null;
+                        validityButtons.forEach(function(btn) {
+                            if (btn.classList.contains('active')) {
+                                selectedValidity = btn.dataset.validity;
+                            }
+                        });
+
+                        if (!selectedValidity) {
+                            Toast.warning('请选择有效期');
+                            publishConfirmBtn.dataset.publishing = 'false';
+                            return;
+                        }
+
                         var formData = new FormData(publishForm);
                         var goodsSn = formData.get('goodsSn');
                         var quantity = formData.get('quantity');
 
                         if (!goodsSn || goodsSn.trim() === '') {
                             Toast.warning('请输入型号');
+                            publishConfirmBtn.dataset.publishing = 'false';
                             return;
                         }
                         if (!quantity || quantity.trim() === '') {
                             Toast.warning('请输入采购数量');
+                            publishConfirmBtn.dataset.publishing = 'false';
                             return;
                         }
 
-                        pagePublishBtn.disabled = true;
-                        pagePublishBtn.textContent = '发布中...';
+                        formData.set('validity', selectedValidity);
+
+                        publishConfirmBtn.disabled = true;
+                        publishConfirmBtn.textContent = '发布中...';
 
                         fetch('buyer-workbench.aspx', {
                             method: 'POST',
@@ -385,8 +524,9 @@
                             Toast.error('发布异常：' + error);
                         })
                         .finally(() => {
-                            pagePublishBtn.disabled = false;
-                            pagePublishBtn.textContent = '确定';
+                            publishConfirmBtn.disabled = false;
+                            publishConfirmBtn.textContent = '确定';
+                            publishConfirmBtn.dataset.publishing = 'false';
                         });
                     });
                 }
@@ -470,6 +610,258 @@
                 console.error('buyer-workbench script error:', e);
             }
         });
+
+        var QUICK_IMPORT_PAGE_SIZE = 30;
+
+        function quickParseLine(line) {
+            var parts = line.trim().split(/\s+/);
+            var model = parts[0] || 'GRM188R71H104KA93D';
+            var rest = parts.slice(1);
+            var qtyRaw = rest.find(function(part) { return /^[1-9]\d*(?:Kpcs|K|Pcs|PCS|盘|卷|件)?$/i.test(part); }) || '850Kpcs';
+            var priceRaw = rest.find(function(part) { return /[¥￥/]|价格|期望/.test(part); }) || '';
+            var qtyMatch = qtyRaw.match(/^([1-9]\d*)(Kpcs|K|Pcs|PCS|盘|卷|件)?$/i);
+            var qty = qtyMatch ? qtyMatch[1] : '850';
+            var unit = (qtyMatch ? qtyMatch[2] : 'Kpcs').replace(/^K$/i, 'Kpcs');
+            var price = (priceRaw.match(/\d+(?:\.\d+)?/) || [''])[0];
+            
+            var parsed = {};
+            if (typeof parsePartNumber === 'function') {
+                parsed = parsePartNumber(model);
+            }
+            
+            return { model: model, qty: qty, unit: unit, price: price, parsed: parsed };
+        }
+
+        function quickPreviewRow(item, isTaxed) {
+            if (isTaxed === undefined) isTaxed = true;
+            var options = ['Kpcs', 'Pcs', '盘', '卷', '件'].map(function(unitOption) {
+                return '<option' + (unitOption.toLowerCase() === item.unit.toLowerCase() ? ' selected' : '') + '>' + unitOption + '</option>';
+            }).join('');
+            var taxClass = isTaxed ? 'is-taxed' : 'is-untaxed';
+            var taxText = isTaxed ? '含税' : '未税';
+            
+            var paramsText = '';
+            if (item.parsed) {
+                var params = [];
+                if (item.parsed.brand) params.push(item.parsed.brand);
+                if (item.parsed.packaging) params.push(item.parsed.packaging);
+                if (item.parsed.capacitance) params.push(item.parsed.capacitance);
+                if (item.parsed.resistance) params.push(item.parsed.resistance);
+                if (item.parsed.tolerance) params.push(item.parsed.tolerance);
+                if (item.parsed.voltage) params.push(item.parsed.voltage);
+                if (item.parsed.dielectric) params.push(item.parsed.dielectric);
+                if (item.parsed.power) params.push(item.parsed.power);
+                if (item.parsed.tempCoefficient) params.push(item.parsed.tempCoefficient);
+                if (params.length > 0) {
+                    paramsText = params.join(' · ');
+                }
+            }
+            
+            var statusTag = item.parsed && item.parsed.isParsed ? '<span class="tag green">已解析</span>' : '<span class="tag orange">待核对</span>';
+            
+            return '<tr class="inventory-item"><td>' + statusTag + '</td><td><strong>' + item.model + '</strong></td><td>' + (paramsText || '<span style="color:#999">解析中...</span>') + '</td><td><input class="qty-input" value="' + item.qty + '"></td><td><select class="unit-select">' + options + '</select></td><td><label class="price-field ' + taxClass + '"><input class="price-input" min="0.0001" step="0.0001" placeholder="如 0.0001" value="' + item.price + '"><span>' + taxText + '</span></label></td></tr>';
+        }
+
+        function renderQuickImportPage(modal) {
+            var page = modal._quickImportPage || 1;
+            var rows = modal._quickImportRows || [];
+            var start = (page - 1) * QUICK_IMPORT_PAGE_SIZE;
+            var end = start + QUICK_IMPORT_PAGE_SIZE;
+            var pageRows = rows.slice(start, end);
+            var tbody = modal.querySelector('[data-quick-preview-body]');
+            var pageInfo = modal.querySelector('[data-quick-page-info]');
+            var prevBtn = modal.querySelector('[data-quick-page-prev]');
+            var nextBtn = modal.querySelector('[data-quick-page-next]');
+            
+            if (tbody) {
+                tbody.innerHTML = pageRows.map(function(item) {
+                    return quickPreviewRow(item, true);
+                }).join('');
+            }
+            
+            var pageCount = Math.max(1, Math.ceil(rows.length / QUICK_IMPORT_PAGE_SIZE));
+            if (pageInfo) pageInfo.textContent = '第 ' + page + ' / ' + pageCount + ' 页';
+            if (prevBtn) prevBtn.disabled = page <= 1;
+            if (nextBtn) nextBtn.disabled = page >= pageCount;
+        }
+
+        function saveCurrentQuickImportPage(modal) {
+            var tbody = modal.querySelector('[data-quick-preview-body]');
+            if (!tbody) return;
+            var page = modal._quickImportPage || 1;
+            var rows = modal._quickImportRows || [];
+            var start = (page - 1) * QUICK_IMPORT_PAGE_SIZE;
+            
+            tbody.querySelectorAll('tr.inventory-item').forEach(function(row, index) {
+                var dataIndex = start + index;
+                if (dataIndex >= rows.length) return;
+                var item = rows[dataIndex];
+                item.qty = row.querySelector('.qty-input').value;
+                item.unit = row.querySelector('.unit-select').value;
+                item.price = row.querySelector('.price-input').value;
+            });
+        }
+
+        function setQuickImportTax(modal, checked) {
+            var master = modal.querySelector('[data-quick-tax-master]');
+            if (master) {
+                master.setAttribute('aria-pressed', checked ? 'true' : 'false');
+                master.classList.toggle('is-on', checked);
+            }
+            modal.querySelectorAll('.quick-preview-table .price-field').forEach(function(field) {
+                var label = field.querySelector('span');
+                field.classList.toggle('is-taxed', checked);
+                field.classList.toggle('is-untaxed', !checked);
+                if (label) label.textContent = checked ? '含税' : '未税';
+            });
+        }
+
+        document.querySelectorAll('[data-quick-import-open]').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                var modal = document.getElementById('quickImportModal');
+                if (!modal) return;
+                modal.removeAttribute('hidden');
+            });
+        });
+
+        document.querySelectorAll('[data-quick-import-close]').forEach(function(btn) {
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                var modal = this.closest('#quickImportModal');
+                if (modal) modal.setAttribute('hidden', '');
+            });
+        });
+
+        document.querySelectorAll('[data-quick-parse]').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                var modal = link.closest('#quickImportModal');
+                if (!modal) return;
+                var text = modal.querySelector('[data-quick-paste-text]').value || '';
+                var lines = text.split('\n').map(function(line) { return line.trim(); }).filter(Boolean);
+                modal._quickImportRows = (lines.length ? lines : ['GRM188R71H104KA93D 850Kpcs']).map(quickParseLine);
+                modal._quickImportPage = 1;
+                var count = modal.querySelector('[data-quick-import-count]');
+                if (count) count.textContent = '成功导入 ' + modal._quickImportRows.length + ' 条数据';
+                modal.querySelector('[data-quick-paste-panel]').setAttribute('hidden', '');
+                modal.querySelector('[data-quick-preview-panel]').removeAttribute('hidden');
+                renderQuickImportPage(modal);
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            var prev = event.target.closest('[data-quick-page-prev]');
+            var next = event.target.closest('[data-quick-page-next]');
+            var masterTax = event.target.closest('[data-quick-tax-master]');
+            var confirm = event.target.closest('[data-quick-confirm-release]');
+            var quickKind = event.target.closest('[data-quick-kind]');
+            
+            if (!prev && !next && !masterTax && !confirm && !quickKind) return;
+            
+            var modal = event.target.closest('#quickImportModal');
+            if (!modal) return;
+            
+            if (prev) {
+                saveCurrentQuickImportPage(modal);
+                var rows = modal._quickImportRows || [];
+                var pageCount = Math.max(1, Math.ceil(rows.length / QUICK_IMPORT_PAGE_SIZE));
+                modal._quickImportPage = Math.max(1, (modal._quickImportPage || 1) - 1);
+                renderQuickImportPage(modal);
+            }
+            if (next) {
+                saveCurrentQuickImportPage(modal);
+                var rows = modal._quickImportRows || [];
+                var pageCount = Math.max(1, Math.ceil(rows.length / QUICK_IMPORT_PAGE_SIZE));
+                modal._quickImportPage = Math.min(pageCount, (modal._quickImportPage || 1) + 1);
+                renderQuickImportPage(modal);
+            }
+            if (masterTax) {
+                var checked = masterTax.getAttribute('aria-pressed') !== 'true';
+                setQuickImportTax(modal, checked);
+            }
+            if (quickKind) {
+                quickKind.closest('.quick-type-toggle').querySelectorAll('[data-quick-kind]').forEach(function(btn) { btn.classList.remove('active'); });
+                quickKind.classList.add('active');
+            }
+            if (confirm) {
+                saveCurrentQuickImportPage(modal);
+                var rows = modal._quickImportRows || [];
+                var isTaxed = modal.querySelector('[data-quick-tax-master]').getAttribute('aria-pressed') !== 'false';
+                var pubType = modal.querySelector('[data-quick-kind].active').dataset.quickKind === 'demand' ? 2 : 1;
+                var submitData = [];
+                rows.forEach(function(item) {
+                    var parsed = item.parsed || {};
+                    submitData.push({
+                        goodsSn: item.model,
+                        'attr_品牌': parsed.brand || '',
+                        'attr_封装': parsed.packaging || '',
+                        'attr_容值': parsed.capacitance || '',
+                        'attr_阻值': parsed.resistance || '',
+                        'attr_精度': parsed.tolerance || '',
+                        'attr_耐压': parsed.voltage || '',
+                        'attr_功率': parsed.power || '',
+                        'attr_介质': parsed.dielectric || '',
+                        'attr_温漂': parsed.tempCoefficient || '',
+                        goodsStock: parseInt(item.qty || '0') || 0,
+                        goodsUnit: item.unit || 'Kpcs',
+                        shopPrice: item.price || '',
+                        isIncludingTax: isTaxed ? 1 : 0,
+                        pubType: pubType,
+                        validity: '3天'
+                    });
+                });
+                if (!submitData.length) {
+                    Toast.warning('没有可发布的数据');
+                    return;
+                }
+                confirm.disabled = true;
+                confirm.textContent = '发布中...';
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/buyer-workbench.aspx', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        confirm.disabled = false;
+                        confirm.textContent = '确定';
+                        try {
+                            var result = JSON.parse(xhr.responseText);
+                            if (result.success) {
+                                Toast.success(result.message, 2500);
+                                setTimeout(function() { location.reload(); }, 2000);
+                            } else {
+                                Toast.error(result.message);
+                            }
+                        } catch (e) {
+                            Toast.error('发布失败，请重试');
+                        }
+                    }
+                };
+                xhr.send('action=batch_publish&data=' + encodeURIComponent(JSON.stringify(submitData)));
+            }
+        });
     </script>
+
+    <div class="modal-backdrop" id="quickImportModal" hidden>
+        <div class="modal quick-import-modal" role="dialog" aria-modal="true" aria-label="快捷发布">
+            <div class="modal-head"><h2>快捷发布 <small data-quick-import-count></small></h2><button class="modal-close" type="button" data-quick-import-close aria-label="关闭">×</button></div>
+            <div class="modal-body">
+                <section class="panel quick-paste-panel" data-quick-paste-panel>
+                    <div class="section-title"><div><h2>批量粘贴</h2><p>一行一条 料号+数量(发布后有效期为3天、下架后可以重新上架)</p></div></div>
+                    <textarea data-quick-paste-text></textarea>
+                    <div class="actions" style="margin-top:16px"><a class="btn primary" href="parse-confirm.aspx" data-quick-parse>开始解析</a></div>
+                </section>
+                <section class="panel quick-preview-panel" data-quick-preview-panel hidden>
+                    <div class="table-wrap">
+                        <table class="table inventory-table quick-preview-table">
+                            <thead><tr><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th class="price-tax-head">期望价 <button class="tax-switch is-on" type="button" data-quick-tax-master aria-pressed="true"><span></span></button></th></tr></thead>
+                            <tbody data-quick-preview-body></tbody>
+                        </table>
+                    </div>
+                    <div class="quick-preview-footer"><button class="btn primary" type="button" data-quick-confirm-release>确定</button><div class="quick-type-toggle"><button type="button" data-quick-kind="supply">发布供应</button><button class="active" type="button" data-quick-kind="demand">发布需求</button></div><div class="pagination"><button class="btn" type="button" data-quick-page-prev>上一页</button><span data-quick-page-info>第 1 / 1 页</span><span class="page-size">每页 30 条</span><button class="btn" type="button" data-quick-page-next>下一页</button></div></div>
+                </section>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

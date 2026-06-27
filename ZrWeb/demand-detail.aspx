@@ -11,13 +11,23 @@
     <title><%= PageTitle %></title>
     <meta name="keywords" content="<%= PageKeywords %>">
     <meta name="description" content="<%= PageDescription %>">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<%= PageTitle %>">
+    <meta property="og:description" content="<%= PageDescription %>">
+    <meta property="og:site_name" content="阻容网">
+    <meta property="og:image" content="https://www.zr.net.cn/assets/images/logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<%= PageTitle %>">
+    <meta name="twitter:description" content="<%= PageDescription %>">
+    <meta name="twitter:image" content="https://www.zr.net.cn/assets/images/logo.png">
     <link rel="stylesheet" href="/assets/css/styles.css">
     <style>
         .detail-hero-inner {
             display: flex !important;
             justify-content: space-between !important;
-            align-items: center !important;
+            align-items: flex-end !important;
             flex-wrap: nowrap !important;
+            position: relative !important;
         }
         .detail-hero-left {
             flex: 1 !important;
@@ -25,14 +35,19 @@
         }
         .detail-hero-right {
             flex: 0 0 auto !important;
-            margin-left: 200px !important;
-            min-width: 200px !important;
+            margin-left: auto !important;
+            margin-right: 0 !important;
             text-align: right !important;
+            padding-bottom: 0 !important;
+            padding-right: 0 !important;
         }
         .detail-price-wrap {
             display: flex !important;
             flex-direction: column !important;
             align-items: flex-end !important;
+        }
+        .detail-hero {
+            padding-right: 24px !important;
         }
     </style>
 </head>

@@ -3,6 +3,7 @@ using System.Web;
 using System.Web.UI;
 using System.Configuration;
 using System.Data;
+using System.Data.SqlClient;
 
 public partial class about_us : Page
 {
@@ -26,20 +27,20 @@ public partial class about_us : Page
     {
         try
         {
+            EnsureFeedbacksTableExists();
+            
             string name = Request["name"] != null ? Request["name"].Trim() : "";
             string contact = Request["contact"] != null ? Request["contact"].Trim() : "";
             string content = Request["content"] != null ? Request["content"].Trim() : "";
             
             if (string.IsNullOrEmpty(name))
             {
-                Response.Write("{\"success\":false,\"message\":\"请填写您的称呼\"}");
-                Response.End();
+                SendJsonResponse(false, "请填写您的称呼");
                 return;
             }
             if (string.IsNullOrEmpty(contact))
             {
-                Response.Write("{\"success\":false,\"message\":\"请填写联系方式\"}");
-                Response.End();
+                SendJsonResponse(false, "请填写联系方式");
                 return;
             }
             
@@ -56,19 +57,74 @@ public partial class about_us : Page
             string insertSQL = @"INSERT INTO feedbacks (name, contact, content, userId, userIP, status, createTime)
                                 VALUES (@name, @contact, @content, @userId, @userIP, 0, GETDATE())";
             
-            DbHelper.ExecuteNonQuery(insertSQL,
-                DbHelper.CreateParameter("@name", name),
-                DbHelper.CreateParameter("@contact", contact),
-                DbHelper.CreateParameter("@content", content),
-                DbHelper.CreateParameter("@userId", userId),
-                DbHelper.CreateParameter("@userIP", userIP));
+            SqlParameter[] paramsArray = new[] {
+                new SqlParameter("@name", SqlDbType.NVarChar, 50) { Value = name },
+                new SqlParameter("@contact", SqlDbType.NVarChar, 100) { Value = contact },
+                new SqlParameter("@content", SqlDbType.Text) { Value = content },
+                new SqlParameter("@userId", SqlDbType.Int) { Value = userId },
+                new SqlParameter("@userIP", SqlDbType.NVarChar, 50) { Value = userIP }
+            };
             
-            Response.Write("{\"success\":true,\"message\":\"留言提交成功\"}");
+            int result = DbHelper.ExecuteNonQuery(insertSQL, paramsArray);
+            
+            if (result > 0)
+            {
+                SendJsonResponse(true, "留言提交成功");
+            }
+            else
+            {
+                SendJsonResponse(false, "插入数据失败，影响行数: " + result);
+            }
         }
         catch (Exception ex)
         {
-            Response.Write("{\"success\":false,\"message\":\"" + ex.Message.Replace("\"", "\\\"") + "\"}");
+            SendJsonResponse(false, "提交失败: " + ex.Message + " Stack: " + ex.StackTrace);
         }
-        Response.End();
+    }
+    
+    private void SendJsonResponse(bool success, string message)
+    {
+        try
+        {
+            Response.Clear();
+            Response.ContentType = "application/json; charset=utf-8";
+            Response.Write("{\"success\":" + (success ? "true" : "false") + ",\"message\":\"" + message.Replace("\"", "\\\"") + "\"}");
+            Response.Flush();
+            Response.SuppressContent = true;
+            HttpContext.Current.ApplicationInstance.CompleteRequest();
+        }
+        catch { }
+    }
+    
+    private void EnsureFeedbacksTableExists()
+    {
+        try
+        {
+            object exists = DbHelper.ExecuteScalar("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'feedbacks'");
+            int count = exists != null && exists != DBNull.Value ? Convert.ToInt32(exists) : 0;
+            
+            if (count == 0)
+            {
+                string createSql = @"CREATE TABLE [dbo].[feedbacks] (
+  [feedbackId] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  [name] nvarchar(50) COLLATE Chinese_PRC_CI_AS NULL,
+  [contact] nvarchar(100) COLLATE Chinese_PRC_CI_AS NULL,
+  [content] text COLLATE Chinese_PRC_CI_AS NULL,
+  [userId] int NULL,
+  [userIP] nvarchar(50) COLLATE Chinese_PRC_CI_AS NULL,
+  [status] tinyint DEFAULT 0,
+  [createTime] datetime DEFAULT GETDATE(),
+  [replyContent] text COLLATE Chinese_PRC_CI_AS NULL,
+  [replyTime] datetime NULL,
+  [replyAdminId] int NULL
+)";
+                
+                DbHelper.ExecuteNonQuery(createSql);
+                
+                try { DbHelper.ExecuteNonQuery("CREATE INDEX [IX_feedbacks_status] ON [dbo].[feedbacks] ([status] ASC)"); } catch { }
+                try { DbHelper.ExecuteNonQuery("CREATE INDEX [IX_feedbacks_createTime] ON [dbo].[feedbacks] ([createTime] DESC)"); } catch { }
+            }
+        }
+        catch { }
     }
 }

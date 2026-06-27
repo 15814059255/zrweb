@@ -256,17 +256,17 @@ public partial class demand_detail : Page
 
                 if (!string.IsNullOrEmpty(goodsSn))
                 {
-                    Title = "求购 " + goodsSn;
+                    Title = goodsSn;
                     Model = goodsSn;
                 }
                 else if (!string.IsNullOrEmpty(name))
                 {
-                    Title = "求购 " + name;
+                    Title = name;
                     Model = name;
                 }
                 else
                 {
-                    Title = "求购电子元器件";
+                    Title = "电子元器件";
                     Model = "不限型号";
                 }
 
@@ -408,7 +408,7 @@ public partial class demand_detail : Page
 
     private void LoadDefaultData()
     {
-        Title = "求购 100K 0603 贴片电阻";
+        Title = "100K 0603 贴片电阻";
         Model = "不限型号";
         PriceDisplay = "¥6.0 /盘";
         PriceClass = "is-expected";
@@ -429,9 +429,9 @@ public partial class demand_detail : Page
 
     private void SetSEO()
     {
-        PageTitle = Title + " 需求详情 - 阻容网";
-        PageKeywords = Title + ",采购需求,电子元器件,阻容网";
-        PageDescription = Title + " 需求信息，" + Quantity + "，有效期" + Validity + "，采购商：" + CompanyName;
+        PageTitle = Title + " 采购需求 - 阻容网";
+        PageKeywords = Title + ",采购需求,电子元器件,阻容网,电阻电容";
+        PageDescription = "【采购】" + Title + " " + ParametersSummary + "，" + Quantity + "，期望价格" + PriceDisplay + "，有效期" + Validity + "，采购商：" + CompanyName;
     }
 
     private int GetIntValue(object value, int defaultValue)

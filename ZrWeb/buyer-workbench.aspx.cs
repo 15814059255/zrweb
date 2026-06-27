@@ -46,6 +46,16 @@ public partial class buyer_workbench : System.Web.UI.Page
                 HandleBatchRestock();
                 return;
             }
+            else if (action == "batch_take_off")
+            {
+                HandleBatchTakeOff();
+                return;
+            }
+            else if (action == "batch_publish")
+            {
+                HandleBatchPublish();
+                return;
+            }
             else if (action == "update_demand")
             {
                 HandleUpdateDemand();
@@ -180,6 +190,172 @@ public partial class buyer_workbench : System.Web.UI.Page
         }
     }
 
+    private void HandleBatchPublish()
+    {
+        Response.ContentType = "application/json";
+        try
+        {
+            if (Session == null)
+            {
+                WriteJson("{\"success\":false,\"message\":\"会话超时，请重新登录\"}");
+                return;
+            }
+            
+            string data = Request["data"];
+            if (string.IsNullOrEmpty(data))
+            {
+                WriteJson("{\"success\":false,\"message\":\"请提供发布数据\"}");
+                return;
+            }
+            
+            int userId = UserHelper.GetUserId();
+            if (userId == 0)
+            {
+                WriteJson("{\"success\":false,\"message\":\"请先登录\"}");
+                return;
+            }
+            
+            int shopId = 0;
+            if (Session["ShopId"] != null)
+            {
+                int.TryParse(Session["ShopId"].ToString(), out shopId);
+            }
+            if (shopId == 0)
+            {
+                HttpCookie userCookie = Request.Cookies["ZrWebUser"];
+                if (userCookie != null)
+                {
+                    int.TryParse(userCookie["ShopId"], out shopId);
+                    if (shopId > 0)
+                    {
+                        Session["ShopId"] = shopId;
+                    }
+                }
+            }
+            
+            if (shopId == 0)
+            {
+                WriteJson("{\"success\":false,\"message\":\"无法获取店铺信息，请完善店铺资料后重试\"}");
+                return;
+            }
+            
+            System.Web.Script.Serialization.JavaScriptSerializer serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+            dynamic items = serializer.DeserializeObject(data);
+            
+            int successCount = 0;
+            int failCount = 0;
+            string lastError = "";
+            GoodsService service = new GoodsService();
+            
+            foreach (var item in (System.Collections.IEnumerable)items)
+            {
+                try
+                {
+                    var dict = (System.Collections.Generic.IDictionary<string, object>)item;
+                    string goodsSn = "";
+                    if (dict.ContainsKey("goodsSn") && dict["goodsSn"] != null)
+                        goodsSn = dict["goodsSn"].ToString().Trim();
+                    
+                    string brand = "";
+                    if (dict.ContainsKey("attr_品牌") && dict["attr_品牌"] != null)
+                        brand = dict["attr_品牌"].ToString();
+                    
+                    string packaging = "";
+                    if (dict.ContainsKey("attr_封装") && dict["attr_封装"] != null)
+                        packaging = dict["attr_封装"].ToString();
+                    
+                    string capacitance = "";
+                    if (dict.ContainsKey("attr_容值") && dict["attr_容值"] != null)
+                        capacitance = dict["attr_容值"].ToString();
+                    
+                    string resistance = "";
+                    if (dict.ContainsKey("attr_阻值") && dict["attr_阻值"] != null)
+                        resistance = dict["attr_阻值"].ToString();
+                    
+                    string precision = "";
+                    if (dict.ContainsKey("attr_精度") && dict["attr_精度"] != null)
+                        precision = dict["attr_精度"].ToString();
+                    
+                    string voltage = "";
+                    if (dict.ContainsKey("attr_耐压") && dict["attr_耐压"] != null)
+                        voltage = dict["attr_耐压"].ToString();
+                    
+                    string power = "";
+                    if (dict.ContainsKey("attr_功率") && dict["attr_功率"] != null)
+                        power = dict["attr_功率"].ToString();
+                    
+                    string medium = "";
+                    if (dict.ContainsKey("attr_介质") && dict["attr_介质"] != null)
+                        medium = dict["attr_介质"].ToString();
+                    
+                    string tcr = "";
+                    if (dict.ContainsKey("attr_温漂") && dict["attr_温漂"] != null)
+                        tcr = dict["attr_温漂"].ToString();
+                    
+                    int goodsStock = 0;
+                    if (dict.ContainsKey("goodsStock") && dict["goodsStock"] != null)
+                    {
+                        int.TryParse(dict["goodsStock"].ToString(), out goodsStock);
+                    }
+                    
+                    string goodsUnit = "Kpcs";
+                    if (dict.ContainsKey("goodsUnit") && dict["goodsUnit"] != null)
+                        goodsUnit = dict["goodsUnit"].ToString();
+                    if (string.IsNullOrEmpty(goodsUnit)) goodsUnit = "Kpcs";
+                    
+                    decimal shopPrice = 0;
+                    if (dict.ContainsKey("shopPrice") && dict["shopPrice"] != null)
+                    {
+                        decimal.TryParse(dict["shopPrice"].ToString(), out shopPrice);
+                    }
+                    
+                    int isIncludingTax = 0;
+                    if (dict.ContainsKey("isIncludingTax"))
+                    {
+                        isIncludingTax = Convert.ToInt32(dict["isIncludingTax"]);
+                    }
+                    
+                    if (string.IsNullOrEmpty(goodsSn)) continue;
+                    
+                    bool success = service.PublishDemand(
+                        goodsSn, "", "", goodsStock, goodsUnit, shopPrice, isIncludingTax,
+                        userId, shopId, "3天",
+                        brand, capacitance, resistance, precision, voltage, medium, power, tcr);
+                    
+                    if (success)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failCount++;
+                    lastError = ex.Message;
+                }
+            }
+            
+            if (successCount > 0)
+            {
+                WriteJson("{\"success\":true,\"message\":\"成功发布 " + successCount + " 条需求" + (failCount > 0 ? "，失败 " + failCount + " 条" : "") + "\"}");
+            }
+            else
+            {
+                WriteJson("{\"success\":false,\"message\":\"发布失败\"}");
+            }
+        }
+        catch (ThreadAbortException)
+        {
+        }
+        catch (Exception ex)
+        {
+            WriteJson("{\"success\":false,\"message\":\"批量发布异常:" + ex.Message.Replace("\"", "'") + "\"}");
+        }
+    }
+
     private void HandleTakeOff()
     {
         try
@@ -306,6 +482,53 @@ public partial class buyer_workbench : System.Web.UI.Page
         catch (Exception ex)
         {
             WriteJson("{\"success\":false,\"message\":\"批量重新上架异常:" + ex.Message.Replace("\"", "'") + "\"}");
+        }
+    }
+
+    private void HandleBatchTakeOff()
+    {
+        try
+        {
+            string goodsIdsStr = Request["goodsIds"] ?? "";
+            if (string.IsNullOrEmpty(goodsIdsStr))
+            {
+                WriteJson("{\"success\":false,\"message\":\"请选择要下架的需求\"}");
+                return;
+            }
+
+            string[] goodsIdArr = goodsIdsStr.Split(',');
+            int successCount = 0;
+            int failCount = 0;
+            GoodsService service = new GoodsService();
+
+            foreach (string idStr in goodsIdArr)
+            {
+                int goodsId = 0;
+                if (int.TryParse(idStr, out goodsId) && goodsId > 0)
+                {
+                    if (service.TakeOff(goodsId, 0, 0, true))
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+                else
+                {
+                    failCount++;
+                }
+            }
+
+            WriteJson("{\"success\":true,\"message\":\"批量下架完成，成功" + successCount + "条，失败" + failCount + "条\"}");
+        }
+        catch (ThreadAbortException)
+        {
+        }
+        catch (Exception ex)
+        {
+            WriteJson("{\"success\":false,\"message\":\"批量下架异常:" + ex.Message.Replace("\"", "'") + "\"}");
         }
     }
 
@@ -463,7 +686,7 @@ public partial class buyer_workbench : System.Web.UI.Page
             HasDemandData = true;
         }
 
-        TotalPages = dt.Rows.Count > 0 ? (int)Math.Ceiling((double)dt.Rows.Count / 50) : 1;
+        TotalPages = dt.Rows.Count > 0 ? (int)Math.Ceiling((double)dt.Rows.Count / 25) : 1;
 
         rptDemand.DataSource = dt;
         rptDemand.DataBind();

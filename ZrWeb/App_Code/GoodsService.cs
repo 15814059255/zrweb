@@ -4,6 +4,60 @@ using System.Data.SqlClient;
 
 public class GoodsService
 {
+    private static bool _fieldsChecked = false;
+    private static object _fieldsLock = new object();
+
+    public GoodsService()
+    {
+        EnsureGoodsFields();
+    }
+
+    private void EnsureGoodsFields()
+    {
+        if (_fieldsChecked) return;
+        lock (_fieldsLock)
+        {
+            if (_fieldsChecked) return;
+            try
+            {
+                string[] fields = {
+                    "Brand NVARCHAR(100)",
+                    "Capacitance NVARCHAR(50)",
+                    "Resistance NVARCHAR(50)",
+                    "Tolerance NVARCHAR(30)",
+                    "Voltage NVARCHAR(30)",
+                    "Dielectric NVARCHAR(30)",
+                    "Power NVARCHAR(30)",
+                    "TempCoefficient NVARCHAR(30)",
+                    "pubSource INT DEFAULT 0"
+                };
+                foreach (string field in fields)
+                {
+                    string[] parts = field.Split(new[] {' '}, 2);
+                    string fieldName = parts[0];
+                    string checkSql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'goods' AND COLUMN_NAME = @fieldName";
+                    object countObj = DbHelper.ExecuteScalar(checkSql, DbHelper.CreateParameter("@fieldName", fieldName));
+                    int count = countObj != null && countObj != DBNull.Value ? Convert.ToInt32(countObj) : 0;
+                    if (count == 0)
+                    {
+                        try
+                        {
+                            string addSql = "ALTER TABLE goods ADD " + field;
+                            DbHelper.ExecuteNonQuery(addSql);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+            _fieldsChecked = true;
+        }
+    }
+
     public DataTable GetSupplyList(int pubType, int page = 1, int pageSize = 45)
     {
         try
@@ -74,7 +128,7 @@ public class GoodsService
         {
             string sql = @"SELECT 
                 goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType,
+                shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag, pubType, pubSource,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId";
@@ -95,7 +149,7 @@ public class GoodsService
                 parameters.AddRange(searchCond.Item2);
             }
 
-            sql += " ORDER BY createTime DESC";
+            sql += " ORDER BY createTime DESC, validityDate ASC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, parameters.ToArray());
             
@@ -121,7 +175,7 @@ public class GoodsService
         {
             string sql = @"SELECT TOP 50 
                 goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag, pubSource,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0 AND shopId = @shopId
@@ -150,7 +204,7 @@ public class GoodsService
         {
             string sql = @"SELECT TOP 50 
                 goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag, pubSource,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0
@@ -208,7 +262,7 @@ public class GoodsService
         int pubType, string remarks, int shopId, int userId, string validity = "30天",
         string brand = "", string capacitance = "", string resistance = "", 
         string tolerance = "", string voltage = "", string dielectric = "", 
-        string power = "", string tempCoefficient = "")
+        string power = "", string tempCoefficient = "", int pubSource = 0)
     {
         try
         {
@@ -216,12 +270,10 @@ public class GoodsService
             
             string sql = @"INSERT INTO goods (goodsSn, [Name], Manufacturers, Packaging, goodsStock, goodsUnit, 
                           shopPrice, isIncludingTax, pubType, remarks, shopId, dataFlag, goodsStatus, isSale, 
-                          createTime, updateTime, validityDate, Brand, Capacitance, Resistance, Tolerance, 
-                          Voltage, Dielectric, Power, TempCoefficient)
+                          createTime, updateTime, validityDate)
                           VALUES (@goodsSn, @Name, @Manufacturers, @Packaging, @goodsStock, @goodsUnit, 
                           @shopPrice, @isIncludingTax, @pubType, @remarks, @shopId, 1, 1, 1, 
-                          GETDATE(), GETDATE(), @validityDate, @Brand, @Capacitance, @Resistance, 
-                          @Tolerance, @Voltage, @Dielectric, @Power, @TempCoefficient)";
+                          GETDATE(), GETDATE(), @validityDate)";
 
             SqlParameter[] parameters = new SqlParameter[]
             {
@@ -236,23 +288,109 @@ public class GoodsService
                 new SqlParameter("@pubType", pubType),
                 new SqlParameter("@remarks", remarks ?? (object)DBNull.Value),
                 new SqlParameter("@shopId", shopId),
-                new SqlParameter("@validityDate", validityDate),
-                new SqlParameter("@Brand", string.IsNullOrEmpty(brand) ? (object)DBNull.Value : brand),
-                new SqlParameter("@Capacitance", string.IsNullOrEmpty(capacitance) ? (object)DBNull.Value : capacitance),
-                new SqlParameter("@Resistance", string.IsNullOrEmpty(resistance) ? (object)DBNull.Value : resistance),
-                new SqlParameter("@Tolerance", string.IsNullOrEmpty(tolerance) ? (object)DBNull.Value : tolerance),
-                new SqlParameter("@Voltage", string.IsNullOrEmpty(voltage) ? (object)DBNull.Value : voltage),
-                new SqlParameter("@Dielectric", string.IsNullOrEmpty(dielectric) ? (object)DBNull.Value : dielectric),
-                new SqlParameter("@Power", string.IsNullOrEmpty(power) ? (object)DBNull.Value : power),
-                new SqlParameter("@TempCoefficient", string.IsNullOrEmpty(tempCoefficient) ? (object)DBNull.Value : tempCoefficient)
+                new SqlParameter("@validityDate", validityDate)
             };
 
             int result = DbHelper.ExecuteNonQuery(sql, parameters);
-            return result > 0;
-        }
-        catch (Exception)
-        {
+            if (result > 0)
+            {
+                // 获取刚插入的记录ID
+                int goodsId = 0;
+                try
+                {
+                    string idSql = "SELECT TOP 1 goodsId FROM goods WHERE goodsSn = @goodsSn AND shopId = @shopId AND dataFlag = 1 ORDER BY createTime DESC";
+                    object idResult = DbHelper.ExecuteScalar(idSql, 
+                        DbHelper.CreateParameter("@goodsSn", goodsSn),
+                        DbHelper.CreateParameter("@shopId", shopId));
+                    if (idResult != null && idResult != DBNull.Value)
+                    {
+                        goodsId = Convert.ToInt32(idResult);
+                        // 更新参数字段
+                        UpdateGoodsParams(goodsId, brand, capacitance, resistance, tolerance, voltage, dielectric, power, tempCoefficient);
+                    }
+                }
+                catch
+                {
+                    // 参数更新失败不影响主流程
+                }
+                return true;
+            }
             return false;
+        }
+        catch (Exception ex)
+        {
+            string logPath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/InsertGoodsError.log");
+            try
+            {
+                System.IO.File.AppendAllText(logPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Error: " + ex.Message + " - goodsSn: " + goodsSn + " - shopId: " + shopId + Environment.NewLine);
+            }
+            catch
+            {
+            }
+            return false;
+        }
+    }
+    
+    private void UpdateGoodsParams(int goodsId, string brand, string capacitance, string resistance, 
+        string tolerance, string voltage, string dielectric, string power, string tempCoefficient)
+    {
+        try
+        {
+            string sql = "UPDATE goods SET ";
+            System.Collections.Generic.List<string> setParts = new System.Collections.Generic.List<string>();
+            System.Collections.Generic.List<SqlParameter> parameters = new System.Collections.Generic.List<SqlParameter>();
+            
+            if (!string.IsNullOrEmpty(brand))
+            {
+                setParts.Add("Brand = @Brand");
+                parameters.Add(new SqlParameter("@Brand", brand));
+            }
+            if (!string.IsNullOrEmpty(capacitance))
+            {
+                setParts.Add("Capacitance = @Capacitance");
+                parameters.Add(new SqlParameter("@Capacitance", capacitance));
+            }
+            if (!string.IsNullOrEmpty(resistance))
+            {
+                setParts.Add("Resistance = @Resistance");
+                parameters.Add(new SqlParameter("@Resistance", resistance));
+            }
+            if (!string.IsNullOrEmpty(tolerance))
+            {
+                setParts.Add("Tolerance = @Tolerance");
+                parameters.Add(new SqlParameter("@Tolerance", tolerance));
+            }
+            if (!string.IsNullOrEmpty(voltage))
+            {
+                setParts.Add("Voltage = @Voltage");
+                parameters.Add(new SqlParameter("@Voltage", voltage));
+            }
+            if (!string.IsNullOrEmpty(dielectric))
+            {
+                setParts.Add("Dielectric = @Dielectric");
+                parameters.Add(new SqlParameter("@Dielectric", dielectric));
+            }
+            if (!string.IsNullOrEmpty(power))
+            {
+                setParts.Add("Power = @Power");
+                parameters.Add(new SqlParameter("@Power", power));
+            }
+            if (!string.IsNullOrEmpty(tempCoefficient))
+            {
+                setParts.Add("TempCoefficient = @TempCoefficient");
+                parameters.Add(new SqlParameter("@TempCoefficient", tempCoefficient));
+            }
+            
+            if (setParts.Count > 0)
+            {
+                sql += string.Join(", ", setParts);
+                sql += " WHERE goodsId = @goodsId";
+                parameters.Add(new SqlParameter("@goodsId", goodsId));
+                DbHelper.ExecuteNonQuery(sql, parameters.ToArray());
+            }
+        }
+        catch
+        {
         }
     }
     
@@ -289,8 +427,8 @@ public class GoodsService
                 shopPrice, isIncludingTax, createTime, validityDate, isSale, goodsStatus, dataFlag,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
-                WHERE pubType = @pubType AND isSale = 1 AND dataFlag = 1 AND shopId = @shopId
-                ORDER BY createTime DESC";
+                WHERE pubType = @pubType AND isSale = 1 AND goodsStatus = 1 AND dataFlag = 1 AND shopId = @shopId
+                ORDER BY createTime DESC, validityDate ASC";
 
             DataTable dt = DbHelper.ExecuteQuery(sql, 
                 DbHelper.CreateParameter("@pubType", pubType),
@@ -315,7 +453,7 @@ public class GoodsService
         {
             string sql = @"SELECT TOP 50 
                 goodsId, goodsSn, Name, Manufacturers, Packaging, goodsStock, goodsUnit, 
-                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag,
+                shopPrice, isIncludingTax, updateTime, validityDate, isSale, goodsStatus, dataFlag, pubSource,
                 Brand, Capacitance, Resistance, Tolerance, Voltage, Dielectric, Power, TempCoefficient
                 FROM goods 
                 WHERE dataFlag = 1 AND pubType = @pubType AND isSale = 0 AND shopId = @shopId
@@ -351,6 +489,7 @@ public class GoodsService
         dt.Columns.Add("Price", typeof(string));
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("RemainingTime", typeof(string));
+        dt.Columns.Add("PubSource", typeof(int));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -371,29 +510,23 @@ public class GoodsService
             if (isSale == 1)
             {
                 TimeSpan diff = validityDate - DateTime.Now;
-                if (diff.TotalHours < 24)
+                if (diff.TotalDays < 0)
+                {
+                    newRow["Status"] = "已过期";
+                    newRow["StatusClass"] = "gray";
+                    newRow["RemainingTime"] = "已过期";
+                }
+                else if (diff.TotalDays < 1)
                 {
                     newRow["Status"] = "即将到期";
                     newRow["StatusClass"] = "orange";
-                    newRow["RemainingTime"] = "<span class=\"time-danger\">小于 24 小时</span>";
-                }
-                else if (diff.TotalDays < 3)
-                {
-                    newRow["Status"] = "即将到期";
-                    newRow["StatusClass"] = "orange";
-                    newRow["RemainingTime"] = diff.TotalHours.ToString("0") + " 小时";
-                }
-                else if (diff.TotalDays >= 30)
-                {
-                    newRow["Status"] = "采购中";
-                    newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = (diff.TotalDays / 30).ToString("0") + " 个月";
+                    newRow["RemainingTime"] = "小于1天";
                 }
                 else
                 {
                     newRow["Status"] = "采购中";
                     newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = diff.TotalDays.ToString("0") + " 天";
+                    newRow["RemainingTime"] = ((int)diff.TotalDays) + "天";
                 }
             }
             else
@@ -426,6 +559,13 @@ public class GoodsService
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
             newRow["IsTaxed"] = isIncludingTax == 1;
+            
+            int pubSource = 0;
+            if (sourceTable.Columns.Contains("pubSource"))
+            {
+                pubSource = GetIntValue(row["pubSource"], 0);
+            }
+            newRow["PubSource"] = pubSource;
 
             dt.Rows.Add(newRow);
         }
@@ -483,6 +623,13 @@ public class GoodsService
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
             newRow["IsTaxed"] = isIncludingTax == 1;
             newRow["OfflineTime"] = updateTime.ToString("yyyy-MM-dd HH:mm");
+            
+            int pubSource = 0;
+            if (sourceTable.Columns.Contains("pubSource"))
+            {
+                pubSource = GetIntValue(row["pubSource"], 0);
+            }
+            newRow["PubSource"] = pubSource;
 
             dt.Rows.Add(newRow);
         }
@@ -675,6 +822,7 @@ public class GoodsService
         dt.Columns.Add("Price", typeof(string));
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("RemainingTime", typeof(string));
+        dt.Columns.Add("PubSource", typeof(int));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -696,29 +844,23 @@ public class GoodsService
             if (isSale == 1)
             {
                 TimeSpan diff = validityDate - DateTime.Now;
-                if (diff.TotalHours < 24)
+                if (diff.TotalDays < 0)
+                {
+                    newRow["Status"] = "已过期";
+                    newRow["StatusClass"] = "gray";
+                    newRow["RemainingTime"] = "已过期";
+                }
+                else if (diff.TotalDays < 1)
                 {
                     newRow["Status"] = "即将到期";
                     newRow["StatusClass"] = "orange";
-                    newRow["RemainingTime"] = "<span class=\"time-danger\">小于 24 小时</span>";
-                }
-                else if (diff.TotalDays < 3)
-                {
-                    newRow["Status"] = "即将到期";
-                    newRow["StatusClass"] = "orange";
-                    newRow["RemainingTime"] = diff.TotalHours.ToString("0") + " 小时";
-                }
-                else if (diff.TotalDays >= 30)
-                {
-                    newRow["Status"] = "供应";
-                    newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = (diff.TotalDays / 30).ToString("0") + " 个月";
+                    newRow["RemainingTime"] = "小于1天";
                 }
                 else
                 {
                     newRow["Status"] = "供应";
                     newRow["StatusClass"] = "blue";
-                    newRow["RemainingTime"] = diff.TotalDays.ToString("0") + " 天";
+                    newRow["RemainingTime"] = ((int)diff.TotalDays) + "天";
                 }
             }
             else
@@ -749,6 +891,13 @@ public class GoodsService
             newRow["Unit"] = !string.IsNullOrEmpty(goodsUnit) ? goodsUnit : "Kpcs";
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
             newRow["IsTaxed"] = isIncludingTax == 1;
+            
+            int pubSource = 0;
+            if (sourceTable.Columns.Contains("pubSource"))
+            {
+                pubSource = GetIntValue(row["pubSource"], 0);
+            }
+            newRow["PubSource"] = pubSource;
 
             dt.Rows.Add(newRow);
         }
@@ -767,6 +916,7 @@ public class GoodsService
         dt.Columns.Add("Price", typeof(string));
         dt.Columns.Add("IsTaxed", typeof(bool));
         dt.Columns.Add("OfflineTime", typeof(string));
+        dt.Columns.Add("PubSource", typeof(int));
 
         foreach (DataRow row in sourceTable.Rows)
         {
@@ -805,6 +955,13 @@ public class GoodsService
             newRow["Price"] = shopPrice > 0 ? shopPrice.ToString("0.00") : "0.00";
             newRow["IsTaxed"] = isIncludingTax == 1;
             newRow["OfflineTime"] = updateTime.ToString("yyyy-MM-dd HH:mm");
+            
+            int pubSource = 0;
+            if (sourceTable.Columns.Contains("pubSource"))
+            {
+                pubSource = GetIntValue(row["pubSource"], 0);
+            }
+            newRow["PubSource"] = pubSource;
 
             dt.Rows.Add(newRow);
         }
@@ -844,25 +1001,26 @@ public class GoodsService
     {
         System.Collections.Generic.List<string> paramsList = new System.Collections.Generic.List<string>();
         
-        string brand = GetStringValue(row["Brand"]);
-        string packaging = GetStringValue(row["Packaging"]);
-        string capacitance = GetStringValue(row["Capacitance"]);
-        string resistance = GetStringValue(row["Resistance"]);
-        string tolerance = GetStringValue(row["Tolerance"]);
-        string voltage = GetStringValue(row["Voltage"]);
-        string dielectric = GetStringValue(row["Dielectric"]);
-        string power = GetStringValue(row["Power"]);
-        string tempCoefficient = GetStringValue(row["TempCoefficient"]);
+        DataColumnCollection cols = row.Table.Columns;
         
-        if (!string.IsNullOrEmpty(brand)) paramsList.Add(brand);
-        if (!string.IsNullOrEmpty(packaging)) paramsList.Add(packaging);
-        if (!string.IsNullOrEmpty(capacitance)) paramsList.Add(capacitance);
-        if (!string.IsNullOrEmpty(resistance)) paramsList.Add(resistance);
-        if (!string.IsNullOrEmpty(tolerance)) paramsList.Add(tolerance);
-        if (!string.IsNullOrEmpty(voltage)) paramsList.Add(voltage);
-        if (!string.IsNullOrEmpty(dielectric)) paramsList.Add(dielectric);
-        if (!string.IsNullOrEmpty(power)) paramsList.Add(power);
-        if (!string.IsNullOrEmpty(tempCoefficient)) paramsList.Add(tempCoefficient);
+        if (cols.Contains("Brand") && row["Brand"] != DBNull.Value)
+            paramsList.Add(row["Brand"].ToString());
+        if (cols.Contains("Packaging") && row["Packaging"] != DBNull.Value)
+            paramsList.Add(row["Packaging"].ToString());
+        if (cols.Contains("Capacitance") && row["Capacitance"] != DBNull.Value)
+            paramsList.Add(row["Capacitance"].ToString());
+        if (cols.Contains("Resistance") && row["Resistance"] != DBNull.Value)
+            paramsList.Add(row["Resistance"].ToString());
+        if (cols.Contains("Tolerance") && row["Tolerance"] != DBNull.Value)
+            paramsList.Add(row["Tolerance"].ToString());
+        if (cols.Contains("Voltage") && row["Voltage"] != DBNull.Value)
+            paramsList.Add(row["Voltage"].ToString());
+        if (cols.Contains("Dielectric") && row["Dielectric"] != DBNull.Value)
+            paramsList.Add(row["Dielectric"].ToString());
+        if (cols.Contains("Power") && row["Power"] != DBNull.Value)
+            paramsList.Add(row["Power"].ToString());
+        if (cols.Contains("TempCoefficient") && row["TempCoefficient"] != DBNull.Value)
+            paramsList.Add(row["TempCoefficient"].ToString());
         
         return paramsList.Count > 0 ? string.Join(" · ", paramsList) : "";
     }
@@ -877,6 +1035,7 @@ public class GoodsService
     {
         try
         {
+            EnsureGoodsFields();
             DateTime validityDate = CalculateExpireTime(validity);
             
             string sql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId,
@@ -909,7 +1068,31 @@ public class GoodsService
         }
         catch (Exception ex)
         {
-            throw new Exception("PublishDemand failed: " + ex.Message, ex);
+            try
+            {
+                DateTime validityDate = CalculateExpireTime(validity);
+                string fallbackSql = @"INSERT INTO goods (goodsSn, Name, Manufacturers, goodsStock, goodsUnit, shopPrice, isIncludingTax, pubType, isSale, goodsStatus, dataFlag, createTime, validityDate, shopId)
+                    VALUES (@goodsSn, @name, @manufacturers, @quantity, @unit, @price, @isIncludingTax, 2, 1, 1, 1, GETDATE(), @validityDate, @shopId)";
+
+                SqlParameter[] fallbackParams = new SqlParameter[] {
+                    new SqlParameter("@goodsSn", goodsSn ?? ""),
+                    new SqlParameter("@name", name ?? ""),
+                    new SqlParameter("@manufacturers", manufacturers ?? ""),
+                    new SqlParameter("@quantity", quantity),
+                    new SqlParameter("@unit", unit ?? "Kpcs"),
+                    new SqlParameter("@price", price),
+                    new SqlParameter("@isIncludingTax", isIncludingTax),
+                    new SqlParameter("@shopId", shopId),
+                    new SqlParameter("@validityDate", validityDate)
+                };
+
+                int result = DbHelper.ExecuteNonQuery(fallbackSql, fallbackParams);
+                return result > 0;
+            }
+            catch (Exception ex2)
+            {
+                throw new Exception("PublishDemand failed: " + ex.Message + " | Fallback also failed: " + ex2.Message, ex2);
+            }
         }
     }
 
@@ -980,11 +1163,11 @@ public class GoodsService
     /// <summary>
     /// 下架商品（带用户和店铺信息，用于防频繁操作检查）
     /// </summary>
-    public bool TakeOff(int goodsId, int userId, int shopId)
+    public bool TakeOff(int goodsId, int userId, int shopId, bool skipFrequentCheck = false)
     {
         try
         {
-            if (userId > 0)
+            if (!skipFrequentCheck && userId > 0)
             {
                 string warning = CheckFrequentOperation(userId, goodsId, "takeoff");
                 if (!string.IsNullOrEmpty(warning))

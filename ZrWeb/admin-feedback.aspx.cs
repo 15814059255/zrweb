@@ -14,6 +14,7 @@ public partial class admin_feedback : System.Web.UI.Page
 
     protected void Page_Load(object sender, EventArgs e)
     {
+        EnsureFeedbacksTableExists();
         CheckLogin();
         HandleActions();
         LoadFeedbackList();
@@ -119,26 +120,8 @@ public partial class admin_feedback : System.Web.UI.Page
             if (CurrentPage > TotalPages) CurrentPage = TotalPages;
             if (CurrentPage < 1) CurrentPage = 1;
 
-            string finalSql = listSql + " ORDER BY createTime DESC OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+            FeedbackList = DbHelper.ExecuteQuery(listSql + " ORDER BY createTime DESC", paramsArray);
             
-            SqlParameter[] listParams;
-            if (!string.IsNullOrEmpty(StatusFilter))
-            {
-                listParams = new[] { 
-                    DbHelper.CreateParameter("@status", Convert.ToInt32(StatusFilter)),
-                    DbHelper.CreateParameter("@offset", (CurrentPage - 1) * PageSize),
-                    DbHelper.CreateParameter("@pageSize", PageSize)
-                };
-            }
-            else
-            {
-                listParams = new[] { 
-                    DbHelper.CreateParameter("@offset", (CurrentPage - 1) * PageSize),
-                    DbHelper.CreateParameter("@pageSize", PageSize)
-                };
-            }
-
-            FeedbackList = DbHelper.ExecuteQuery(finalSql, listParams);
             if (FeedbackList != null)
             {
                 rptFeedbacks.DataSource = FeedbackList;
@@ -162,5 +145,37 @@ public partial class admin_feedback : System.Web.UI.Page
             url += "&status=" + StatusFilter;
         }
         return url;
+    }
+    
+    private void EnsureFeedbacksTableExists()
+    {
+        try
+        {
+            object exists = DbHelper.ExecuteScalar("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'feedbacks'");
+            int count = exists != null && exists != DBNull.Value ? Convert.ToInt32(exists) : 0;
+            
+            if (count == 0)
+            {
+                string createSql = @"CREATE TABLE [dbo].[feedbacks] (
+  [feedbackId] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  [name] nvarchar(50) COLLATE Chinese_PRC_CI_AS NULL,
+  [contact] nvarchar(100) COLLATE Chinese_PRC_CI_AS NULL,
+  [content] text COLLATE Chinese_PRC_CI_AS NULL,
+  [userId] int NULL,
+  [userIP] nvarchar(50) COLLATE Chinese_PRC_CI_AS NULL,
+  [status] tinyint DEFAULT 0,
+  [createTime] datetime DEFAULT GETDATE(),
+  [replyContent] text COLLATE Chinese_PRC_CI_AS NULL,
+  [replyTime] datetime NULL,
+  [replyAdminId] int NULL
+)";
+                
+                DbHelper.ExecuteNonQuery(createSql);
+                
+                try { DbHelper.ExecuteNonQuery("CREATE INDEX [IX_feedbacks_status] ON [dbo].[feedbacks] ([status] ASC)"); } catch { }
+                try { DbHelper.ExecuteNonQuery("CREATE INDEX [IX_feedbacks_createTime] ON [dbo].[feedbacks] ([createTime] DESC)"); } catch { }
+            }
+        }
+        catch { }
     }
 }

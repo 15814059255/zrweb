@@ -12,6 +12,17 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <style>
         .confirm-btn.is-hidden { display: none !important; }
+        .bom-tag {
+            display: inline-block;
+            font-size: 10px;
+            color: #fff;
+            background: #10b981;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: normal;
+            vertical-align: top;
+        }
     </style>
 </head>
 <body>
@@ -60,23 +71,23 @@
                             <% } else { %>
                             <asp:Repeater ID="rptInventory" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini primary confirm-btn is-hidden" onclick="saveSupplyChange(<%# Eval("GoodsId") %>, this)">确定</button><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
+                                    <tr class="inventory-item" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag <%# Eval("StatusClass") %>"><%# Eval("Status") %></span></td><td><strong><%# Eval("Model") %><%# Convert.ToInt32(Eval("PubSource")) == 1 ? "<span class=\"bom-tag\">BOM</span>" : "" %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("RemainingTime") %></td><td><button class="btn mini primary confirm-btn is-hidden" onclick="saveSupplyChange(<%# Eval("GoodsId") %>, this)">确定</button><button class="btn mini take-off" data-toggle-stock>下架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                             <% } %>
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all></label><button class="btn mini" data-ui-toast="已批量下架选中库存">批量下架</button></div><button class="btn" disabled>上一页</button><span>第 <%= CurrentPage %> / <%= TotalPages %> 页</span><span class="page-size">每页 50 条</span><button class="btn">下一页</button></div></section>
+                <div class="pagination" data-inventory-pagination data-page-size="25"><div class="batch-actions"><label class="select-all"><input type="checkbox" data-select-all></label><button class="btn mini" data-batch-takeoff>批量下架</button></div><button class="btn" disabled data-page-prev>上一页</button><span>第 <span data-page-current><%= CurrentPage %></span> / <span data-page-total><%= TotalPages %></span> 页</span><span class="page-size">每页 25 条</span><button class="btn" data-page-next>下一页</button></div></section>
             <section class="panel expired-panel" id="expiredPanel" hidden style="margin-top:18px">
-                <div class="section-title"><div><h2>到期信息 · 已下架商品</h2></div><div class="actions"><button class="btn" data-toggle-expired>收起</button><button class="btn" data-ui-toast="已批量重新上架选中库存">批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
+                <div class="section-title"><div><h2>到期信息 · 已下架商品</h2></div><div class="actions"><button class="btn" data-toggle-expired>收起</button><button class="btn" data-batch-restock>批量重新上架</button><label class="select-all expired-select-all"><input type="checkbox" data-select-all><span>全选</span></label></div></div>
                 <div class="table-wrap">
                     <table class="table inventory-table">
                         <thead><tr><th></th><th>状态</th><th>型号</th><th>品牌 / 参数</th><th>数量</th><th>单位</th><th>单价</th><th>税赋</th><th>下架时间</th><th>操作</th></tr></thead>
                         <tbody>
                             <asp:Repeater ID="rptExpiredInventory" runat="server" EnableViewState="false">
                                 <ItemTemplate>
-                                    <tr class="inventory-item is-offline" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong><%# Eval("Model") %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("OfflineTime") %></td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
+                                    <tr class="inventory-item is-offline" data-goods-id="<%# Eval("GoodsId") %>"><td><input type="checkbox"></td><td><span class="tag orange">已下架</span></td><td><strong><%# Eval("Model") %><%# Convert.ToInt32(Eval("PubSource")) == 1 ? "<span class=\"bom-tag\">BOM</span>" : "" %></strong></td><td><%# Eval("BrandParams") %></td><td><input class="qty-input" inputmode="numeric" pattern="[1-9][0-9]*" value="<%# Eval("Quantity") %>"></td><td><select class="unit-select"><option <%# Eval("Unit") == "Kpcs" ? "selected" : "" %>>Kpcs</option><option <%# Eval("Unit") == "Pcs" ? "selected" : "" %>>Pcs</option><option <%# Eval("Unit") == "盘" ? "selected" : "" %>>盘</option><option <%# Eval("Unit") == "卷" ? "selected" : "" %>>卷</option><option <%# Eval("Unit") == "件" ? "selected" : "" %>>件</option></select></td><td><label class="price-field <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-taxed" : "is-untaxed" %>"><input class="price-input" min="0.0001" step="0.0001" value="<%# Eval("Price") %>"><span><%# Convert.ToBoolean(Eval("IsTaxed")) ? "含税" : "未税" %></span></label></td><td><button class="tax-switch <%# Convert.ToBoolean(Eval("IsTaxed")) ? "is-on" : "" %>" type="button" data-tax-toggle aria-pressed="<%# Convert.ToBoolean(Eval("IsTaxed")) %>"><span></span></button></td><td><%# Eval("OfflineTime") %></td><td><button class="btn mini restock" data-toggle-stock>重新上架</button></td></tr>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </tbody>
